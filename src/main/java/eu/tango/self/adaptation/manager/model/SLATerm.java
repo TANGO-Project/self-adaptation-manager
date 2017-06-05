@@ -19,6 +19,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 
 /**
  * This represents an SLA term.
+ *
  * @author Richard Kavanagh
  */
 public class SLATerm {
@@ -93,10 +94,41 @@ public class SLATerm {
     }
 
     /**
+     * This splits the agreement term into sections based upon the delimiter :
+     *
+     * @return the agreementTerm split into sub components
+     */
+    public String[] getSplitAgreementTerm() {
+        return agreementTerm.split(":");
+    }
+
+    /**
      * @param agreementTerm the agreementTerm to set
      */
     public void setAgreementTerm(String agreementTerm) {
         this.agreementTerm = agreementTerm;
+    }
+
+    /**
+     * This indicates if this SLA term has been breached or not.
+     *
+     * @param currentValue The current measured value for this term.
+     * @return If an SLA breach has occured or not.
+     */
+    public boolean isBreached(double currentValue) {
+        switch (guranteeOperator) {
+            case EQ:
+                return currentValue == guranteedValue;
+            case GT:
+                return currentValue > guranteedValue;
+            case GTE:
+                return currentValue >= guranteedValue;
+            case LT:
+                return currentValue < guranteedValue;
+            case LTE:
+                return currentValue <= guranteedValue;
+        }
+        return false;
     }
 
 }

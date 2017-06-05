@@ -19,10 +19,13 @@ import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
+import eu.tango.energymodeller.types.energyuser.Host;
+import eu.tango.self.adaptation.manager.model.SLALimits;
+import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,16 +90,11 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
         try {
             // Wait for a message
             while (running) {
-                /**
-                 * TODO Fix the measurement contains no concept of breach.
-                 * Thus QoS criteria need implementing
-                 */
                 //TODO Implement here
                 //GET LIST OF Terms to monitor here
-                //Compare them to the data source
-                //Invoke adapation as needed.
-                List<HostMeasurement> measurements = datasource.getHostData();
-                eventAssessor.assessEvent(null);
+                SLALimits limits = null;
+                EventData event = detectBreach(limits);
+                eventAssessor.assessEvent(event);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
@@ -107,7 +105,29 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
             ex.printStackTrace();
         }
     }
-
+    
+    /**
+     * This takes a list of measurements and determines if an SLA breach has occured
+     * by comparing them to the QoS limits.
+     * @param measurements The list of measurements
+     * @param limits The QoS goal limits.
+     * @return The first SLA breach event. Null if none found.
+     */
+    private EventData detectBreach(SLALimits limits) {
+        ArrayList<SLATerm> criteria = limits.getQosCriteria();
+        for (SLATerm term : criteria) {
+            String[] termStr = term.getSplitAgreementTerm();
+            String agreementTerm = termStr[1];
+            Host host = datasource.getHostByName(termStr[0]);
+            HostMeasurement measurement = datasource.getHostData(host);
+            double currentValue = measurement.getMetric(agreementTerm).getValue();
+            if (term.isBreached(currentValue)) {
+                return new EventData(measurement.getClock(), currentValue, term.getGuranteedValue(), EventData.Type.SLA_BREACH, term.getGuranteeOperator(), "", "", term.getGuaranteeid(), term.getAgreementTerm());
+            }
+        }
+        return null;
+    }
+    
     /**
      * @param notification The incoming event to convert into the
      * self-adaptation managers internal representation
@@ -131,7 +151,7 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
         }
         //TODO May not be the 0th SLA Term FIX HERE
         /**
-         * Options available@ FAILURE(1), WARNING(2), UNKNOWN(3), OKAY(4);
+         * Options available: FAILURE(1), WARNING(2), UNKNOWN(3), OKAY(4)
          */
         if (notification.getSeverity().equals(Severity.FATAL)) {
             answer.setType(EventData.Type.SLA_BREACH);
