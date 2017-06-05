@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>eu.tango</groupId>
+    <artifactId>self-adaptation-manager</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
+    <name>Self Adaptation Manager</name>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <name>Central Repository</name>
+            <url>http://repo.maven.apache.org/maven2</url>
+        </repository>        
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <id>clapper-org-maven-repo</id>
+            <name>org.clapper Maven Repo</name>
+            <url>http://maven.clapper.org/</url>
+            <layout>default</layout>
+        </repository>         
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>              
+    </repositories>
+    <dependencies>      
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.RichardKav</groupId>
+            <artifactId>io-utils</artifactId>
+            <version>-V1.0-g3a37cb4-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.TANGO-Project</groupId>
+            <artifactId>jcollectd</artifactId>
+            <version>-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+	    <groupId>com.github.TANGO-Project</groupId>
+	    <artifactId>energy-modeller</artifactId>
+	    <version>04941e07ad</version>
+	</dependency>                
+    </dependencies>     
+</project>
