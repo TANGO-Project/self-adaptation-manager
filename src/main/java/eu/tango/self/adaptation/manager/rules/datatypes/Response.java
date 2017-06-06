@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 University of Leeds
+ * Copyright 2017 University of Leeds
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,26 +31,25 @@ public class Response implements Comparable<Response> {
     private final EventData cause;
     private AdaptationType actionType;
     private String adaptationDetails;
-    private String vmId;
+    private String taskId;
     private boolean performed = false;
     private boolean possibleToAdapt = true;
     private static final Map<String, Response.AdaptationType> ADAPTATION_TYPE_MAPPING
             = new HashMap<>();
 
     static {
-        ADAPTATION_TYPE_MAPPING.put("ADD_VM", Response.AdaptationType.ADD_VM);
-        ADAPTATION_TYPE_MAPPING.put("INFLATE_VM", Response.AdaptationType.INFLATE_VM);
+        ADAPTATION_TYPE_MAPPING.put("INCREASE_WALL_TIME", Response.AdaptationType.INCREASE_WALL_TIME);
+        ADAPTATION_TYPE_MAPPING.put("REDUCE_WALL_TIME", Response.AdaptationType.REDUCE_WALL_TIME);
         ADAPTATION_TYPE_MAPPING.put("ADD_CPU", Response.AdaptationType.ADD_CPU);
         ADAPTATION_TYPE_MAPPING.put("ADD_MEMORY", Response.AdaptationType.ADD_MEMORY);
-        ADAPTATION_TYPE_MAPPING.put("REMOVE_VM", Response.AdaptationType.REMOVE_VM);
-        ADAPTATION_TYPE_MAPPING.put("DEFLATE_VM", Response.AdaptationType.DEFLATE_VM);
         ADAPTATION_TYPE_MAPPING.put("REMOVE_CPU", Response.AdaptationType.REMOVE_CPU);
-        ADAPTATION_TYPE_MAPPING.put("REMOVE_MEMORY", Response.AdaptationType.ADD_VM);
         ADAPTATION_TYPE_MAPPING.put("SHUTDOWN_APP", Response.AdaptationType.SHUTDOWN_APP);
         ADAPTATION_TYPE_MAPPING.put("HARD_SHUTDOWN_APP", Response.AdaptationType.HARD_SHUTDOWN_APP);
-        ADAPTATION_TYPE_MAPPING.put("REQUEST_VM_CONSOLIDATION", Response.AdaptationType.REQUEST_VM_CONSOLIDATION);
-        ADAPTATION_TYPE_MAPPING.put("SCALE_TO_N_VMS", Response.AdaptationType.SCALE_TO_N_VMS);
-        ADAPTATION_TYPE_MAPPING.put("RENEGOTIATE", Response.AdaptationType.RENEGOTIATE);
+        ADAPTATION_TYPE_MAPPING.put("RESELECT_ACCELERATORS", Response.AdaptationType.RESELECT_ACCELERATORS);
+        ADAPTATION_TYPE_MAPPING.put("REDUCE_POWER_CAP", Response.AdaptationType.REDUCE_POWER_CAP);
+        ADAPTATION_TYPE_MAPPING.put("INCREASE_POWER_CAP", Response.AdaptationType.INCREASE_POWER_CAP);
+        ADAPTATION_TYPE_MAPPING.put("SHUTDOWN_HOST", Response.AdaptationType.SHUTDOWN_HOST);
+        ADAPTATION_TYPE_MAPPING.put("STARTUP_HOST", Response.AdaptationType.STARTUP_HOST);
         ADAPTATION_TYPE_MAPPING.put(null, null);
         ADAPTATION_TYPE_MAPPING.put("", null);
     }
@@ -60,9 +59,13 @@ public class Response implements Comparable<Response> {
      */
     public enum AdaptationType {
 
-        ADD_VM, REMOVE_VM, INFLATE_VM, DEFLATE_VM,
-        ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY, SHUTDOWN_APP,
-        HARD_SHUTDOWN_APP, REQUEST_VM_CONSOLIDATION, SCALE_TO_N_VMS, RENEGOTIATE
+        INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
+        ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS,
+        ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY, 
+        SHUTDOWN_APP, HARD_SHUTDOWN_APP, 
+        RESELECT_ACCELERATORS, 
+        REDUCE_POWER_CAP, INCREASE_POWER_CAP, 
+        SHUTDOWN_HOST, STARTUP_HOST
     }
 
     private enum AdaptationDetailKeys {
@@ -95,9 +98,9 @@ public class Response implements Comparable<Response> {
         Response.AdaptationType answer = ADAPTATION_TYPE_MAPPING.get(responseType);
         if (answer == null) {
             if (responseType.contains("SCALE_TO_")) {
-                return AdaptationType.SCALE_TO_N_VMS;
+                return AdaptationType.SCALE_TO_N_TASKS;
             }
-        }
+        }        
         return answer;
     }
 
@@ -252,23 +255,23 @@ public class Response implements Comparable<Response> {
     }
 
     /**
-     * This returns the VM id associated with the response. This is the VM that
+     * This returns the task id associated with the response. This is the task that
      * is to be adapted. i.e. change size, delete etc
      *
-     * @return The vm id of the vm to be adapted.
+     * @return The task id of the task to be adapted.
      */
-    public String getVmId() {
-        return vmId;
+    public String getTaskId() {
+        return taskId;
     }
 
     /**
-     * This sets the VM id associated with the response. This is the VM that is
+     * This sets the Task id associated with the response. This is the task that is
      * to be adapted. i.e. change size, delete etc
      *
-     * @param vmId The vm id of the vm to be adapted.
+     * @param taskId The task id of the task to be adapted.
      */
-    public void setVmId(String vmId) {
-        this.vmId = vmId;
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
     }
 
 }

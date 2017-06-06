@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 University of Leeds
+ * Copyright 2017 University of Leeds
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -50,66 +50,6 @@ public interface ActuatorInvoker {
     public ApplicationDefinition getApplication(String application, String deployment, String vmID);
     
     /**
-     * This lists which VMs can be added to a deployment in order to make it
-     * scale.
-     *
-     * @param applicationId The application ID
-     * @param deploymentId The deployment ID
-     * @return The OVF ids that can be used to scale the named deployment
-     */
-    public abstract List<String> getVmTypesAvailableToAdd(String applicationId, String deploymentId);
-
-    /**
-     * This lists which VMs can be added to a deployment in order to make it
-     * scale.
-     *
-     * @param applicationId The application ID
-     * @param deploymentId The deployment ID
-     * @return The VM ids that can be used to down size the named deployment
-     */
-    public abstract List<Integer> getVmIdsAvailableToRemove(String applicationId, String deploymentId);
-
-    /**
-     * This lists which VMs can be added to a deployment in order to make it
-     * scale.
-     *
-     * @param applicationId The application ID
-     * @param deploymentId The deployment ID
-     * @return The OVF ids that can be used to down size the named deployment
-     */
-    public abstract List<String> getVmTypesAvailableToRemove(String applicationId, String deploymentId);
-
-    /**
-     * This counts how many VMs have a given deployment type in a set of VMs
-     *
-     * @param applicationId
-     * @param deploymentId
-     * @param type The ovf Id of the type of VMs to look for
-     * @return The amount of VMs which have a given OVF id
-     */
-    public int getVmCountOfGivenType(String applicationId, String deploymentId, String type);
-
-    /**
-     * This gets the power usage of a VM.
-     *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
-     * @param vmID The id of the VM to get the measurement for
-     * @return The power usage of a named VM. 
-     */
-    public double getPowerUsageVM(String applicationId, String deploymentId, String vmID);
-
-    /**
-     * This gets the power usage of a VM.
-     *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
-     * @param vmType The id of the VM to get the measurement for
-     * @return The power usage of a named VM. 
-     */
-    public double getAveragePowerUsage(String applicationId, String deploymentId, String vmType);    
-
-    /**
      * This gets the power usage of a VM.
      *
      * @param applicationId The application the VM is part of
@@ -128,32 +68,47 @@ public interface ActuatorInvoker {
     public SLALimits getSlaLimits(String applicationId, String deploymentId);
     
     /**
-     * This adds a vm of a given ovf type to named deployment.
+     * This gets the power usage of a task.
+     *
+     * @param applicationId The application the VM is part of
+     * @param deploymentId The id of the deployment instance of the VM
+     * @param taskId The id of the task to get the measurement for
+     * @return The power usage of a named task. 
+     */
+    public double getPowerUsageTask(String applicationId, String deploymentId, String taskId);    
+    
+    /**
+     * This gets the power usage of a task.
+     *
+     * @param applicationId The application the VM is part of
+     * @param deploymentId The id of the deployment instance of the VM
+     * @param taskType The id of the task to get the measurement for
+     * @return The power usage of a named task. 
+     */
+    public double getAveragePowerUsage(String applicationId, String deploymentId, String taskType);     
+
+    /**
+     * This lists which tasks that can be added to a deployment in order to make it
+     * scale.
      *
      * @param applicationId The application ID
      * @param deploymentId The deployment ID
-     * @param ovfId The OVF id that indicates which VM type to instantiate
+     * @return The ids that can be used to scale the named deployment
      */
-    public void addVM(String applicationId, String deploymentId, String ovfId);
-
-    /**
-     * This deletes a VM
-     *
-     * @param application The application the VM is part of
-     * @param deployment The id of the deployment instance of the VM
-     * @param vmID The id of the VM to delete
-     */
-    public void deleteVM(String application, String deployment, String vmID);
-
-    /**
-     * This forces a renegotiation of the SLA terms of a deployment
-     * @param applicationId The id of the application that is to be renegotiated
-     * @param deploymentId The id of the deployment of the application
-     */
-    public void renegotiate(String applicationId, String deploymentId);
+    public abstract List<String> getTaskTypesAvailableToAdd(String applicationId, String deploymentId);
     
     /**
-     * This deletes all VMs of an application
+     * This lists which tasks that can be added to a deployment in order to make it
+     * scale.
+     *
+     * @param applicationId The application ID
+     * @param deploymentId The deployment ID
+     * @return The task ids that can be used to down size the named deployment
+     */
+    public abstract List<Integer> getTaskIdsAvailableToRemove(String applicationId, String deploymentId);   
+    
+    /**
+     * This stops the application from running
      *
      * @param applicationId The application the VM is part of
      * @param deploymentId The id of the deployment instance of the VM
@@ -161,41 +116,28 @@ public interface ActuatorInvoker {
     public void hardShutdown(String applicationId, String deploymentId);
 
     /**
-     * This scales a VM type to a set amount of VMs
-     *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
-     * @param response The response to actuator for
-     */
-    public void horizontallyScaleToNVms(String applicationId, String deploymentId, Response response);
-
-    /**
-     * This scales up a named VM. VM types are expected to be in a co-ordinated
-     * series, thus allowing a +1 or -1 notion of direction and scaling to be
-     * used.
-     *
-     * @param application The application the VM is part of
-     * @param deployment The id of the deployment instance of the VM
-     * @param vmID The id of the VM to delete
-     */
-    public void scaleUpVM(String application, String deployment, String vmID);
-
-    /**
-     * This scales down a named VM. VM types are expected to be in a
-     * co-ordinated series, thus allowing a +1 or -1 notion of direction and
-     * scaling to be used.
-     *
-     * @param application The application the VM is part of
-     * @param deployment The id of the deployment instance of the VM
-     * @param vmID The id of the VM to delete
-     */
-    public void scaleDownVM(String application, String deployment, String vmID);
-
-    /**
      * This causes the actuator to invoke a given action
      *
      * @param response
      */
     public void actuate(Response response);
+    
+    /**
+     * This adds a task of a given task type to named deployment.
+     *
+     * @param applicationId The application ID
+     * @param deploymentId The deployment ID
+     * @param taskType The task type to instantiate
+     */
+    public void addTask(String applicationId, String deploymentId, String taskType);
 
+    /**
+     * This deletes a task from an application
+     *
+     * @param application The application the task is part of
+     * @param deployment The id of the deployment instance of the task
+     * @param taskID The id of the task to delete
+     */
+    public void deleteTask(String application, String deployment, String taskID);    
+    
 }

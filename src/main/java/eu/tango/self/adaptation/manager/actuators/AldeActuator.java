@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  *
- * @author Richard
+ * @author Richard Kavanagh
  */
 public class AldeActuator implements ActuatorInvoker {
 
@@ -37,36 +37,6 @@ public class AldeActuator implements ActuatorInvoker {
     }
 
     @Override
-    public List<String> getVmTypesAvailableToAdd(String applicationId, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Integer> getVmIdsAvailableToRemove(String applicationId, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<String> getVmTypesAvailableToRemove(String applicationId, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int getVmCountOfGivenType(String applicationId, String deploymentId, String type) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public double getPowerUsageVM(String applicationId, String deploymentId, String vmID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public double getAveragePowerUsage(String applicationId, String deploymentId, String vmType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public double getTotalPowerUsage(String applicationId, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -75,44 +45,44 @@ public class AldeActuator implements ActuatorInvoker {
     public SLALimits getSlaLimits(String applicationId, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
-    public void addVM(String applicationId, String deploymentId, String ovfId) {
+    public double getAveragePowerUsage(String applicationId, String deploymentId, String taskType) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public double getPowerUsageTask(String applicationId, String deploymentId, String taskId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void deleteVM(String application, String deployment, String vmID) {
+    public List<String> getTaskTypesAvailableToAdd(String applicationId, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void renegotiate(String applicationId, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void hardShutdown(String applicationId, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void horizontallyScaleToNVms(String applicationId, String deploymentId, Response response) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void scaleUpVM(String application, String deployment, String vmID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void scaleDownVM(String application, String deployment, String vmID) {
+    public List<Integer> getTaskIdsAvailableToRemove(String applicationId, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void actuate(Response response) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void addTask(String applicationId, String deploymentId, String taskType) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void deleteTask(String application, String deployment, String taskID) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void hardShutdown(String applicationId, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

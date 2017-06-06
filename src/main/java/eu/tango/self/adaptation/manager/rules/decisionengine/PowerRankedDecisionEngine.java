@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This ranks the VMs to create destroy etc based upon power consumption.
+ * This ranks the tasks to create destroy etc based upon power consumption.
  *
  * @author Richard Kavanagh
  */
@@ -28,141 +28,101 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
 
     @Override
     public Response decide(Response response) {
-        if (response.getActionType().equals(Response.AdaptationType.ADD_VM)) {
-            response = addVM(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.REMOVE_VM)) {
-            response = deleteVM(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.INFLATE_VM)) {
-            response = scaleUp(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.DEFLATE_VM)) {
-            response = scaleDown(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.SCALE_TO_N_VMS)) {
-            response = scaleToNVms(response);
+        if (response.getActionType().equals(Response.AdaptationType.ADD_TASK)) {
+            response = addTask(response);
+        } else if (response.getActionType().equals(Response.AdaptationType.REMOVE_TASK)) {
+            response = deleteTask(response);
+        } else if (response.getActionType().equals(Response.AdaptationType.SCALE_TO_N_TASKS)) {
+            response = scaleToNTasks(response);
         }
         return response;
     }
 
     /**
-     * The decision logic for deleting a VM. It removes the last VM to be
-     * created (i.e. highest VM ID first).
+     * The decision logic for deleting a task. It removes the last task to be
+     * created (i.e. highest task ID first).
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
-    public Response deleteVM(Response response) {
+    public Response deleteTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
         }
-        List<Integer> vmIds = getActuator().getVmIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
-        if (vmIds == null) {
-            System.out.println("Internal Error list of deleteable VM Ids equals null.");
-            response.setAdaptationDetails("Unable find a VM to delete.");
+        List<Integer> taskIds = getActuator().getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
+        if (taskIds == null) {
+            System.out.println("Internal Error list of deleteable task Ids equals null.");
+            response.setAdaptationDetails("Unable find a task to delete.");
             response.setPossibleToAdapt(false);
             return response;
         }
-        if (!vmIds.isEmpty()) {
-            //Remove the highest powered VM from the list of possible VMs
-            response.setVmId(getHighestPoweredVM(response, vmIds) + "");
+        if (!taskIds.isEmpty()) {
+            //Remove the highest powered task from the list of possible tasks
+            response.setTaskId(getHighestPoweredTask(response, taskIds) + "");
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a VM to delete");
+            response.setAdaptationDetails("Could not find a task to delete");
             response.setPossibleToAdapt(false);
         }
         return response;
     }
 
     /**
-     * The decision logic for adding a VM.
+     * The decision logic for adding a task.
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
-    public Response addVM(Response response) {
+    public Response addTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
         }
-        List<String> vmOvfTypes = getActuator().getVmTypesAvailableToAdd(response.getApplicationId(), response.getDeploymentId());
-        if (vmOvfTypes.isEmpty()) {
-            response.setAdaptationDetails("Could not find a VM OVF type to add");
+        List<String> taskTypes = getActuator().getTaskTypesAvailableToAdd(response.getApplicationId(), response.getDeploymentId());
+        if (taskTypes.isEmpty()) {
+            response.setAdaptationDetails("Could not find a task type to add");
             response.setPossibleToAdapt(false);
             return response;
         }
-        Collections.shuffle(vmOvfTypes);
-        //Give preference to any VM type specified in the rule.
-        String vmTypePreference = response.getAdaptationDetail("VM_TYPE");
-        String vmTypeToAdd;
+        Collections.shuffle(taskTypes);
+        //Give preference to any task type specified in the rule.
+        String taskTypePreference = response.getAdaptationDetail("TASK_TYPE");
+        String taskTypeToAdd;
         //Check that the preferential type can be added
-        if (vmTypePreference != null && vmOvfTypes.contains(vmTypePreference)) {
-            vmTypeToAdd = vmTypePreference;
+        if (taskTypePreference != null && taskTypes.contains(taskTypePreference)) {
+            taskTypeToAdd = taskTypePreference;
         } else { //If no preference is given then pick the best alternative
-            vmTypeToAdd = pickLowestAveragePower(response, vmOvfTypes);
+            taskTypeToAdd = pickLowestAveragePower(response, taskTypes);
         }
-        response.setAdaptationDetails(vmTypeToAdd);
-        if (getCanVmBeAdded(response, vmTypeToAdd)) {
+        response.setAdaptationDetails(taskTypeToAdd);
+        if (getCanTaskBeAdded(response, taskTypeToAdd)) {
             return response;
         } else {
-            response.setAdaptationDetails("Adding a VM would breach SLA criteria");
+            response.setAdaptationDetails("Adding a task would breach SLA criteria");
             response.setPossibleToAdapt(false);
             return response;
         }
     }
 
     /**
-     * The decision logic for scaling down.
+     * This generates the list of tasks to remove
      *
-     * @param response The response to finalise details for.
-     * @return The finalised response object
-     */
-    public Response scaleDown(Response response) {
-        if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
-            response.setPossibleToAdapt(false);
-            return response;
-        }
-        //TODO complete logic here
-        response.setPossibleToAdapt(false);
-        response.setAdaptationDetails("Scaling down is not supported");
-        return response;
-    }
-
-    /**
-     * The decision logic for scaling up.
-     *
-     * @param response The response to finalise details for.
-     * @return The finalised response object
-     */
-    public Response scaleUp(Response response) {
-        if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
-            response.setPossibleToAdapt(false);
-            return response;
-        }
-        //TODO complete logic here
-        response.setPossibleToAdapt(false);
-        response.setAdaptationDetails("Scaling up is not supported");
-        return response;
-    }
-
-    /**
-     * This generates the list of VMs to remove
-     *
-     * @param vmsPossibleToRemove The list of VMs that could be removed
-     * @param count The amount of VMs needing to go
-     * @return The string for the command to remove the VMs
+     * @param tasksPossibleToRemove The list of tasks that could be removed
+     * @param count The amount of tasks needing to go
+     * @return The string for the command to remove the tasks
      */
     @Override
-    protected String getVmsToRemove(List<Integer> vmsPossibleToRemove, int count) {
+    protected String getTasksToRemove(List<Integer> tasksPossibleToRemove, int count) {
         String answer = "";
-        Collections.sort(vmsPossibleToRemove);
-        Collections.reverse(vmsPossibleToRemove);
-        //Remove the last VM to be created from the list of possible VMs
+        Collections.sort(tasksPossibleToRemove);
+        Collections.reverse(tasksPossibleToRemove);
+        //Remove the last task to be created from the list of possible tasks
         for (int i = 0; i < count; i++) {
-            Integer vmid = vmsPossibleToRemove.get(i);
-            answer = answer + (i == 0 ? "" : ",") + vmid;
+            Integer taskid = tasksPossibleToRemove.get(i);
+            answer = answer + (i == 0 ? "" : ",") + taskid;
         }
         return answer;
     }
