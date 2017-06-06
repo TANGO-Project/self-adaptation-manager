@@ -12,6 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
+ * 
+ * This is being developed for the TANGO Project: http://tango-project.eu
+ * 
  */
 package eu.tango.self.adaptation.manager.model;
 
