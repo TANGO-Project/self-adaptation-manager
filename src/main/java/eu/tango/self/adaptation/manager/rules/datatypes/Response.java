@@ -12,9 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * This is being developed for the TANGO Project: http://tango-project.eu
- * 
+ *
  */
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
@@ -62,16 +62,17 @@ public class Response implements Comparable<Response> {
      */
     public enum AdaptationType {
 
-        INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
+        INCREASE_WALL_TIME, REDUCE_WALL_TIME,
         ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS,
-        ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY, 
-        SHUTDOWN_APP, HARD_SHUTDOWN_APP, 
-        RESELECT_ACCELERATORS, 
-        REDUCE_POWER_CAP, INCREASE_POWER_CAP, 
+        ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY,
+        SHUTDOWN_APP, HARD_SHUTDOWN_APP,
+        RESELECT_ACCELERATORS,
+        REDUCE_POWER_CAP, INCREASE_POWER_CAP,
         SHUTDOWN_HOST, STARTUP_HOST
     }
 
     private enum AdaptationDetailKeys {
+
         VM_TYPE, VM_COUNT
     }
 
@@ -103,7 +104,7 @@ public class Response implements Comparable<Response> {
             if (responseType.contains("SCALE_TO_")) {
                 return AdaptationType.SCALE_TO_N_TASKS;
             }
-        }        
+        }
         return answer;
     }
 
@@ -244,7 +245,10 @@ public class Response implements Comparable<Response> {
      * @return
      */
     public String getApplicationId() {
-        return cause.getApplicationId();
+        if (cause instanceof ApplicationEventData) {
+            return ((ApplicationEventData) cause).getApplicationId();
+        }
+        return "";
     }
 
     /**
@@ -254,12 +258,15 @@ public class Response implements Comparable<Response> {
      * @return
      */
     public String getDeploymentId() {
-        return cause.getDeploymentId();
+        if (cause instanceof ApplicationEventData) {
+            return ((ApplicationEventData) cause).getDeploymentId();
+        }
+        return "";
     }
 
     /**
-     * This returns the task id associated with the response. This is the task that
-     * is to be adapted. i.e. change size, delete etc
+     * This returns the task id associated with the response. This is the task
+     * that is to be adapted. i.e. change size, delete etc
      *
      * @return The task id of the task to be adapted.
      */
@@ -268,8 +275,8 @@ public class Response implements Comparable<Response> {
     }
 
     /**
-     * This sets the Task id associated with the response. This is the task that is
-     * to be adapted. i.e. change size, delete etc
+     * This sets the Task id associated with the response. This is the task that
+     * is to be adapted. i.e. change size, delete etc
      *
      * @param taskId The task id of the task to be adapted.
      */

@@ -27,6 +27,7 @@ import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,16 +35,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.glassfish.jersey.Severity;
 import org.jcollectd.agent.api.Notification;
-import org.jcollectd.agent.api.Values;
-import org.jcollectd.agent.protocol.Dispatcher;
 
 /**
  * This creates an environment monitor that connects directly into CollectD via
- * its network plugin.
+ * its network plug-in.
  *
  * @author Richard Kavanagh
  */
-public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, CollectDNotificationHandler {
+public class EnvironmentMonitor implements EventListener, Runnable, CollectDNotificationHandler {
 
     private EventAssessor eventAssessor;
     private HostDataSource datasource = new CollectdDataSourceAdaptor();
@@ -125,7 +124,7 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
             HostMeasurement measurement = datasource.getHostData(host);
             double currentValue = measurement.getMetric(agreementTerm).getValue();
             if (term.isBreached(currentValue)) {
-                return new EventData(measurement.getClock(), currentValue, term.getGuranteedValue(), EventData.Type.SLA_BREACH, term.getGuranteeOperator(), "", "", term.getGuaranteeid(), term.getAgreementTerm());
+                return new HostEventData(measurement.getClock(), host.getHostName(), currentValue, term.getGuranteedValue(), EventData.Type.SLA_BREACH, term.getGuranteeOperator(), term.getGuaranteeid(), term.getAgreementTerm());
             }
         }
         return null;
@@ -138,21 +137,26 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
      * @see eu.ascetic.paas.slam.pac.events.ViolationMessage
      */
     public static EventData convertEventData(Notification notification) {
-        EventData answer = new EventData();
         /**
-         * TODO Fix commented out code sections Any new event may be either
-         * system orientated or application oriented this will depend on the
-         * source of the event
+         * This is an example of the output of the notification element.
+         * Host: VM10-10-1-13
+         * Severity: FAILURE
+         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance idle): Data source "value" is currently nan. That is within the failure region of 0.000000 and 12000.000000.
+         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance idle): Data source "value" is currently nan. That is within the failure region of 0.000000 and 12000.000000.
+         * Plugin: aggregation
+         * Plugin Instance: cpu-average
+         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
+         * Type: cpu
+         * Type Instance: idle
          */
-//        answer.setApplicationId(measurement.getAppId());
-//        answer.setDeploymentId(measurement.getDeploymentId());
+        HostEventData answer = new HostEventData();
+        answer.setHost(notification.getHost());
 
         answer.setTime(notification.getTime() >> 30);
         long now = System.currentTimeMillis();
         if (answer.getTime() > now) {
             answer.setTime(now);
         }
-        //TODO May not be the 0th SLA Term FIX HERE
         /**
          * Options available: FAILURE(1), WARNING(2), UNKNOWN(3), OKAY(4)
          */
@@ -163,12 +167,14 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
         } else {
             answer.setType(EventData.Type.OTHER);
         }
-        answer.setRawValue(Double.parseDouble(notification.getData()));
-//        answer.setGuranteedValue(notification.getAlert().getSlaGuaranteedState().getGuaranteedValue());
+        //TODO Set these values here, need to parse the data element.
+        double rawValue = 0.0; 
+        double guranteedValue = 0.0;
+        answer.setRawValue(rawValue);
+        answer.setGuranteedValue(guranteedValue);
         answer.setGuranteeOperator(getOperator(notification));
 
-//        answer.setSlaUuid(notification.getAlert().getSlaUUID());
-//        answer.setGuaranteeid(notification.getAlert().getSlaGuaranteedState().getGuaranteedId());
+        answer.setGuaranteeid(notification.getSource());
         answer.setAgreementTerm(notification.getMessage());
         return answer;
 
@@ -185,17 +191,6 @@ public class EnvironmentMonitor implements EventListener, Dispatcher, Runnable, 
         //TODO find the terms that setup the notification event
 //        return OPERATOR_MAPPING.get(notification.getOperator());
         return EventData.Operator.LT;
-    }
-
-    @Override
-    public void dispatch(Values values) {
-        /**
-         * The main element of this is to listen for notifications of CollectD
-         * threshold limits. Therefore this is not listened to and values
-         * arriving are ignored.
-         * 
-         * Consider route i.e. through adaptor or through this mechanism here. 
-         */
     }
 
     @Override

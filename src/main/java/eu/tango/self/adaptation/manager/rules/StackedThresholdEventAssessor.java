@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.rules;
 import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.File;
@@ -205,8 +206,10 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
      * @return The firing criteria that are from the application.
      */
     private ArrayList<FiringCriteria> getFiringCriteriaFromOVF(EventData event) {
-        ApplicationDefinition appDef = event.getApplicationDefinition();
+        if (event instanceof ApplicationEventData) {
+        ApplicationDefinition appDef = ((ApplicationEventData) event).getApplicationDefinition();
         return FiringCriteria.getFiringCriteriaFromApplication(appDef);
+        } else return null;
     }
 
     /**

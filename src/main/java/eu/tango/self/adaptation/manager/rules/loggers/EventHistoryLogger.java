@@ -19,6 +19,7 @@ package eu.tango.self.adaptation.manager.rules.loggers;
 
 import eu.ascetic.ioutils.io.GenericLogger;
 import eu.ascetic.ioutils.io.ResultsStore;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.io.File;
 
@@ -52,8 +53,13 @@ public class EventHistoryLogger extends GenericLogger<EventData> {
     @Override
     public void writebody(EventData eventData, ResultsStore store) {
         store.add(eventData.getTime());
-        store.append(eventData.getApplicationId());
-        store.append(eventData.getDeploymentId());
+        if (eventData instanceof ApplicationEventData) {
+        store.append(((ApplicationEventData)eventData).getApplicationId());
+        store.append(((ApplicationEventData)eventData).getDeploymentId());
+        } else {
+            store.append("");
+            store.append("");
+        }
         store.append(eventData.getAgreementTerm());
         store.append(eventData.getGuranteedValue());          
         store.append(eventData.getRawValue());   

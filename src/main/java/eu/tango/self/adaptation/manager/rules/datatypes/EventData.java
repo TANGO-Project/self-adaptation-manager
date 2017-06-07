@@ -18,7 +18,6 @@
  */
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
-import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,19 +27,15 @@ import java.util.Map;
  *
  * @author Richard Kavanagh
  */
-public class EventData implements Comparable<EventData> {
+public abstract class EventData implements Comparable<EventData> {
 
     private long time; //the time of the event
     private double rawValue; //the metric raw value
     private double guranteedValue; //the guranteed value
     private EventData.Type type; //breach, warning or other (i.e. informative)
     private EventData.Operator guranteeOperator; // threshold direction
-    private String applicationId;
-    private String deploymentId;
     private String agreementTerm;
     private String guaranteeid; //sla gurantee id
-    //augments information about the event, with the original deployment information
-    private ApplicationDefinition application;
 
     private static final Map<String, Operator> OPERATOR_MAPPING
             = new HashMap<>();
@@ -90,22 +85,16 @@ public class EventData implements Comparable<EventData> {
      * of a potential future breach.
      * @param guranteeOperator The operator that defines the threshold placed
      * upon the guarantee. e.g. greater_than, less_than ...
-     * @param applicationId The id of the application that caused the breach
-     * @param deploymentId The id of the specific deployment that caused the
-     * breach
      * @param guaranteeid The id of the guarantee that was breached
      * @param agreementTerm The type of guarantee that was breached.
      */
     public EventData(long time, double rawValue, double guranteedValue, Type type,
-            Operator guranteeOperator, String applicationId,
-            String deploymentId, String guaranteeid, String agreementTerm) {
+            Operator guranteeOperator, String guaranteeid, String agreementTerm) {
         this.time = time;
         this.rawValue = rawValue;
         this.guranteedValue = guranteedValue;
         this.type = type;
         this.guranteeOperator = guranteeOperator;
-        this.applicationId = applicationId;
-        this.deploymentId = deploymentId;
         this.guaranteeid = guaranteeid;
         this.agreementTerm = agreementTerm;
     }
@@ -200,60 +189,6 @@ public class EventData implements Comparable<EventData> {
      */
     public void setGuranteedValue(double guranteedValue) {
         this.guranteedValue = guranteedValue;
-    }
-
-    /**
-     * This gets the application id associated with the origin of the event.
-     *
-     * @return the applicationId
-     */
-    public String getApplicationId() {
-        return applicationId;
-    }
-
-    /**
-     * This sets the application id associated with the origin of the event.
-     *
-     * @param applicationId the applicationId to set
-     */
-    public void setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    /**
-     * This gets the deployment id associated with the origin of the event.
-     *
-     * @return the deploymentId
-     */
-    public String getDeploymentId() {
-        return deploymentId;
-    }
-
-    /**
-     * This sets the deployment id associated with the origin of the event.
-     *
-     * @param deploymentId the deploymentId to set
-     */
-    public void setDeploymentId(String deploymentId) {
-        this.deploymentId = deploymentId;
-    }
-
-    /**
-     * This gets the definition of the original application deployment.
-     *
-     * @return the definition of the original deployment
-     */
-    public ApplicationDefinition getApplicationDefinition() {
-        return application;
-    }
-
-    /**
-     * This sets the definition of the original application deployment.
-     *
-     * @param application the definition of the application deployment to set.
-     */
-    public void setApplicationDefinition(ApplicationDefinition application) {
-        this.application = application;
     }
 
     @Override

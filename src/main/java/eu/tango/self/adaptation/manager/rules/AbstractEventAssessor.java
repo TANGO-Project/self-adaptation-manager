@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.rules;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.self.adaptation.manager.rules.decisionengine.DecisionEngine;
 import eu.tango.self.adaptation.manager.rules.decisionengine.RandomDecisionEngine;
@@ -158,8 +159,9 @@ public abstract class AbstractEventAssessor implements EventAssessor {
      */
     private Response assessEvent(EventData event, List<EventData> eventData) {
         synchronized (this) {
-            if (actuator != null) {
-                event.setApplicationDefinition(actuator.getApplication(event.getApplicationId(), event.getDeploymentId()));
+            if (actuator != null && event instanceof ApplicationEventData) {
+                ApplicationEventData appEvent = (ApplicationEventData) event;
+                appEvent.setApplicationDefinition(actuator.getApplication(appEvent.getApplicationId(), appEvent.getDeploymentId()));
             }
             Response answer = assessEvent(event, eventData, adaptations);
             if (answer != null) {
