@@ -40,6 +40,14 @@ public class SLATerm {
         return guaranteeid;
     }
 
+    public SLATerm(String guaranteeid, double guranteedValue, EventData.Type severity, EventData.Operator guranteeOperator, String agreementTerm) {
+        this.guaranteeid = guaranteeid;
+        this.guranteedValue = guranteedValue;
+        this.severity = severity;
+        this.guranteeOperator = guranteeOperator;
+        this.agreementTerm = agreementTerm;
+    }
+
     /**
      * @param guaranteeid the guaranteeid to set
      */
