@@ -199,52 +199,26 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         } else {
             answer.setType(EventData.Type.OTHER);
         }
-        //TODO Set these values here, need to parse the data element.
-        double rawValue = getRawValue(notification);
-        double guaranteedValue = 0.0;
-        answer.setRawValue(rawValue);
-        answer.setGuranteedValue(guaranteedValue);
-        answer.setGuranteeOperator(getOperator(notification));
+        answer = setHostEventGuaranteeValues(notification, answer);
 
         answer.setGuaranteeid(notification.getSource());
         answer.setAgreementTerm(notification.getMessage());
         return answer;
 
     }
-    
-    /**
-     * 
-     * @param notification
-     * @return 
-     */
-    public static double getRawValue(Notification notification) { 
-        /**
-         * The string to parse the data from is: Host VM10-10-1-13, plugin
-         * aggregation (instance cpu-average) type cpu (instance idle): Data
-         * source "value" is currently nan. That is within the failure region of
-         * 0.000000 and 12000.000000.
-         */
-        String data = notification.getData();
-        String toParse = data.split(":")[1];
-        /**
-         * ToParse in the example case is:
-         *
-         * Data source "value" is currently nan. That is within the failure
-         * region of 0.000000 and 12000.000000.
-         */
-        Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+");
-        double current = scanner.nextDouble();
-        return current;
-    }
 
     /**
-     * This converts a violation messages guarantee state's operator into an
-     * event type operator.
+     * This reads a notification and alters the host event data to match. 
+     * The focus is to set values for the:
+     * Raw measured value
+     * The value that was to be guaranteed 
+     * and the comparison operator for the guarantee i.e. LT, EQ GT
      *
      * @param notification The event type to convert.
-     * @return The enumerated type for the operator
+     * @param event The host event to alter
+     * @return The altered host event
      */
-    public static EventData.Operator getOperator(Notification notification) {
+    public static HostEventData setHostEventGuaranteeValues(Notification notification, HostEventData event) {
         /**
          * The string to parse the data from is: Host VM10-10-1-13, plugin
          * aggregation (instance cpu-average) type cpu (instance idle): Data
@@ -263,42 +237,56 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         //Indicates if the region is giving a bounds where the value cannot go or not.
         boolean reversed = data.contains("within the failure region");
         double current = scanner.nextDouble();
+        event.setRawValue(current); //Sets the measured current value
         double firstBound = scanner.nextDouble();
         if (scanner.hasNextInt()) { //A second number means an upper bound.
             double upperbound = scanner.nextDouble();            
             if (reversed) { //case where an exclusion zone is given
-                //TODO Do something clever by considering distance from boundary conditions
-                return EventData.Operator.GT; //GT Lower bound but also LT upper bound
+                //TODO something clever by considering distance from boundary conditions
+                event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
+                event.setGuranteedValue(firstBound);
+                return event;
             }
             //Case where a green good zone is given instead
             if (current <= firstBound) {
-                return EventData.Operator.LT; //LT first bound
+                event.setGuranteeOperator(EventData.Operator.LT); //LT first bound
+                event.setGuranteedValue(firstBound);
+                return event;
             } else if (current >= upperbound) {
-                return EventData.Operator.GT; //GT second bound
+                event.setGuranteeOperator(EventData.Operator.GT); //GT second bound
+                event.setGuranteedValue(upperbound);
+                return event;
             }
         } else { //dealing with the simple case of one bound.
+            //current/raw value is already set, so setting the boundary condition.
+            event.setGuranteedValue(firstBound);
             if (reversed) {
                 //Flips values around ensuring correct answer is given
                 double temp = current;
                 current = firstBound;
                 firstBound = temp;
             }
+            
             /**
              * The bounds of LE or LTE are difficult to test, or LTE and EQ thus
              * only LT, EQ and GT can be inferred from a breach with any
              * certainty.
              */
             if (current == firstBound) {
-                return EventData.Operator.EQ;
+                event.setGuranteeOperator(EventData.Operator.EQ);
+                return event;
             } else if (current > firstBound) {
                 //current value higher than bound caused breach
-                return EventData.Operator.LT; //so current value should normally be less than
+                event.setGuranteeOperator(EventData.Operator.LT); //so current value should normally be less than
+                return event;
             } else {
-                return EventData.Operator.GT;
+                event.setGuranteeOperator(EventData.Operator.GT);
+                return event;
             }
 
         }
-        return EventData.Operator.LT; //default e.g. current power < guaranteed value
+        event.setGuranteeOperator(EventData.Operator.LT); //default e.g. current power < guaranteed value
+        return event;
     }
 
     @Override
