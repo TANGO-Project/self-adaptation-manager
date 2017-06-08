@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -150,11 +151,11 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             HostMeasurement measurement = datasource.getHostData(host);
             double currentValue = measurement.getMetric(agreementTerm).getValue();
             if (term.isBreached(currentValue)) {
-                return new HostEventData(measurement.getClock(), host.getHostName(), 
-                        currentValue, term.getGuranteedValue(), 
-                        EventData.Type.SLA_BREACH, 
-                        term.getGuranteeOperator(), 
-                        term.getGuaranteeid(), 
+                return new HostEventData(measurement.getClock(), host.getHostName(),
+                        currentValue, term.getGuranteedValue(),
+                        EventData.Type.SLA_BREACH,
+                        term.getGuranteeOperator(),
+                        term.getGuaranteeid(),
                         term.getAgreementTerm());
             }
         }
@@ -169,21 +170,16 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      */
     public static EventData convertEventData(Notification notification) {
         /**
-         * This is an example of the output of the notification element.
-         * Host: VM10-10-1-13
-         * Severity: FAILURE
-         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
-         *          type cpu (instance idle): Data source "value" is currently nan. 
-         *          That is within the failure region of 0.000000 and 12000.000000.
-         * Message: Host VM10-10-1-13, plugin aggregation 
-         *          (instance cpu-average) type cpu (instance idle): Data source 
-         *          "value" is currently nan. That is within the failure 
-         *          region of 0.000000 and 12000.000000.
-         * Plugin: aggregation
-         * Plugin Instance: cpu-average
-         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
-         * Type: cpu
-         * Type Instance: idle
+         * This is an example of the output of the notification element. Host:
+         * VM10-10-1-13 Severity: FAILURE Data: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Message: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Plugin: aggregation Plugin Instance:
+         * cpu-average Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
+         * Type: cpu Type Instance: idle
          */
         HostEventData answer = new HostEventData();
         answer.setHost(notification.getHost());
@@ -204,16 +200,41 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             answer.setType(EventData.Type.OTHER);
         }
         //TODO Set these values here, need to parse the data element.
-        double rawValue = 0.0;
-        double guranteedValue = 0.0;
+        double rawValue = getRawValue(notification);
+        double guaranteedValue = 0.0;
         answer.setRawValue(rawValue);
-        answer.setGuranteedValue(guranteedValue);
+        answer.setGuranteedValue(guaranteedValue);
         answer.setGuranteeOperator(getOperator(notification));
 
         answer.setGuaranteeid(notification.getSource());
         answer.setAgreementTerm(notification.getMessage());
         return answer;
 
+    }
+    
+    /**
+     * 
+     * @param notification
+     * @return 
+     */
+    public static double getRawValue(Notification notification) { 
+        /**
+         * The string to parse the data from is: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000.
+         */
+        String data = notification.getData();
+        String toParse = data.split(":")[1];
+        /**
+         * ToParse in the example case is:
+         *
+         * Data source "value" is currently nan. That is within the failure
+         * region of 0.000000 and 12000.000000.
+         */
+        Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+");
+        double current = scanner.nextDouble();
+        return current;
     }
 
     /**
@@ -224,9 +245,60 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      * @return The enumerated type for the operator
      */
     public static EventData.Operator getOperator(Notification notification) {
-        //TODO find the terms that setup the notification event
-//        return OPERATOR_MAPPING.get(notification.getOperator());
-        return EventData.Operator.LT;
+        /**
+         * The string to parse the data from is: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000.
+         */
+        String data = notification.getData();
+        String toParse = data.split(":")[1];
+        /**
+         * ToParse in the example case is:
+         *
+         * Data source "value" is currently nan. That is within the failure
+         * region of 0.000000 and 12000.000000.
+         */
+        Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+");
+        //Indicates if the region is giving a bounds where the value cannot go or not.
+        boolean reversed = data.contains("within the failure region");
+        double current = scanner.nextDouble();
+        double firstBound = scanner.nextDouble();
+        if (scanner.hasNextInt()) { //A second number means an upper bound.
+            double upperbound = scanner.nextDouble();            
+            if (reversed) { //case where an exclusion zone is given
+                //TODO Do something clever by considering distance from boundary conditions
+                return EventData.Operator.GT; //GT Lower bound but also LT upper bound
+            }
+            //Case where a green good zone is given instead
+            if (current <= firstBound) {
+                return EventData.Operator.LT; //LT first bound
+            } else if (current >= upperbound) {
+                return EventData.Operator.GT; //GT second bound
+            }
+        } else { //dealing with the simple case of one bound.
+            if (reversed) {
+                //Flips values around ensuring correct answer is given
+                double temp = current;
+                current = firstBound;
+                firstBound = temp;
+            }
+            /**
+             * The bounds of LE or LTE are difficult to test, or LTE and EQ thus
+             * only LT, EQ and GT can be inferred from a breach with any
+             * certainty.
+             */
+            if (current == firstBound) {
+                return EventData.Operator.EQ;
+            } else if (current > firstBound) {
+                //current value higher than bound caused breach
+                return EventData.Operator.LT; //so current value should normally be less than
+            } else {
+                return EventData.Operator.GT;
+            }
+
+        }
+        return EventData.Operator.LT; //default e.g. current power < guaranteed value
     }
 
     @Override
