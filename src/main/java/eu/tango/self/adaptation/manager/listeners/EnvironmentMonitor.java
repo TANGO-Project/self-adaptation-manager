@@ -114,6 +114,15 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         running = false;
     }
 
+    /**
+     * This starts the environment monitor going, in a daemon thread.
+     */
+    public void startListening() {
+        Thread envMonThread = new Thread(this);
+        envMonThread.setDaemon(true);
+        envMonThread.start();
+    }
+
     @Override
     public void run() {
         try {
@@ -208,11 +217,10 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     }
 
     /**
-     * This reads a notification and alters the host event data to match. 
-     * The focus is to set values for the:
-     * Raw measured value
-     * The value that was to be guaranteed 
-     * and the comparison operator for the guarantee i.e. LT, EQ GT
+     * This reads a notification and alters the host event data to match. The
+     * focus is to set values for the: Raw measured value The value that was to
+     * be guaranteed and the comparison operator for the guarantee i.e. LT, EQ
+     * GT
      *
      * @param notification The event type to convert.
      * @param event The host event to alter
@@ -240,7 +248,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         event.setRawValue(current); //Sets the measured current value
         double firstBound = scanner.nextDouble();
         if (scanner.hasNextInt()) { //A second number means an upper bound.
-            double upperbound = scanner.nextDouble();            
+            double upperbound = scanner.nextDouble();
             if (reversed) { //case where an exclusion zone is given
                 //TODO something clever by considering distance from boundary conditions
                 event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
@@ -266,7 +274,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 current = firstBound;
                 firstBound = temp;
             }
-            
+
             /**
              * The bounds of LE or LTE are difficult to test, or LTE and EQ thus
              * only LT, EQ and GT can be inferred from a breach with any

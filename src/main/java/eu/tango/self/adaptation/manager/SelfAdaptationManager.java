@@ -64,6 +64,7 @@ public class SelfAdaptationManager {
         }
         setEventAssessor(eventAssessorName);
         EventListener listener = new EnvironmentMonitor();
+        ((EnvironmentMonitor)listener).startListening();        
         listeners.add(listener);
         actuator = new AldeActuator();
         eventAssessor.setActuator(actuator);
