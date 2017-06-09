@@ -52,8 +52,18 @@ public class SlurmActuator implements ActuatorInvoker {
     }
 
     @Override
-    public ApplicationDefinition getApplication(String name, String deployment, String taskId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ApplicationOnHost getTask(String name, String deploymentId, String taskId) {
+        /**
+         * The energy modeller's app id is a number
+         */
+        List<ApplicationOnHost> tasks = datasource.getHostApplicationList();
+        for (ApplicationOnHost task : tasks) {
+            if ((task.getName().trim().equals(name.trim()))
+                    && (task.getId() + "").equals(deploymentId.trim())) {
+                return task;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -62,13 +72,8 @@ public class SlurmActuator implements ActuatorInvoker {
     }
 
     @Override
-    public SLALimits getSlaLimits(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public double getPowerUsageTask(String applicationName, String deploymentId, String taskId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.      
     }
 
     @Override
@@ -104,7 +109,6 @@ public class SlurmActuator implements ActuatorInvoker {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+    }  
     
 }

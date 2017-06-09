@@ -18,6 +18,7 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -36,17 +37,12 @@ public class AldeActuator implements ActuatorInvoker {
     }
 
     @Override
-    public ApplicationDefinition getApplication(String name, String deployment, String taskId) {
+    public ApplicationOnHost getTask(String name, String deployment, String taskId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public SLALimits getSlaLimits(String applicationName, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

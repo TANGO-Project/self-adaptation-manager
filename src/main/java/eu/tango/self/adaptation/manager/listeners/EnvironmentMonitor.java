@@ -25,6 +25,7 @@ import eu.tango.energymodeller.datasourceclient.HostMeasurement;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
+import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
@@ -51,9 +52,9 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private EventAssessor eventAssessor;
     private HostDataSource datasource = new CollectdDataSourceAdaptor();
     private boolean running = true;
-    private static final String RULES_FILE = "slarules.csv";
     private static final String CONFIG_FILE = "self-adaptation-manager-sla.properties";
     private String workingDir;
+    private SLALimits limits;
 
     private static final Map<String, EventData.Operator> OPERATOR_MAPPING
             = new HashMap<>();
@@ -95,8 +96,8 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         } catch (ConfigurationException ex) {
             Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-        SLALimits.loadFromDisk(workingDir + RULES_FILE);
-
+        SlaRulesLoader loader = new SlaRulesLoader();
+        limits = loader.getLimits();
     }
 
     @Override
@@ -113,6 +114,14 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     public void stopListening() {
         running = false;
     }
+    
+    /**
+     * This reloads the SLA criteria held in the environment monitor.
+     */
+    public void reloadLimits() {
+        SlaRulesLoader loader = new SlaRulesLoader();
+        limits = loader.getLimits();        
+    }
 
     /**
      * This starts the environment monitor going, in a daemon thread.
@@ -128,8 +137,6 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         try {
             // Wait for a message
             while (running) {
-                //Obtains the list of qos parameters to monitor
-                SLALimits limits = SLALimits.loadFromDisk(RULES_FILE);
                 EventData event = detectBreach(limits);
                 eventAssessor.assessEvent(event);
                 try {

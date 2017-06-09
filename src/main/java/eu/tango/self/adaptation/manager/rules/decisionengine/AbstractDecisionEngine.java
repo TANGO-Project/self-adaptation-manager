@@ -18,9 +18,11 @@
  */
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
+import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +47,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * connections for different purposes.
      */
     private ActuatorInvoker actuator;
+    private SlaRulesLoader loader = new SlaRulesLoader();
 
     public AbstractDecisionEngine() {
     }
@@ -111,7 +114,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         }
         String applicationID = response.getApplicationId();
         String deploymentID = response.getDeploymentId();
-        SLALimits limits = actuator.getSlaLimits(applicationID, deploymentID);
+        SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
         if (limits != null && limits.getPower() != null) {
             Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + averagePower);
             Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
@@ -238,8 +241,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
                         "The calculation of the highest powered Task saw a zero value for Task: {0}", taskId);
             }
-            ApplicationDefinition applicationDefinition = getActuator().getApplication(response.getApplicationId(), response.getDeploymentId(), taskId + "");
-            if (currentValue > answerPower && (taskType == null)) {  // || applicationDefinition.getOvfId().equals(vmType))) {
+            ApplicationOnHost taskDef = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId + "");
+            if (currentValue > answerPower && (taskType == null)) {  // || taskDef.getOvfId().equals(vmType))) {
                 answer = taskId;
                 answerPower = currentValue;
             }
@@ -265,8 +268,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         ArrayList<PowerApplicationMapping> answer = new ArrayList<>();
         for (Integer taskId : taskIds) {
             double power = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), "" + taskId);
-            ApplicationDefinition application = getActuator().getApplication(response.getApplicationId(), response.getDeploymentId(), taskId + "");
-            answer.add(new PowerApplicationMapping(power, application));
+            ApplicationOnHost task = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId + "");
+            answer.add(new PowerApplicationMapping(power, task));
         }
         Collections.sort(answer);
         return answer;
@@ -278,19 +281,19 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     public class PowerApplicationMapping implements Comparable<PowerApplicationMapping> {
 
         private final Double power;
-        private final ApplicationDefinition application;
+        private final ApplicationOnHost task;
 
-        public PowerApplicationMapping(double power, ApplicationDefinition application) {
+        public PowerApplicationMapping(double power, ApplicationOnHost task) {
             this.power = power;
-            this.application = application;
+            this.task = task;
         }
 
         public Double getPower() {
             return power;
         }
 
-        public ApplicationDefinition getApplicationDefinition() {
-            return application;
+        public ApplicationOnHost getApplicationDefinition() {
+            return task;
         }
 
         @Override

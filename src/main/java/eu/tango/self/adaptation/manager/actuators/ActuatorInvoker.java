@@ -19,6 +19,7 @@
 
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -50,7 +51,7 @@ public interface ActuatorInvoker {
      * @param taskId The task id
      * @return The task given the id values specified.
      */
-    public ApplicationDefinition getApplication(String name, String deployment, String taskId);
+    public ApplicationOnHost getTask(String name, String deployment, String taskId);
     
     /**
      * This gets the power usage of a application.
@@ -60,15 +61,6 @@ public interface ActuatorInvoker {
      * @return The power usage of the named application. 
      */
     public double getTotalPowerUsage(String applicationName, String deploymentId);      
-    
-    /**
-     *  This obtains information regarding the SLA limits of an application
-     * that is to be actuated against
-     * @param applicationName The application id
-     * @param deploymentId The deployment id
-     * @return 
-     */
-    public SLALimits getSlaLimits(String applicationName, String deploymentId);
     
     /**
      * This gets the power usage of a task.
