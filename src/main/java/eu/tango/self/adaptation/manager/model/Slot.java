@@ -20,7 +20,7 @@ package eu.tango.self.adaptation.manager.model;
 
 /**
  * Status of a host of an infrastructure.
- * 
+ * @deprecated not needed in tango, hangover from ASCETiC
  * @author Richard Kavanagh
  *
  */

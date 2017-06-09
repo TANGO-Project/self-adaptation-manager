@@ -12,27 +12,43 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * This is being developed for the TANGO Project: http://tango-project.eu
- * 
+ *
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import java.util.List;
 
 /**
- * This actuator interacts with the ALDE, with the aim of querying for information
- * and invoking adaptation.
+ * This actuator interacts with the Device supervisor SLURM, with the aim of
+ * querying for information and invoking adaptation.
+ *
  * @author Richard Kavanagh
  */
-public class AldeActuator implements ActuatorInvoker {
+public class SlurmActuator implements ActuatorInvoker {
+
+    SlurmDataSourceAdaptor datasource = new SlurmDataSourceAdaptor();
 
     @Override
-    public ApplicationDefinition getApplication(String name, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ApplicationDefinition getApplication(String applicationName, String deploymentId) {
+        /**
+         * The energy modeller's app id is a number
+         */
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        for (ApplicationOnHost app : apps) {
+            if ((app.getName().trim().equals(applicationName.trim()))
+                    && (app.getId() + "").equals(deploymentId.trim())) {
+                ApplicationDefinition answer = new ApplicationDefinition(applicationName, deploymentId);
+                return answer;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -89,5 +105,6 @@ public class AldeActuator implements ActuatorInvoker {
     public void deleteTask(String applicationName, String deployment, String taskID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
+    
 }

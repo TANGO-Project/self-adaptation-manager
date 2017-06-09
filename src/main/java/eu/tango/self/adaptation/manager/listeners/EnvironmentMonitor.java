@@ -179,16 +179,36 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      */
     public static EventData convertEventData(Notification notification) {
         /**
-         * This is an example of the output of the notification element. Host:
-         * VM10-10-1-13 Severity: FAILURE Data: Host VM10-10-1-13, plugin
-         * aggregation (instance cpu-average) type cpu (instance idle): Data
-         * source "value" is currently nan. That is within the failure region of
-         * 0.000000 and 12000.000000. Message: Host VM10-10-1-13, plugin
-         * aggregation (instance cpu-average) type cpu (instance idle): Data
-         * source "value" is currently nan. That is within the failure region of
-         * 0.000000 and 12000.000000. Plugin: aggregation Plugin Instance:
-         * cpu-average Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
-         * Type: cpu Type Instance: idle
+         * This is an example of the output of the notification element.
+         * Host: VM10-10-1-13
+         * Severity: FAILURE
+         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
+         *          type cpu (instance idle): Data source "value" is currently nan. 
+         *          That is within the failure region of 0.000000 and 12000.000000.
+         * Message: Host VM10-10-1-13, plugin aggregation 
+         *          (instance cpu-average) type cpu (instance idle): Data source 
+         *          "value" is currently nan. That is within the failure 
+         *          region of 0.000000 and 12000.000000.
+         * Plugin: aggregation
+         * Plugin Instance: cpu-average
+         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
+         * Type: cpu
+         * Type Instance: idle
+         */
+        /**
+         * Second Example:
+         *
+         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+         * Host: VM10-10-1-13
+         * Severity: FAILURE
+         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+         * Plugin: aggregation
+         * Plugin Instance: cpu-average
+         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
+         * Type: cpu
+         * Type Instance: user
+         * 
          */
         HostEventData answer = new HostEventData();
         answer.setHost(notification.getHost());

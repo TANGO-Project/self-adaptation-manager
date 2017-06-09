@@ -27,12 +27,12 @@ import java.util.ArrayList;
  */
 public class ApplicationDefinition {
     
-    private String applicationId;
+    private String name;
     private String deploymentId;    
     private ArrayList<FiringCriteria> qosCriteria = new ArrayList<>();
 
-    public ApplicationDefinition(String applicationId, String deploymentId) {
-        this.applicationId = applicationId;
+    public ApplicationDefinition(String name, String deploymentId) {
+        this.name = name;
         this.deploymentId = deploymentId;
     }
     
@@ -51,27 +51,31 @@ public class ApplicationDefinition {
     }
 
     /**
-     * @return the applicationId
+     * @return the name or id of the application
      */
-    public String getApplicationId() {
-        return applicationId;
+    public String getName() {
+        return name;
     }
 
     /**
-     * @param applicationId the applicationId to set
+     * @param name the name or id of the application
      */
-    public void setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
-     * @return the deploymentId
+     * This gets the deployment id of the application i.e. describes which instance
+     * of the application was run.
+     * @return the deploymentId of the application
      */
     public String getDeploymentId() {
         return deploymentId;
     }
 
     /**
+     * This sets the deployment id of the application i.e. describes which instance
+     * of the application was run.
      * @param deploymentId the deploymentId to set
      */
     public void setDeploymentId(String deploymentId) {

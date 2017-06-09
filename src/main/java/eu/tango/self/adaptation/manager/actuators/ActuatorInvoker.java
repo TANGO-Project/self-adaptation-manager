@@ -34,89 +34,89 @@ public interface ActuatorInvoker {
     /**
      * This gets the ovf of a given deployment.
      *
-     * @param applicationId The application ID
-     * @param deploymentId The deployment ID
+     * @param name The application name / identifier
+     * @param deploymentId The deployment instance identifier
      * @return The application description that describes a given deployment. 
      * If the application description can't be reported by this actuator 
      * then null is returned instead.
      */
-    public abstract ApplicationDefinition getApplication(String applicationId, String deploymentId);
+    public abstract ApplicationDefinition getApplication(String name, String deploymentId);
     
     /**
-     * This gets a VM given its application, deployment and VM ids.
+     * This gets a task of a given application, deployment and task id.
      *
-     * @param application The application ID
-     * @param deployment The deployment ID
-     * @param vmID The VM id
-     * @return The VM given the id values specified.
+     * @param name The application name or identifier
+     * @param deployment The deployment instance identifier
+     * @param taskId The task id
+     * @return The task given the id values specified.
      */
-    public ApplicationDefinition getApplication(String application, String deployment, String vmID);
+    public ApplicationDefinition getApplication(String name, String deployment, String taskId);
     
     /**
-     * This gets the power usage of a VM.
+     * This gets the power usage of a application.
      *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
      * @return The power usage of the named application. 
      */
-    public double getTotalPowerUsage(String applicationId, String deploymentId);      
+    public double getTotalPowerUsage(String applicationName, String deploymentId);      
     
     /**
      *  This obtains information regarding the SLA limits of an application
      * that is to be actuated against
-     * @param applicationId The application id
+     * @param applicationName The application id
      * @param deploymentId The deployment id
      * @return 
      */
-    public SLALimits getSlaLimits(String applicationId, String deploymentId);
+    public SLALimits getSlaLimits(String applicationName, String deploymentId);
     
     /**
      * This gets the power usage of a task.
      *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
      * @param taskId The id of the task to get the measurement for
      * @return The power usage of a named task. 
      */
-    public double getPowerUsageTask(String applicationId, String deploymentId, String taskId);    
+    public double getPowerUsageTask(String applicationName, String deploymentId, String taskId);    
     
     /**
      * This gets the power usage of a task.
      *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
      * @param taskType The id of the task to get the measurement for
      * @return The power usage of a named task. 
      */
-    public double getAveragePowerUsage(String applicationId, String deploymentId, String taskType);     
+    public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType);     
 
     /**
      * This lists which tasks that can be added to a deployment in order to make it
      * scale.
      *
-     * @param applicationId The application ID
+     * @param applicationName The name of the application
      * @param deploymentId The deployment ID
      * @return The ids that can be used to scale the named deployment
      */
-    public abstract List<String> getTaskTypesAvailableToAdd(String applicationId, String deploymentId);
+    public abstract List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId);
     
     /**
      * This lists which tasks that can be added to a deployment in order to make it
      * scale.
      *
-     * @param applicationId The application ID
+     * @param applicationName The name of the application
      * @param deploymentId The deployment ID
      * @return The task ids that can be used to down size the named deployment
      */
-    public abstract List<Integer> getTaskIdsAvailableToRemove(String applicationId, String deploymentId);   
+    public abstract List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId);   
     
     /**
      * This stops the application from running
      *
-     * @param applicationId The application the VM is part of
-     * @param deploymentId The id of the deployment instance of the VM
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
      */
-    public void hardShutdown(String applicationId, String deploymentId);
+    public void hardShutdown(String applicationName, String deploymentId);
 
     /**
      * This causes the actuator to invoke a given action
@@ -128,19 +128,19 @@ public interface ActuatorInvoker {
     /**
      * This adds a task of a given task type to named deployment.
      *
-     * @param applicationId The application ID
+     * @param applicationName The name of the application
      * @param deploymentId The deployment ID
      * @param taskType The task type to instantiate
      */
-    public void addTask(String applicationId, String deploymentId, String taskType);
+    public void addTask(String applicationName, String deploymentId, String taskType);
 
     /**
      * This deletes a task from an application
      *
-     * @param application The application the task is part of
+     * @param applicationName The name of the application
      * @param deployment The id of the deployment instance of the task
      * @param taskID The id of the task to delete
      */
-    public void deleteTask(String application, String deployment, String taskID);    
+    public void deleteTask(String applicationName, String deployment, String taskID);    
     
 }
