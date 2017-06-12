@@ -116,15 +116,25 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void hardShutdown(String applicationName, String deploymentId) {
-        String mainCmd = "scancel " + deploymentId;
-        String cmd[] = {"/bin/sh",
-            "-c",
-            mainCmd};
-        try {
-            execCmd(cmd);
-        } catch (IOException ex) {
-            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        execCmd("scancel " + deploymentId);
+    }
+
+    /**
+     * Pauses a job, so that it can be executed later.
+     * @param applicationName
+     * @param deploymentId 
+     */
+    public void pauseJob(String applicationName, String deploymentId) {
+        execCmd("scontrol hold " + deploymentId);
+    }
+
+    /**
+     * un-pauses a job, so that it may resume execution.
+     * @param applicationName
+     * @param deploymentId 
+     */
+    public void unPauseJob(String applicationName, String deploymentId) {
+        execCmd("scontrol resume " + deploymentId);
     }
 
     @Override
@@ -210,6 +220,25 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
                 break;
         }
         response.setPerformed(true);
+    }
+
+    /**
+     * This executes a command and returns the output as a line of strings.
+     *
+     * @param cmd The command to execute
+     * @return A list of output broken down by line
+     * @throws java.io.IOException
+     */
+    private static ArrayList<String> execCmd(String mainCmd) {
+        String cmd[] = {"/bin/sh",
+            "-c",
+            mainCmd};
+        try {
+            execCmd(cmd);
+        } catch (IOException ex) {
+            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new ArrayList<>();
     }
 
     /**
