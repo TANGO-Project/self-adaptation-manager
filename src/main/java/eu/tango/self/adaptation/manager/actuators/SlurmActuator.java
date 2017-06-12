@@ -24,6 +24,7 @@ import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -83,8 +84,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         List<ApplicationOnHost> filteredTasks = new ArrayList<>();
         for (ApplicationOnHost task : tasks) {
             //TODO consider correctness of deployment id vs task.getId
-            if (task.getName().equals(applicationName) && 
-                    (task.getId() + "").equals(deploymentId)) {
+            if (task.getName().equals(applicationName)) {
                 filteredTasks.add(task);
             }
         }
@@ -116,7 +116,15 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void hardShutdown(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String mainCmd = "scancel " + deploymentId;
+        String cmd[] = {"/bin/sh",
+            "-c",
+            mainCmd};
+        try {
+            execCmd(cmd);
+        } catch (IOException ex) {
+            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -202,6 +210,26 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
                 break;
         }
         response.setPerformed(true);
+    }
+
+    /**
+     * This executes a command and returns the output as a line of strings.
+     *
+     * @param cmd The command to execute
+     * @return A list of output broken down by line
+     * @throws java.io.IOException
+     */
+    private static ArrayList<String> execCmd(String[] cmd) throws java.io.IOException {
+        ArrayList<String> output = new ArrayList<>();
+        Process proc = Runtime.getRuntime().exec(cmd);
+        java.io.InputStream is = proc.getInputStream();
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        String val = "";
+        while (s.hasNextLine()) {
+            val = s.next();
+            output.add(val);
+        }
+        return output;
     }
 
 }
