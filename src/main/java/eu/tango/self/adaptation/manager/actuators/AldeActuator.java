@@ -20,7 +20,6 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;
 
@@ -83,6 +82,11 @@ public class AldeActuator implements ActuatorInvoker {
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

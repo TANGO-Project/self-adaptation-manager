@@ -20,7 +20,6 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
-import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -47,7 +46,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * connections for different purposes.
      */
     private ActuatorInvoker actuator;
-    private SlaRulesLoader loader = new SlaRulesLoader();
+    private final SlaRulesLoader loader = new SlaRulesLoader();
 
     public AbstractDecisionEngine() {
     }

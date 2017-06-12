@@ -21,7 +21,6 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;
 
@@ -134,5 +133,14 @@ public interface ActuatorInvoker {
      * @param taskID The id of the task to delete
      */
     public void deleteTask(String applicationName, String deployment, String taskID);    
+ 
+    /**
+     * This scales a task type to a set amount of tasks
+     *
+     * @param applicationId The application the task is part of
+     * @param deploymentId The id of the deployment instance of the task
+     * @param response The response to actuator for
+     */
+    public void scaleToNTasks(String applicationId, String deploymentId, Response response);    
     
 }

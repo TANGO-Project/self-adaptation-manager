@@ -81,6 +81,10 @@ public class SlaRulesLoader {
      * @return 
      */
     public SLALimits getSlaLimits(String applicationID, String deploymentID) {
+        /**
+         * This should load rules in from disk and take the application definition
+         * and extract additional rules from that as well.
+         */
         return getLimits();
     }    
     

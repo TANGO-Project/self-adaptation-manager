@@ -18,12 +18,18 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.EnergyModeller;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This actuator interacts with the Device supervisor SLURM, with the aim of
@@ -31,9 +37,12 @@ import java.util.List;
  *
  * @author Richard Kavanagh
  */
-public class SlurmActuator implements ActuatorInvoker {
+public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     SlurmDataSourceAdaptor datasource = new SlurmDataSourceAdaptor();
+    EnergyModeller modeller = EnergyModeller.getInstance();
+    private final LinkedBlockingDeque<Response> queue = new LinkedBlockingDeque<>();
+    private boolean stop = false;
 
     @Override
     public ApplicationDefinition getApplication(String applicationName, String deploymentId) {
@@ -68,7 +77,21 @@ public class SlurmActuator implements ActuatorInvoker {
 
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //TODO this is a lot of effort, is it really a new requirmenent for the EM.
+        double answer = 0.0;
+        List<ApplicationOnHost> tasks = datasource.getHostApplicationList();
+        List<ApplicationOnHost> filteredTasks = new ArrayList<>();
+        for (ApplicationOnHost task : tasks) {
+            //TODO consider correctness of deployment id vs task.getId
+            if (task.getName().equals(applicationName) && 
+                    (task.getId() + "").equals(deploymentId)) {
+                filteredTasks.add(task);
+            }
+        }
+        for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(filteredTasks)) {
+            answer = answer + record.getPower();
+        }
+        return answer;
     }
 
     @Override
@@ -98,7 +121,7 @@ public class SlurmActuator implements ActuatorInvoker {
 
     @Override
     public void actuate(Response response) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        queue.add(response);
     }
 
     @Override
@@ -109,6 +132,76 @@ public class SlurmActuator implements ActuatorInvoker {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }  
-    
+    }
+
+    @Override
+    public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
+        String taskType = response.getAdaptationDetail("TASK_TYPE");
+        String tasksToRemove = response.getAdaptationDetail("TASKS_TO_REMOVE");
+        if (tasksToRemove == null) { //Add Tasks
+            int count = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
+            for (int i = 0; i < count; i++) {
+                addTask(applicationId, deploymentId, taskType);
+            }
+        } else { //Remove tasks
+            for (String taskId : tasksToRemove.split(",")) {
+                deleteTask(applicationId, deploymentId, taskId.trim());
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        while (!stop || !queue.isEmpty()) {
+            try {
+                Response currentItem = queue.poll(30, TimeUnit.SECONDS);
+                if (currentItem != null) {
+                    ArrayList<Response> actions = new ArrayList<>();
+                    actions.add(currentItem);
+                    queue.drainTo(actions);
+                    for (Response action : actions) {
+                        try {
+                            launchAction(action);
+                        } catch (Exception ex) {
+                            /**
+                             * This prevents exceptions when messaging the
+                             * server from propagating and stopping the thread
+                             * from running.
+                             */
+                            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+                            action.setPerformed(true);
+                            action.setPossibleToAdapt(false);
+                        }
+                    }
+                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    /**
+     * This executes a given action for a response that has been placed in the
+     * actuator's queue for deployment.
+     *
+     * @param response The response object to launch the action for
+     */
+    private void launchAction(Response response) {
+        switch (response.getActionType()) {
+            case ADD_TASK:
+                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetails());
+                break;
+            case REMOVE_TASK:
+                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getTaskId());
+                break;
+            case SCALE_TO_N_TASKS:
+                scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
+                break;
+            default:
+                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                break;
+        }
+        response.setPerformed(true);
+    }
+
 }
