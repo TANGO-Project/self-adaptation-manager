@@ -67,7 +67,7 @@ public class AldeActuator implements ActuatorInvoker {
     }
 
     @Override
-    public void hardShutdown(String applicationName, String deploymentId) {
+    public void hardKillApp(String applicationName, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

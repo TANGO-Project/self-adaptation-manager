@@ -133,7 +133,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
-    public void hardShutdown(String applicationName, String deploymentId) {
+    public void hardKillApp(String applicationName, String deploymentId) {
         execCmd("scancel " + deploymentId);
     }
 
@@ -234,6 +234,15 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
+                break;
+            case PAUSE_APP:
+                pauseJob(response.getApplicationId(), response.getDeploymentId());
+                break;
+            case UNPAUSE_APP:
+                pauseJob(response.getApplicationId(), response.getDeploymentId());
+                break;
+            case HARD_KILL_APP:
+                hardKillApp(response.getApplicationId(), response.getDeploymentId());
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");

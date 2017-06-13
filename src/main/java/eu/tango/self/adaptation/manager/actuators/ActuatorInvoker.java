@@ -50,7 +50,7 @@ public interface ActuatorInvoker {
      * @param taskId The task id
      * @return The task given the id values specified.
      */
-    public ApplicationOnHost getTask(String name, String deployment, String taskId);
+    public ApplicationOnHost getTask(String name, String deployment, int taskId);
     
     /**
      * This gets the power usage of a application.
@@ -66,10 +66,10 @@ public interface ActuatorInvoker {
      *
      * @param applicationName The name of the application
      * @param deploymentId The id of the deployment instance of the application
-     * @param taskId The id of the task to get the measurement for
+     * @param taskId The task id
      * @return The power usage of a named task. 
      */
-    public double getPowerUsageTask(String applicationName, String deploymentId, String taskId);    
+    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId);    
     
     /**
      * This gets the power usage of a task.
@@ -107,7 +107,7 @@ public interface ActuatorInvoker {
      * @param applicationName The name of the application
      * @param deploymentId The id of the deployment instance of the application
      */
-    public void hardShutdown(String applicationName, String deploymentId);
+    public void hardKillApp(String applicationName, String deploymentId);
 
     /**
      * This causes the actuator to invoke a given action
