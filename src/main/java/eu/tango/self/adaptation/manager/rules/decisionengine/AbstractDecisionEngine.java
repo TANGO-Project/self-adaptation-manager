@@ -235,12 +235,12 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             return answer;
         }
         for (Integer taskId : taskIds) {
-            double currentValue = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), "" + taskId);
+            double currentValue = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             if (currentValue == 0) {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
                         "The calculation of the highest powered Task saw a zero value for Task: {0}", taskId);
             }
-            ApplicationOnHost taskDef = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId + "");
+            ApplicationOnHost taskDef = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             if (currentValue > answerPower && (taskType == null)) {  // || taskDef.getOvfId().equals(vmType))) {
                 answer = taskId;
                 answerPower = currentValue;
@@ -266,8 +266,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     public ArrayList<PowerApplicationMapping> getApplicationPowerList(Response response, List<Integer> taskIds) {
         ArrayList<PowerApplicationMapping> answer = new ArrayList<>();
         for (Integer taskId : taskIds) {
-            double power = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), "" + taskId);
-            ApplicationOnHost task = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId + "");
+            double power = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            ApplicationOnHost task = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             answer.add(new PowerApplicationMapping(power, task));
         }
         Collections.sort(answer);

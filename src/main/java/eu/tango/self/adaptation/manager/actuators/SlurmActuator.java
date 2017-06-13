@@ -23,9 +23,11 @@ import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -62,14 +64,14 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
-    public ApplicationOnHost getTask(String name, String deploymentId, String taskId) {
+    public ApplicationOnHost getTask(String name, String deploymentId, int taskId) {
         /**
          * The energy modeller's app id is a number
          */
-        List<ApplicationOnHost> tasks = datasource.getHostApplicationList();
+        Host host = getHostFromTaskId(taskId);
+        List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
         for (ApplicationOnHost task : tasks) {
-            if ((task.getName().trim().equals(name.trim()))
-                    && (task.getId() + "").equals(deploymentId.trim())) {
+            if (task.getAllocatedTo().equals(host)) {
                 return task;
             }
         }
@@ -78,25 +80,35 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        //TODO this is a lot of effort, is it really a new requirmenent for the EM.
         double answer = 0.0;
-        List<ApplicationOnHost> tasks = datasource.getHostApplicationList();
-        List<ApplicationOnHost> filteredTasks = new ArrayList<>();
-        for (ApplicationOnHost task : tasks) {
-            //TODO consider correctness of deployment id vs task.getId
-            if (task.getName().equals(applicationName)) {
-                filteredTasks.add(task);
-            }
-        }
-        for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(filteredTasks)) {
+        List<ApplicationOnHost> tasks = modeller.getApplication(deploymentId, Integer.parseInt(deploymentId));
+        for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(tasks)) {
             answer = answer + record.getPower();
         }
         return answer;
     }
+    
+    /**
+     * Converts a task Id into a host
+     * @param taskId The task id to convert
+     * @return The host
+     */
+    private Host getHostFromTaskId(int taskId) {
+        Collection<Host> hosts = modeller.getHostList();
+        for (Host host : hosts) {
+            if (host.getId() == taskId)
+                return host;
+        }
+        return null;
+    }
 
     @Override
-    public double getPowerUsageTask(String applicationName, String deploymentId, String taskId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.      
+    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
+        ApplicationOnHost task = getTask(deploymentId, deploymentId, taskId);
+        if (task == null) {
+            return 0;
+        }
+        return modeller.getCurrentEnergyForApplication(task).getPower();
     }
 
     @Override
@@ -111,7 +123,13 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<Integer> answer = new ArrayList<>();
+        List<ApplicationOnHost> tasks = modeller.getApplication(deploymentId, Integer.parseInt(deploymentId));
+        for (ApplicationOnHost task : tasks) {
+            //Treat host id as unique id of task/application on a host
+            answer.add(task.getAllocatedTo().getId()); 
+        }
+        return answer;
     }
 
     @Override
@@ -121,8 +139,9 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     /**
      * Pauses a job, so that it can be executed later.
+     *
      * @param applicationName
-     * @param deploymentId 
+     * @param deploymentId
      */
     public void pauseJob(String applicationName, String deploymentId) {
         execCmd("scontrol hold " + deploymentId);
@@ -130,8 +149,9 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     /**
      * un-pauses a job, so that it may resume execution.
+     *
      * @param applicationName
-     * @param deploymentId 
+     * @param deploymentId
      */
     public void unPauseJob(String applicationName, String deploymentId) {
         execCmd("scontrol resume " + deploymentId);

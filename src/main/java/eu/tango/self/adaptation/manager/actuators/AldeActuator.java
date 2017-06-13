@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;
@@ -36,7 +37,7 @@ public class AldeActuator implements ActuatorInvoker {
     }
 
     @Override
-    public ApplicationOnHost getTask(String name, String deployment, String taskId) {
+    public ApplicationOnHost getTask(String name, String deployment, int taskId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -46,7 +47,7 @@ public class AldeActuator implements ActuatorInvoker {
     }
 
     @Override
-    public double getPowerUsageTask(String applicationName, String deploymentId, String taskId) {
+    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
