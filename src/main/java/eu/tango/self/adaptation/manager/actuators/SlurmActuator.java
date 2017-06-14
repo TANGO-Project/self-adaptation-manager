@@ -87,17 +87,19 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         }
         return answer;
     }
-    
+
     /**
      * Converts a task Id into a host
+     *
      * @param taskId The task id to convert
      * @return The host
      */
     private Host getHostFromTaskId(int taskId) {
         Collection<Host> hosts = modeller.getHostList();
         for (Host host : hosts) {
-            if (host.getId() == taskId)
+            if (host.getId() == taskId) {
                 return host;
+            }
         }
         return null;
     }
@@ -127,7 +129,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         List<ApplicationOnHost> tasks = modeller.getApplication(deploymentId, Integer.parseInt(deploymentId));
         for (ApplicationOnHost task : tasks) {
             //Treat host id as unique id of task/application on a host
-            answer.add(task.getAllocatedTo().getId()); 
+            answer.add(task.getAllocatedTo().getId());
         }
         return answer;
     }
@@ -140,8 +142,9 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
     /**
      * Pauses a job, so that it can be executed later.
      *
-     * @param applicationName
-     * @param deploymentId
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     *
      */
     public void pauseJob(String applicationName, String deploymentId) {
         execCmd("scontrol hold " + deploymentId);
@@ -150,11 +153,43 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
     /**
      * un-pauses a job, so that it may resume execution.
      *
-     * @param applicationName
-     * @param deploymentId
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
      */
-    public void unPauseJob(String applicationName, String deploymentId) {
+    public void resumeJob(String applicationName, String deploymentId) {
         execCmd("scontrol resume " + deploymentId);
+    }
+
+    /**
+     * This increases the walltime of a job
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     * @param response The response object to perform the action for
+     */
+    public void decreaseWallTime(String applicationName, String deploymentId, Response response) {
+        //Example: "scontrol update JobID=" + deploymentId + " Timelimit=-30:00"
+        String walltimeIncrement = response.getAdaptationDetail("WALL_TIME_INCREMENT");
+        if (walltimeIncrement == null || walltimeIncrement.isEmpty()) {
+            walltimeIncrement = "30:00";
+        }        
+        execCmd("scontrol update JobID=" + deploymentId + " Timelimit=-" + walltimeIncrement);
+    }
+
+    /**
+     * This decreases the walltime of a job
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     * @param response The response object to perform the action for
+     */
+    public void increaseWallTime(String applicationName, String deploymentId, Response response) {
+        String walltimeIncrement = response.getAdaptationDetail("WALL_TIME_INCREMENT");
+        if (walltimeIncrement == null || walltimeIncrement.isEmpty()) {
+            walltimeIncrement = "30:00";
+        }
+        //Example: "scontrol update JobID=" + deploymentId + " Timelimit=+30:00"
+        execCmd("scontrol update JobID=" + deploymentId + " Timelimit=+" + walltimeIncrement);
     }
 
     @Override
@@ -169,6 +204,15 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void shutdownHost(Host host) {
+        //Consider: https://slurm.schedmd.com/power_save.html
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void startupHost(Host host) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -217,7 +261,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
             }
         }
     }
-    
+
     /**
      * This stops this actuator from running.
      */
@@ -250,6 +294,12 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
                 break;
             case HARD_KILL_APP:
                 hardKillApp(response.getApplicationId(), response.getDeploymentId());
+                break;
+            case INCREASE_WALL_TIME:
+                increaseWallTime(response.getApplicationId(), response.getDeploymentId(), response);
+                break;
+            case REDUCE_WALL_TIME:
+                decreaseWallTime(response.getApplicationId(), response.getDeploymentId(), response);
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
