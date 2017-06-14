@@ -19,7 +19,6 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;

@@ -217,6 +217,13 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
             }
         }
     }
+    
+    /**
+     * This stops this actuator from running.
+     */
+    public void stop() {
+        stop = true;
+    }
 
     /**
      * This executes a given action for a response that has been placed in the
@@ -282,7 +289,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         Process proc = Runtime.getRuntime().exec(cmd);
         java.io.InputStream is = proc.getInputStream();
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-        String val = "";
+        String val;
         while (s.hasNextLine()) {
             val = s.next();
             output.add(val);
