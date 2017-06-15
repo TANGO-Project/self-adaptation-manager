@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class SlurmJobMonitor implements EventListener, Runnable {
 
     private EventAssessor eventAssessor;
-    private HostDataSource datasource = new SlurmDataSourceAdaptor();
+    private final HostDataSource datasource = new SlurmDataSourceAdaptor();
     private boolean running = true;
     private static final String CONFIG_FILE = "self-adaptation-manager-sla.properties";
     private String workingDir;
@@ -84,11 +84,11 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

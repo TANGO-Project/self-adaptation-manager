@@ -29,16 +29,11 @@ import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.glassfish.jersey.Severity;
+import org.jcollectd.agent.api.Notification.Severity;
 import org.jcollectd.agent.api.Notification;
 
 /**
@@ -50,51 +45,13 @@ import org.jcollectd.agent.api.Notification;
 public class EnvironmentMonitor implements EventListener, Runnable, CollectDNotificationHandler {
 
     private EventAssessor eventAssessor;
-    private HostDataSource datasource = new CollectdDataSourceAdaptor();
+    private final HostDataSource datasource = new CollectdDataSourceAdaptor();
     private boolean running = true;
-    private static final String CONFIG_FILE = "self-adaptation-manager-sla.properties";
-    private String workingDir;
     private SLALimits limits;
-
-    private static final Map<String, EventData.Operator> OPERATOR_MAPPING
-            = new HashMap<>();
-
-    static {
-        OPERATOR_MAPPING.put("less_than", EventData.Operator.LT);
-        OPERATOR_MAPPING.put("LESS", EventData.Operator.LT);
-        OPERATOR_MAPPING.put("less_than_or_equals", EventData.Operator.LTE);
-        OPERATOR_MAPPING.put("LESS_EQUAL", EventData.Operator.LTE);
-        OPERATOR_MAPPING.put("equals", EventData.Operator.EQ);
-        OPERATOR_MAPPING.put("EQUALS", EventData.Operator.EQ);
-        OPERATOR_MAPPING.put("greater_than", EventData.Operator.GT);
-        OPERATOR_MAPPING.put("GREATER", EventData.Operator.GT);
-        OPERATOR_MAPPING.put("greater_than_or_equals", EventData.Operator.GTE);
-        OPERATOR_MAPPING.put("GREATER_EQUAL", EventData.Operator.GTE);
-        OPERATOR_MAPPING.put(null, null);
-        OPERATOR_MAPPING.put("", null);
-    }
 
     public EnvironmentMonitor() {
         if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
-        }
-
-        try {
-            PropertiesConfiguration config;
-            if (new File(CONFIG_FILE).exists()) {
-                config = new PropertiesConfiguration(CONFIG_FILE);
-            } else {
-                config = new PropertiesConfiguration();
-                config.setFile(new File(CONFIG_FILE));
-            }
-            config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
-            workingDir = config.getString("self.adaptation.manager.working.directory", ".");
-            if (!workingDir.endsWith("/")) {
-                workingDir = workingDir + "/";
-            }
-            config.save();
-        } catch (ConfigurationException ex) {
-            Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
         SlaRulesLoader loader = new SlaRulesLoader();
         limits = loader.getLimits();
@@ -146,7 +103,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -228,7 +185,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         /**
          * Options available: FAILURE(1), WARNING(2), UNKNOWN(3), OKAY(4)
          */
-        if (notification.getSeverity().equals(Severity.FATAL)) {
+        if (notification.getSeverity().equals(Severity.FAILURE)) {
             answer.setType(EventData.Type.SLA_BREACH);
         } else if (notification.getSeverity().equals(Severity.WARNING)) {
             answer.setType(EventData.Type.WARNING);
