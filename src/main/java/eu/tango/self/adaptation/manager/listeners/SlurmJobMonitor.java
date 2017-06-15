@@ -78,7 +78,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         try {
             // Wait for a message
             while (running) {
-                for (EventData event: detectEvent(limits)) {
+                for (EventData event : detectEvent(limits)) {
                     eventAssessor.assessEvent(event);
                 }
                 try {
@@ -104,14 +104,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         ArrayList<EventData> answer = detectRecentIdleHost();
         answer.addAll(detectRecentCompletedApps());
         //Add next test here
-        
+
         //TODO Consider duration host is idle.
-        //TODO Consider accelerator becoming free. High importance
         return answer;
     }
-    
+
     /**
      * This takes the list of hosts and detects if one has recently become free.
+     *
      * @return An event indicating that a physical host has just become free.
      */
     private ArrayList<EventData> detectRecentIdleHost() {
@@ -121,25 +121,38 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         recentIdle.removeAll(idleHosts);
         if (!recentIdle.isEmpty()) {
             for (Host idleHost : recentIdle) {
-                //return the first recently idle host.
-                EventData event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
-                        0.0,
-                        0.0,
-                        EventData.Type.OTHER,
-                        EventData.Operator.EQ,
-                        "HOST_IDLE",
-                        "HOST_IDLE");
-                idleHosts = currentIdle;
+                //return the list of recently idle hosts.
+                EventData event;
+                if (idleHost.hasAccelerator()) {
+                    event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                            0.0,
+                            0.0,
+                            EventData.Type.OTHER,
+                            EventData.Operator.EQ,
+                            "IDLE_HOST+ACCELERATED",
+                            "IDLE_HOST+ACCELERATED");
+                } else {
+                    event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                            0.0,
+                            0.0,
+                            EventData.Type.OTHER,
+                            EventData.Operator.EQ,
+                            "HOST_IDLE",
+                            "HOST_IDLE");
+                    answer.add(event);
+                }
                 answer.add(event);
+                idleHosts = currentIdle;
             }
 
         }
         return answer;
     }
-    
+
     /**
      * This detects recently finished jobs
-     * @return 
+     *
+     * @return The list of events indicating which jobs had finished.
      */
     private ArrayList<EventData> detectRecentCompletedApps() {
         ArrayList<EventData> answer = new ArrayList<>();
@@ -148,7 +161,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         recentFinished.removeAll(currentRunning);
         if (!recentFinished.isEmpty()) {
             for (ApplicationOnHost finished : recentFinished) {
-                //return the first recently idle host.
+                //return the recently finished applications.
                 EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                         0.0,
                         0.0,
