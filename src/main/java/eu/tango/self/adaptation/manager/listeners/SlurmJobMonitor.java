@@ -24,6 +24,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.actuators.SlurmActuator;
 import eu.tango.self.adaptation.manager.model.SLALimits;
+import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -47,8 +48,6 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private EventAssessor eventAssessor;
     private final HostDataSource datasource = new SlurmDataSourceAdaptor();
     private boolean running = true;
-    private static final String CONFIG_FILE = "self-adaptation-manager-sla.properties";
-    private String workingDir;
     private SLALimits limits;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
@@ -93,6 +92,22 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     }
 
     /**
+     * Checks to see if the SLA rules includes a check for a given condition
+     *
+     * @param limits The SLA terms
+     * @param termName The name of the SLA term
+     * @return If the term is contained or not within the SLA limits set
+     */
+    private boolean containsTerm(SLALimits limits, String termName) {
+        for (SLATerm slaTerm : limits.getQosCriteria()) {
+            if (slaTerm.getAgreementTerm().equals(termName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * This takes a list of measurements and determines if an SLA breach has
      * occurred by comparing them to the QoS limits.
      *
@@ -101,11 +116,28 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      * @return The first SLA breach event. Null if none found.
      */
     private ArrayList<EventData> detectEvent(SLALimits limits) {
-        ArrayList<EventData> answer = detectRecentIdleHost();
-        answer.addAll(detectRecentCompletedApps());
+        ArrayList<EventData> answer = new ArrayList<EventData>();
+        if (containsTerm(limits, "IDLE_HOST")) {
+            answer.addAll(detectRecentIdleHost());
+        }
+        if (containsTerm(limits, "APP_FINISHED")) {
+            answer.addAll(detectRecentCompletedApps());
+        }
+        if (containsTerm(limits, "IDLE_HOST+PENDING_JOB")) {
+            answer.addAll(detectIdleHostsWithPendingJobs());
+        }
         //Add next test here
 
         //TODO Consider duration host is idle.
+        //TODO Consider size of queue for given host
+        /**
+         * Commands to consider when extending this:
+         *
+         * List all running jobs for a user: squeue -u <username> -t RUNNING
+         * List all pending jobs for a user: squeue -u <username> -t PENDING
+         * List priority order of jobs for the current user (you) in a given
+         * partition: showq-slurm -o -u -q <partition>
+         */
         return answer;
     }
 
@@ -137,8 +169,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                             0.0,
                             EventData.Type.OTHER,
                             EventData.Operator.EQ,
-                            "HOST_IDLE",
-                            "HOST_IDLE");
+                            "IDLE_HOST",
+                            "IDLE_HOST");
                     answer.add(event);
                 }
                 answer.add(event);
@@ -179,6 +211,74 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         return answer;
     }
 
+    /**
+     * This detects hosts that have jobs stuck on them with pending resource
+     * requirements.
+     *
+     * @return The list of events indicating which hosts have stuck jobs.
+     */
+    private ArrayList<EventData> detectIdleHostsWithPendingJobs() {
+        ArrayList<EventData> answer = new ArrayList<>();
+        List<Host> stuckHosts = getIdleHostsWithPendingJobs();
+        EventData event;
+        for (Host stuckHost : stuckHosts) {
+            if (stuckHost.hasAccelerator()) {
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
+                        0.0,
+                        0.0,
+                        EventData.Type.OTHER,
+                        EventData.Operator.EQ,
+                        "IDLE_HOST+ACCELERATED+PENDING_JOB",
+                        "IDLE_HOST+ACCELERATED+PENDING_JOB");
+            } else {
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
+                        0.0,
+                        0.0,
+                        EventData.Type.OTHER,
+                        EventData.Operator.EQ,
+                        "IDLE_HOST+PENDING_JOB",
+                        "IDLE_HOST+PENDING_JOB");
+                answer.add(event);
+            }
+        }
+        return answer;
+
+    }
+
+    /**
+     * This lists the pending jobs on an idle host. This means the SAM has the
+     * possibility of detecting this and therefore responding to it. e.g. it
+     * might get the ALDE to recompile so it can place the job elsewhere.
+     *
+     * @return The list of idle hosts with pending jobs (i.e. blocked for
+     * another reason, such as not all resources were obtainable)
+     */
+    private List<Host> getIdleHostsWithPendingJobs() {
+        List<Host> answer = new ArrayList<>();
+        HashSet<Host> currentIdle = new HashSet<>(idleHosts);
+        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
+        for (ApplicationOnHost pendingJob : pendingJobs) {
+            if (currentIdle.contains(pendingJob.getAllocatedTo())) {
+                answer.add(pendingJob.getAllocatedTo());
+            }
+        }
+        return answer;
+    }
+
+    /**
+     * This lists the pending jobs
+     *
+     * @return
+     */
+    private List<ApplicationOnHost> listPendingJobs() {
+        return datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
+    }
+
+    /**
+     * This lists the hosts that are idle
+     *
+     * @return The list of hosts that are currently idle
+     */
     private HashSet<Host> getIdleHosts() {
         HashSet<Host> answer = new HashSet(datasource.getHostList());
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
@@ -221,10 +321,10 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         Process proc = Runtime.getRuntime().exec(cmd);
         java.io.InputStream is = proc.getInputStream();
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-        String val;
+        String outputLine;
         while (s.hasNextLine()) {
-            val = s.next();
-            output.add(val);
+            outputLine = s.next();
+            output.add(outputLine);
         }
         return output;
     }
