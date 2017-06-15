@@ -155,24 +155,13 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             for (Host idleHost : recentIdle) {
                 //return the list of recently idle hosts.
                 EventData event;
-                if (idleHost.hasAccelerator()) {
-                    event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
-                            0.0,
-                            0.0,
-                            EventData.Type.OTHER,
-                            EventData.Operator.EQ,
-                            "IDLE_HOST+ACCELERATED",
-                            "IDLE_HOST+ACCELERATED");
-                } else {
-                    event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
-                            0.0,
-                            0.0,
-                            EventData.Type.OTHER,
-                            EventData.Operator.EQ,
-                            "IDLE_HOST",
-                            "IDLE_HOST");
-                    answer.add(event);
-                }
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                        0.0,
+                        0.0,
+                        EventData.Type.OTHER,
+                        EventData.Operator.EQ,
+                        "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
+                        "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
                 answer.add(event);
                 idleHosts = currentIdle;
             }
@@ -222,27 +211,16 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         List<Host> stuckHosts = getIdleHostsWithPendingJobs();
         EventData event;
         for (Host stuckHost : stuckHosts) {
-            if (stuckHost.hasAccelerator()) {
-                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
-                        0.0,
-                        0.0,
-                        EventData.Type.OTHER,
-                        EventData.Operator.EQ,
-                        "IDLE_HOST+ACCELERATED+PENDING_JOB",
-                        "IDLE_HOST+ACCELERATED+PENDING_JOB");
-            } else {
-                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
-                        0.0,
-                        0.0,
-                        EventData.Type.OTHER,
-                        EventData.Operator.EQ,
-                        "IDLE_HOST+PENDING_JOB",
-                        "IDLE_HOST+PENDING_JOB");
-                answer.add(event);
-            }
+            event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
+                    0.0,
+                    0.0,
+                    EventData.Type.OTHER,
+                    EventData.Operator.EQ,
+                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB",
+                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB");
+            answer.add(event);
         }
         return answer;
-
     }
 
     /**
@@ -255,7 +233,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      */
     private List<Host> getIdleHostsWithPendingJobs() {
         List<Host> answer = new ArrayList<>();
-        HashSet<Host> currentIdle = new HashSet<>(idleHosts);
+        HashSet<Host> currentIdle = getIdleHosts();
         List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
         for (ApplicationOnHost pendingJob : pendingJobs) {
             if (currentIdle.contains(pendingJob.getAllocatedTo())) {
