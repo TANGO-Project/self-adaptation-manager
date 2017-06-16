@@ -172,7 +172,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         String walltimeIncrement = response.getAdaptationDetail("WALL_TIME_INCREMENT");
         if (walltimeIncrement == null || walltimeIncrement.isEmpty()) {
             walltimeIncrement = "30:00";
-        }        
+        }
         execCmd("scontrol update JobID=" + deploymentId + " Timelimit=-" + walltimeIncrement);
     }
 
@@ -199,12 +199,74 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int oldCount = getNodeCount(deploymentId);
+        if (oldCount > 0) { //checks to make sure the count of cpus was detected correctly
+            execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount + 1));
+        }
     }
 
     @Override
-    public void deleteTask(String applicationName, String deployment, String taskID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void deleteTask(String applicationName, String deploymentId, String taskID) {
+        int oldCount = getNodeCount(deploymentId);
+        if (oldCount > 2) {
+            execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount - 1));
+        }
+    }
+
+    /**
+     * Returns the amount of nodes allocated to a given deployment
+     *
+     * @param deploymentId the id of the job to get the node count for
+     * @return the node count for a given deployment, -1 in the event of error
+     */
+    private int getNodeCount(String deploymentId) {
+        int answer = -1;
+        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " --format=\"%D\"");
+        if (!cpuCount.isEmpty()) {
+            return Integer.parseInt(cpuCount.get(0));
+        }
+        return answer;
+    }
+
+    /**
+     * Returns the minimum cpu count for a given deployment
+     *
+     * @param deploymentId the id of the job to get the cpu count for
+     * @return the cpu count for a given deployment, -1 in the event of error
+     */
+    private int getCpuCount(String deploymentId) {
+        int answer = -1;
+        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " --format=\"%C\"");
+        if (!cpuCount.isEmpty()) {
+            return Integer.parseInt(cpuCount.get(0));
+        }
+        return answer;
+    }
+
+    /**
+     * Adds a cpu to an applications deployment
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     */
+    public void addCpu(String applicationName, String deploymentId) {
+        int oldCount = getCpuCount(deploymentId);
+        if (oldCount > 0) { //checks to make sure the count of cpus was detected correctly
+            execCmd("scontrol update JobId=" + deploymentId + "NumCPUs=" + (oldCount + 1));
+        }
+    }
+
+    /**
+     * Removes a cpu from an applications deployment
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     */
+    public void removeCpu(String applicationName, String deploymentId) {
+        int oldCount = getCpuCount(deploymentId);
+        if (oldCount > 2) {
+            execCmd("scontrol update JobId=" + deploymentId + "NumCPUs=" + (oldCount - 1));
+        }
     }
 
     public void shutdownHost(Host host) {
@@ -277,6 +339,12 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
      */
     private void launchAction(Response response) {
         switch (response.getActionType()) {
+            case ADD_CPU:
+                addCpu(response.getApplicationId(), response.getDeploymentId());
+                break;
+            case REMOVE_CPU:
+                removeCpu(response.getApplicationId(), response.getDeploymentId());
+                break;
             case ADD_TASK:
                 addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetails());
                 break;
