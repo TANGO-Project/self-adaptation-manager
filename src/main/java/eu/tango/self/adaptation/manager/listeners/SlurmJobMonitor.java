@@ -48,7 +48,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private EventAssessor eventAssessor;
     private final HostDataSource datasource = new SlurmDataSourceAdaptor();
     private boolean running = true;
-    private SLALimits limits;
+    private final SLALimits limits;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
 
@@ -116,7 +116,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      * @return The first SLA breach event. Null if none found.
      */
     private ArrayList<EventData> detectEvent(SLALimits limits) {
-        ArrayList<EventData> answer = new ArrayList<EventData>();
+        ArrayList<EventData> answer = new ArrayList<>();
         if (containsTerm(limits, "IDLE_HOST")) {
             answer.addAll(detectRecentIdleHost());
         }
@@ -241,15 +241,6 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             }
         }
         return answer;
-    }
-
-    /**
-     * This lists the pending jobs
-     *
-     * @return
-     */
-    private List<ApplicationOnHost> listPendingJobs() {
-        return datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
     }
 
     /**
