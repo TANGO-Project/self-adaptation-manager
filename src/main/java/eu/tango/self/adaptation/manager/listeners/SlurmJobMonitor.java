@@ -258,6 +258,24 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
+    
+    /**
+     * This lists the long pending jobs in the queue. 
+     *
+     * @return The list of pending jobs, that have been in the queue for a long
+     * time.
+     */
+    private List<Host> getLongPendingJobsInQueue() {
+        List<Host> answer = new ArrayList<>();
+        //TODO Consider if this is a deployment time issue, not runtime??
+        //Is it only runtime if the resources available change
+        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
+        for (ApplicationOnHost pendingJob : pendingJobs) {
+            //TODO add the notion of long pending here
+                answer.add(pendingJob.getAllocatedTo());
+        }
+        return answer;
+    }    
 
     /**
      * This executes a command and returns the output as a line of strings.
@@ -271,7 +289,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             "-c",
             mainCmd};
         try {
-            execCmd(cmd);
+            return execCmd(cmd);
         } catch (IOException ex) {
             Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
         }

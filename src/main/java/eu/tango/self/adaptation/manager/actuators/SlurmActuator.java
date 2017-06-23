@@ -388,7 +388,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
             "-c",
             mainCmd};
         try {
-            execCmd(cmd);
+            return execCmd(cmd);
         } catch (IOException ex) {
             Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
