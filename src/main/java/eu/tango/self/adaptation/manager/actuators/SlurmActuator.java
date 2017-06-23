@@ -406,10 +406,10 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         ArrayList<String> output = new ArrayList<>();
         Process proc = Runtime.getRuntime().exec(cmd);
         java.io.InputStream is = proc.getInputStream();
-        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        java.util.Scanner s = new java.util.Scanner(is);
         String val;
         while (s.hasNextLine()) {
-            val = s.next();
+            val = s.nextLine();
             output.add(val);
         }
         return output;

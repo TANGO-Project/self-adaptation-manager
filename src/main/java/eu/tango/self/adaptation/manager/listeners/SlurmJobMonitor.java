@@ -307,10 +307,10 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         ArrayList<String> output = new ArrayList<>();
         Process proc = Runtime.getRuntime().exec(cmd);
         java.io.InputStream is = proc.getInputStream();
-        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        java.util.Scanner s = new java.util.Scanner(is);
         String outputLine;
         while (s.hasNextLine()) {
-            outputLine = s.next();
+            outputLine = s.nextLine();
             output.add(outputLine);
         }
         return output;
