@@ -71,13 +71,13 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     public void stopListening() {
         running = false;
     }
-    
+
     /**
      * This reloads the SLA criteria held in the environment monitor.
      */
     public void reloadLimits() {
         SlaRulesLoader loader = new SlaRulesLoader();
-        limits = loader.getLimits();        
+        limits = loader.getLimits();
     }
 
     /**
@@ -95,7 +95,9 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             // Wait for a message
             while (running) {
                 EventData event = detectBreach(limits);
-                eventAssessor.assessEvent(event);
+                if (event != null) {
+                    eventAssessor.assessEvent(event);
+                }
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
@@ -160,20 +162,20 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
          * Type Instance: idle
          */
         /**
-         * Second Example:
-         *
-         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-         * Host: VM10-10-1-13
-         * Severity: FAILURE
-         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-         * Plugin: aggregation
-         * Plugin Instance: cpu-average
-         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
-         * Type: cpu
-         * Type Instance: user
-         * 
-         */
+        * Second Example:
+        *
+        * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+        * Host: VM10-10-1-13
+        * Severity: FAILURE
+        * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+        * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
+        * Plugin: aggregation
+        * Plugin Instance: cpu-average
+        * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
+        * Type: cpu
+        * Type Instance: user
+        * 
+        */
         HostEventData answer = new HostEventData();
         answer.setHost(notification.getHost());
 

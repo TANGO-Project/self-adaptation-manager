@@ -66,6 +66,15 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     public EventAssessor getEventAssessor() {
         return eventAssessor;
     }
+    
+    /**
+     * This starts the environment monitor going, in a daemon thread.
+     */
+    public void startListening() {
+        Thread slurmJobMonThread = new Thread(this);
+        slurmJobMonThread.setDaemon(true);
+        slurmJobMonThread.start();
+    }    
 
     @Override
     public void stopListening() {

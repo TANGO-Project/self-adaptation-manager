@@ -21,6 +21,7 @@ import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.actuators.AldeActuator;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
+import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
 import eu.tango.self.adaptation.manager.rules.AbstractEventAssessor;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.ThresholdEventAssessor;
@@ -64,8 +65,12 @@ public class SelfAdaptationManager {
         }
         setEventAssessor(eventAssessorName);
         EventListener listener = new EnvironmentMonitor();
-        ((EnvironmentMonitor)listener).startListening();        
+        listener.setEventAssessor(eventAssessor);
+        listener.startListening();        
         listeners.add(listener);
+        listener = new SlurmJobMonitor();
+        listener.setEventAssessor(eventAssessor);
+        listener.startListening();  
         actuator = new AldeActuator();
         eventAssessor.setActuator(actuator);
         eventAssessor.setListeners(listeners);

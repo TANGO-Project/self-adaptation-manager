@@ -40,6 +40,11 @@ public interface EventListener {
     public EventAssessor getEventAssessor();
     
     /**
+     * This starts the event listener listening.
+     */    
+    public void startListening();    
+    
+    /**
      * This stops the event listener from listening.
      */
     public void stopListening();

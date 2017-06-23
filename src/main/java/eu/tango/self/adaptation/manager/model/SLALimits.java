@@ -89,7 +89,7 @@ public class SLALimits {
         //Agreement Term, Guarantee Direction and Response Type
         if (!rulesFile.getResultsFile().exists()) {
             rulesFile.add("Unique Id"); //0
-            rulesFile.add("Agreement Term"); //1
+            rulesFile.append("Agreement Term"); //1
             rulesFile.append("Comparator"); //2
             rulesFile.append("Event Type (Violation or Warning)"); //3
             rulesFile.append("Guarantee Value"); //4
