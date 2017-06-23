@@ -84,16 +84,16 @@ public class ThresholdEventAssessor extends AbstractEventAssessor {
             rulesFile.append("Response Type");
             rulesFile.add("energy_usage_per_app");
             rulesFile.append("GT");
-            rulesFile.append("REMOVE_VM");
+            rulesFile.append("REMOVE_TASK");
             rulesFile.add("power_usage_per_app");
             rulesFile.append("GT");
-            rulesFile.append("REMOVE_VM");
+            rulesFile.append("REMOVE_TASK");
             rulesFile.add("energy_usage_per_app");
             rulesFile.append("GTE");
-            rulesFile.append("REMOVE_VM");
+            rulesFile.append("REMOVE_TASK");
             rulesFile.add("power_usage_per_app");
             rulesFile.append("GTE");
-            rulesFile.append("REMOVE_VM");
+            rulesFile.append("REMOVE_TASK");
             rulesFile.save();
             answer = true;
         }
