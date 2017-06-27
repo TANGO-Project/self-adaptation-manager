@@ -66,15 +66,16 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     public EventAssessor getEventAssessor() {
         return eventAssessor;
     }
-    
+
     /**
      * This starts the environment monitor going, in a daemon thread.
      */
+    @Override
     public void startListening() {
         Thread slurmJobMonThread = new Thread(this);
         slurmJobMonThread.setDaemon(true);
         slurmJobMonThread.start();
-    }    
+    }
 
     @Override
     public void stopListening() {
@@ -134,6 +135,9 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         if (containsTerm(limits, "IDLE_HOST+PENDING_JOB")) {
             answer.addAll(detectIdleHostsWithPendingJobs());
+        }
+        if (containsTerm(limits, "CLOSE_TO_DEADLINE")) {
+            answer.addAll(detectCloseToDeadlineJobs());
         }
         //Add next test here
 
@@ -232,6 +236,32 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         return answer;
     }
 
+    /**    
+     * This detects jobs that are nearing their deadline.
+     *
+     * @return The list of events indicating which jobs are nearing their deadline,
+     * which would cause them to terminate.
+     */
+    private ArrayList<EventData> detectCloseToDeadlineJobs() {
+        ArrayList<EventData> answer = new ArrayList<>();
+        HashSet<ApplicationOnHost> currentRunning = new HashSet<>(datasource.getHostApplicationList());
+        for (ApplicationOnHost job : currentRunning) {
+            if (job.getProgress() > 95) { //Make the % completion customizable.
+                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        job.getName(),
+                        job.getId() + "",
+                        "APP_CLOSE_TO_DEADLINE",
+                        "APP_CLOSE_TO_DEADLINE");
+                answer.add(event);   
+            }
+        }
+        return answer;
+    }
+
     /**
      * This lists the pending jobs on an idle host. This means the SAM has the
      * possibility of detecting this and therefore responding to it. e.g. it
@@ -243,7 +273,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private List<Host> getIdleHostsWithPendingJobs() {
         List<Host> answer = new ArrayList<>();
         HashSet<Host> currentIdle = getIdleHosts();
-        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
+        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.PENDING);
         for (ApplicationOnHost pendingJob : pendingJobs) {
             if (currentIdle.contains(pendingJob.getAllocatedTo())) {
                 answer.add(pendingJob.getAllocatedTo());
@@ -267,9 +297,9 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
-    
+
     /**
-     * This lists the long pending jobs in the queue. 
+     * This lists the long pending jobs in the queue.
      *
      * @return The list of pending jobs, that have been in the queue for a long
      * time.
@@ -278,13 +308,13 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         List<Host> answer = new ArrayList<>();
         //TODO Consider if this is a deployment time issue, not runtime??
         //Is it only runtime if the resources available change
-        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(HostDataSource.JOB_STATUS.PENDING);
+        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.PENDING);
         for (ApplicationOnHost pendingJob : pendingJobs) {
             //TODO add the notion of long pending here
-                answer.add(pendingJob.getAllocatedTo());
+            answer.add(pendingJob.getAllocatedTo());
         }
         return answer;
-    }    
+    }
 
     /**
      * This executes a command and returns the output as a line of strings.

@@ -83,6 +83,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     /**
      * This starts the environment monitor going, in a daemon thread.
      */
+    @Override
     public void startListening() {
         Thread envMonThread = new Thread(this);
         envMonThread.setDaemon(true);
