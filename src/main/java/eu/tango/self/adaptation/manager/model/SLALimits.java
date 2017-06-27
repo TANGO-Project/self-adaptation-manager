@@ -91,7 +91,7 @@ public class SLALimits {
             rulesFile.add("Unique Id"); //0
             rulesFile.append("Agreement Term"); //1
             rulesFile.append("Comparator"); //2
-            rulesFile.append("Event Type (Violation or Warning)"); //3
+            rulesFile.append("Event Type (SLA_BREACH or WARNING)"); //3
             rulesFile.append("Guarantee Value"); //4
             rulesFile.save();
             answer = true;

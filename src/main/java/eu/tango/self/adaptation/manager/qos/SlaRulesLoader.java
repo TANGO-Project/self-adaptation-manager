@@ -36,7 +36,7 @@ public class SlaRulesLoader {
 
     private String workingDir;
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
-    private static final String RULES_FILE = "slarules.csv";
+    private static final String RULES_FILE = "QoSEventCriteria.csv";
     private final SLALimits limits;
 
     public SlaRulesLoader() {

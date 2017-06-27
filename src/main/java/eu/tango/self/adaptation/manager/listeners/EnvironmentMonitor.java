@@ -121,18 +121,34 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private EventData detectBreach(SLALimits limits) {
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
         for (SLATerm term : criteria) {
-            String[] termStr = term.getSplitAgreementTerm();
-            String agreementTerm = termStr[1];
-            Host host = datasource.getHostByName(termStr[0]);
-            HostMeasurement measurement = datasource.getHostData(host);
-            double currentValue = measurement.getMetric(agreementTerm).getValue();
-            if (term.isBreached(currentValue)) {
-                return new HostEventData(measurement.getClock(), host.getHostName(),
-                        currentValue, term.getGuranteedValue(),
-                        EventData.Type.SLA_BREACH,
-                        term.getGuranteeOperator(),
-                        term.getGuaranteeid(),
-                        term.getAgreementTerm());
+            //Structure assumed to be: HOST:ns32:power
+            if (term.getAgreementTerm().contains("HOST:")) {
+                String[] termStr = term.getSplitAgreementTerm();
+                if (termStr.length != 3) {
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
+                    continue;
+                }
+                String agreementTerm = termStr[2];
+                Host host = datasource.getHostByName(termStr[1]);
+                if (host == null) {
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The host could not be found: {0}", termStr[1]);
+                    continue;
+                }
+                //TODO: Generalise a rule for all hosts at once?
+                HostMeasurement measurement = datasource.getHostData(host);
+                if (measurement.getMetric(agreementTerm) == null) { //Check the metric term exists
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term could not be found: {0}", agreementTerm);
+                    continue;
+                }
+                double currentValue = measurement.getMetric(agreementTerm).getValue();
+                if (term.isBreached(currentValue)) {
+                    return new HostEventData(measurement.getClock(), host.getHostName(),
+                            currentValue, term.getGuranteedValue(),
+                            term.getSeverity(),
+                            term.getGuranteeOperator(),
+                            term.getGuaranteeid(),
+                            term.getAgreementTerm());
+                }
             }
         }
         return null;
@@ -163,8 +179,8 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
          * Type Instance: idle
          */
         /**
-        * Second Example:
-        *
+         * Second Example:
+         *
         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
         * Host: VM10-10-1-13
         * Severity: FAILURE
@@ -175,8 +191,8 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
         * Type: cpu
         * Type Instance: user
-        * 
-        */
+         *
+         */
         HostEventData answer = new HostEventData();
         answer.setHost(notification.getHost());
 
