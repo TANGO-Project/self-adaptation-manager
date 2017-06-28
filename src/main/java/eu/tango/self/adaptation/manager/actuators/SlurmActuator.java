@@ -25,6 +25,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -338,6 +339,17 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
      * @param response The response object to launch the action for
      */
     private void launchAction(Response response) {
+        if (response.getCause() instanceof ApplicationEventData) {
+            /**
+             * This checks to see if application based events have the necessary 
+             * information to perform the adaptation.
+             */
+            if (response.getDeploymentId() == null || response.getDeploymentId().isEmpty()) {
+                response.setPerformed(true);
+                response.setPossibleToAdapt(false);
+                return;
+            }
+        }
         switch (response.getActionType()) {
             case ADD_CPU:
                 addCpu(response.getApplicationId(), response.getDeploymentId());
@@ -375,7 +387,7 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         }
         response.setPerformed(true);
     }
-
+    
     /**
      * This executes a command and returns the output as a line of strings.
      *

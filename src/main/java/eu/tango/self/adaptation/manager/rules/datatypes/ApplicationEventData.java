@@ -53,7 +53,6 @@ public class ApplicationEventData extends EventData {
         super(time, rawValue, guranteedValue, type, guranteeOperator, guaranteeid, agreementTerm);
         this.applicationId = applicationId;
         this.deploymentId = deploymentId;
-        this.application = application;
     }
     
     /**

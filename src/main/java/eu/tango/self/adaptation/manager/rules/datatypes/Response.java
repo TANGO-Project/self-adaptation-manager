@@ -258,7 +258,7 @@ public class Response implements Comparable<Response> {
      * This returns the deployment id associated with the event that caused the
      * response.
      *
-     * @return
+     * @return The deployment id, if one is set, if not it returns "" for system based events.
      */
     public String getDeploymentId() {
         if (cause instanceof ApplicationEventData) {
