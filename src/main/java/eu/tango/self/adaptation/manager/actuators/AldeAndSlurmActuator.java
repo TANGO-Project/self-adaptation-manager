@@ -12,9 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * This is being developed for the TANGO Project: http://tango-project.eu
- * 
+ *
  */
 package eu.tango.self.adaptation.manager.actuators;
 
@@ -22,72 +22,106 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * This actuator interacts with the ALDE, with the aim of querying for information
- * and invoking adaptation.
+ * An actuator that merges the usage of SLURM and the ALDE. The actuator most
+ * appropriate to perform a given type of actuation is used.
+ *
+ * @TODO Add calls to ALDE when the alde develops further.
  * @author Richard Kavanagh
  */
-public class AldeActuator implements ActuatorInvoker {
+public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
+
+    private final AldeActuator alde = new AldeActuator();
+    private final SlurmActuator slurm = new SlurmActuator();
 
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getApplication(name, deploymentId);
     }
 
     @Override
     public ApplicationOnHost getTask(String name, String deployment, int taskId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getTask(name, deployment, taskId);
     }
 
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getTotalPowerUsage(applicationName, deploymentId);
     }
 
     @Override
     public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getPowerUsageTask(applicationName, deploymentId, taskId);
     }
 
     @Override
     public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getAveragePowerUsage(applicationName, deploymentId, taskType);
     }
 
     @Override
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getTaskTypesAvailableToAdd(applicationName, deploymentId);
     }
 
     @Override
     public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return slurm.getTaskIdsAvailableToRemove(applicationName, deploymentId);
     }
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        slurm.hardKillApp(applicationName, deploymentId);
     }
 
     @Override
     public void actuate(Response response) {
-        System.out.println("Would have performed some actuation");
+        switch (response.getActionType()) {
+            case ADD_CPU:
+            case REMOVE_CPU:
+            case ADD_TASK:
+            case REMOVE_TASK:
+            case SCALE_TO_N_TASKS:
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case HARD_KILL_APP:
+            case INCREASE_WALL_TIME:
+            case REDUCE_WALL_TIME:
+                slurm.actuate(response);
+                break;
+            default:
+                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                break;
+        }
+        response.setPerformed(true);
     }
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        slurm.addTask(applicationName, deploymentId, taskType);
     }
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        slurm.deleteTask(applicationName, deployment, taskID);
     }
 
     @Override
     public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        slurm.scaleToNTasks(applicationId, deploymentId, response);
+    }
+
+    @Override
+    public void run() {
+        Thread aldeActuatorThread = new Thread((Runnable) alde);
+        aldeActuatorThread.setDaemon(true);
+        aldeActuatorThread.start();
+        Thread slurmActuatorThread = new Thread((Runnable) slurm);
+        slurmActuatorThread.setDaemon(true);
+        slurmActuatorThread.start();
     }
 
 }

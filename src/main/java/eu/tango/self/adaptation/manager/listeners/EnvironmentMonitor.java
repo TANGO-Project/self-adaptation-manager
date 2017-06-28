@@ -22,6 +22,7 @@ import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
+import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
@@ -45,16 +46,38 @@ import org.jcollectd.agent.api.Notification;
 public class EnvironmentMonitor implements EventListener, Runnable, CollectDNotificationHandler {
 
     private EventAssessor eventAssessor;
-    private final HostDataSource datasource = new CollectdDataSourceAdaptor();
+    private final HostDataSource datasource;
     private boolean running = true;
     private SLALimits limits;
 
+    /**
+     * Instantiates the Environment monitor with the default CollectD data source.
+     */
     public EnvironmentMonitor() {
-        if (datasource instanceof CollectdDataSourceAdaptor) {
+        datasource = new CollectdDataSourceAdaptor();
+        initialise();
+    }
+    
+    /**
+     * Instantiates with a different data source to CollectD.
+     * @param datasource 
+     */
+    public EnvironmentMonitor(HostDataSource datasource) {
+        this.datasource = datasource;
+        initialise();
+    }
+    
+    /**
+     * Initialises the environment monitor, in particular if a collectd data source
+     * is used it allows for the listening to events from its monitoring 
+     * infrastructure.
+     */
+    private void initialise() {
+         if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
         }
         SlaRulesLoader loader = new SlaRulesLoader();
-        limits = loader.getLimits();
+        limits = loader.getLimits();       
     }
 
     @Override
@@ -122,6 +145,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
         for (SLATerm term : criteria) {
             //Structure assumed to be: HOST:ns32:power
+            //Otherwise the structure is simply to match against the agreement term
             if (term.getAgreementTerm().contains("HOST:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length != 3) {

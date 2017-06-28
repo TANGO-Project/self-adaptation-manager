@@ -17,8 +17,9 @@
  */
 package eu.tango.self.adaptation.manager;
 
+import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
-import eu.tango.self.adaptation.manager.actuators.AldeActuator;
+import eu.tango.self.adaptation.manager.actuators.AldeAndSlurmActuator;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
@@ -44,6 +45,7 @@ public class SelfAdaptationManager {
     private static final String DEFAULT_EVENT_ASSESSOR_PACKAGE
             = "eu.tango.self.adaptation.manager.rules";
     private String eventAssessorName = "ThresholdEventAssessor";
+    private boolean useCollectD = false;
 
     /**
      * This creates a new instance of the self-adaptation manager.
@@ -60,18 +62,25 @@ public class SelfAdaptationManager {
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
             eventAssessorName = config.getString("self.adaptation.manager.event.assessor", eventAssessorName);
             config.setProperty("self.adaptation.manager.event.assessor", eventAssessorName);
+            useCollectD = config.getBoolean("self.adaptation.manager.environment.monitor.use.collectd", useCollectD);
+            config.setProperty("self.adaptation.manager.event.assessor", useCollectD);            
         } catch (ConfigurationException ex) {
             Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
         setEventAssessor(eventAssessorName);
-        EventListener listener = new EnvironmentMonitor();
+        EventListener listener;
+        if (useCollectD) {
+            listener = new EnvironmentMonitor();
+        } else {
+            listener = new EnvironmentMonitor(new SlurmDataSourceAdaptor());
+        }
         listener.setEventAssessor(eventAssessor);
         listener.startListening();        
         listeners.add(listener);
         listener = new SlurmJobMonitor();
         listener.setEventAssessor(eventAssessor);
         listener.startListening();  
-        actuator = new AldeActuator();
+        actuator = new AldeAndSlurmActuator();
         eventAssessor.setActuator(actuator);
         eventAssessor.setListeners(listeners);
     }
