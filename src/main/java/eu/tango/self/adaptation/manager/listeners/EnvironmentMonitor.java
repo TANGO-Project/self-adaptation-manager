@@ -29,7 +29,10 @@ import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
+import eu.ascetic.ioutils.io.ResultsStore;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,33 +53,35 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private SLALimits limits;
 
     /**
-     * Instantiates the Environment monitor with the default CollectD data source.
+     * Instantiates the Environment monitor with the default CollectD data
+     * source.
      */
     public EnvironmentMonitor() {
         datasource = new CollectdDataSourceAdaptor();
         initialise();
     }
-    
+
     /**
      * Instantiates with a different data source to CollectD.
-     * @param datasource 
+     *
+     * @param datasource
      */
     public EnvironmentMonitor(HostDataSource datasource) {
         this.datasource = datasource;
         initialise();
     }
-    
+
     /**
-     * Initialises the environment monitor, in particular if a collectd data source
-     * is used it allows for the listening to events from its monitoring 
+     * Initialises the environment monitor, in particular if a collectd data
+     * source is used it allows for the listening to events from its monitoring
      * infrastructure.
      */
     private void initialise() {
-         if (datasource instanceof CollectdDataSourceAdaptor) {
+        if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
         }
         SlaRulesLoader loader = new SlaRulesLoader();
-        limits = loader.getLimits();       
+        limits = loader.getLimits();
     }
 
     @Override
@@ -115,6 +120,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     @Override
     public void run() {
         try {
+            printRecognisedTerms();//This provides guidance on how to create detection rules.
             // Wait for a message
             while (running) {
                 EventData event = detectBreach(limits);
@@ -175,6 +181,44 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             }
         }
         return null;
+    }
+
+    /**
+     * This prints out a list of hosts and metric terms, it therefore aids the
+     * user in writing a file that lists the detection and adaptation rules.
+     */
+    private void printRecognisedTerms() {
+        //Wait for the environment to catch up before printing.
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        HashSet<String> namesList = new HashSet<>();
+        ResultsStore store = new ResultsStore("RecognisedTerms.csv");
+        List<HostMeasurement> data = datasource.getHostData();
+        for (HostMeasurement item : data) {
+            namesList.addAll(item.getMetricNameList());
+        }
+
+        store.add("This lists all recognised agreement terms, thus helping "
+                + "to list rules for detecting term breach events.");
+        store.add("The agreement terms for a specific host begin in the format HOST:<name>:<term>");
+        store.add("");
+        store.add("A list of rules for detection criteria look like:");
+        store.add("Unique Id,Agreement Term,Comparator,Event Type (SLA_BREACH or WARNING),Guarantee Value");
+        store.add("1,A term below in the provided format,EQ,SLA_BREACH,0");
+        store.add("");
+        store.add("The is the list of known hosts. This gets added HOST:<To be added here>:<term>");
+        for (Host host : datasource.getHostList()) {
+            store.add(host.getHostName());
+        }
+        store.add("");
+        store.add("This is the list of detected metrics from the host: HOST:<hostname>:<To be added here>");
+        for (String termname : namesList) {
+            store.add(termname);
+        }
+        store.save();
     }
 
     /**
