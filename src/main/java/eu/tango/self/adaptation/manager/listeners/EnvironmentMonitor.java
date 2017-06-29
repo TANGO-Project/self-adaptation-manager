@@ -22,7 +22,6 @@ import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
-import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;

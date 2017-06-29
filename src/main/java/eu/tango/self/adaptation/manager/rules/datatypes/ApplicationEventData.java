@@ -21,7 +21,8 @@ package eu.tango.self.adaptation.manager.rules.datatypes;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 
 /**
- *
+ * This class represents an event that arrives at self-adaptation manager for
+ * assessment, based upon an event from an application.
  * @author Richard Kavanagh
  */
 public class ApplicationEventData extends EventData {

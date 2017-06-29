@@ -19,7 +19,8 @@
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
 /**
- * This stores events based upon physical hosts
+ * This class represents an event that arrives at self-adaptation manager for
+ * assessment, based upon an event from the physical host.
  * @author Richard Kavanagh
  */
 public class HostEventData extends EventData {

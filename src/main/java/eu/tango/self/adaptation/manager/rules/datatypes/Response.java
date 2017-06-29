@@ -74,11 +74,6 @@ public class Response implements Comparable<Response> {
         SHUTDOWN_HOST, STARTUP_HOST
     }
 
-    private enum AdaptationDetailKeys {
-
-        VM_TYPE, VM_COUNT
-    }
-
     /**
      * This creates a standard response object. It indicates which actuator to
      * use and which message to send to it.
