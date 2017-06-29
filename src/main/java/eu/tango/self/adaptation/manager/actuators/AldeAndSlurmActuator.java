@@ -92,6 +92,8 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case REDUCE_WALL_TIME:
                 slurm.actuate(response);
                 break;
+            case RESELECT_ACCELERATORS:
+                alde.actuate(response);
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
                 break;

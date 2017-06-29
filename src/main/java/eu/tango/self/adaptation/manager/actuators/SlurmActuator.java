@@ -26,12 +26,9 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,12 +38,10 @@ import java.util.logging.Logger;
  *
  * @author Richard Kavanagh
  */
-public class SlurmActuator implements ActuatorInvoker, Runnable {
+public class SlurmActuator extends AbstractActuator {
 
-    SlurmDataSourceAdaptor datasource = new SlurmDataSourceAdaptor();
-    EnergyModeller modeller = EnergyModeller.getInstance();
-    private final LinkedBlockingDeque<Response> queue = new LinkedBlockingDeque<>();
-    private boolean stop = false;
+    private final SlurmDataSourceAdaptor datasource = new SlurmDataSourceAdaptor();
+    private final EnergyModeller modeller = EnergyModeller.getInstance();
 
     @Override
     public ApplicationDefinition getApplication(String applicationName, String deploymentId) {
@@ -194,11 +189,6 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
-    public void actuate(Response response) {
-        queue.add(response);
-    }
-
-    @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
         int oldCount = getNodeCount(deploymentId);
         if (oldCount > 0) { //checks to make sure the count of cpus was detected correctly
@@ -295,50 +285,14 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        while (!stop || !queue.isEmpty()) {
-            try {
-                Response currentItem = queue.poll(30, TimeUnit.SECONDS);
-                if (currentItem != null) {
-                    ArrayList<Response> actions = new ArrayList<>();
-                    actions.add(currentItem);
-                    queue.drainTo(actions);
-                    for (Response action : actions) {
-                        try {
-                            launchAction(action);
-                        } catch (Exception ex) {
-                            /**
-                             * This prevents exceptions when messaging the
-                             * server from propagating and stopping the thread
-                             * from running.
-                             */
-                            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
-                            action.setPerformed(true);
-                            action.setPossibleToAdapt(false);
-                        }
-                    }
-                }
-            } catch (InterruptedException ex) {
-                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    /**
-     * This stops this actuator from running.
-     */
-    public void stop() {
-        stop = true;
-    }
-
     /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.
      *
      * @param response The response object to launch the action for
      */
-    private void launchAction(Response response) {
+    @Override
+    protected void launchAction(Response response) {
         if (response.getCause() instanceof ApplicationEventData) {
             /**
              * This checks to see if application based events have the necessary 
@@ -386,45 +340,6 @@ public class SlurmActuator implements ActuatorInvoker, Runnable {
                 break;
         }
         response.setPerformed(true);
-    }
-    
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     * @throws java.io.IOException
-     */
-    private static ArrayList<String> execCmd(String mainCmd) {
-        String cmd[] = {"/bin/sh",
-            "-c",
-            mainCmd};
-        try {
-            return execCmd(cmd);
-        } catch (IOException ex) {
-            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     * @throws java.io.IOException
-     */
-    private static ArrayList<String> execCmd(String[] cmd) throws java.io.IOException {
-        ArrayList<String> output = new ArrayList<>();
-        Process proc = Runtime.getRuntime().exec(cmd);
-        java.io.InputStream is = proc.getInputStream();
-        java.util.Scanner s = new java.util.Scanner(is);
-        String val;
-        while (s.hasNextLine()) {
-            val = s.nextLine();
-            output.add(val);
-        }
-        return output;
     }
 
 }

@@ -20,16 +20,62 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This actuator interacts with the ALDE, with the aim of querying for information
  * and invoking adaptation.
  * @author Richard Kavanagh
  */
-public class AldeActuator implements ActuatorInvoker {
+public class AldeActuator extends AbstractActuator {
 
+   /**
+     * This executes a given action for a response that has been placed in the
+     * actuator's queue for deployment.
+     *
+     * @param response The response object to launch the action for
+     */
+    @Override
+    protected void launchAction(Response response) {
+        if (response.getCause() instanceof ApplicationEventData) {
+            /**
+             * This checks to see if application based events have the necessary 
+             * information to perform the adaptation.
+             */
+            if (response.getDeploymentId() == null || response.getDeploymentId().isEmpty()) {
+                response.setPerformed(true);
+                response.setPossibleToAdapt(false);
+                return;
+            }
+        }
+        switch (response.getActionType()) {
+            case ADD_TASK:
+                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetails());
+                break;
+            case REMOVE_TASK:
+                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getTaskId());
+                break;
+            case SCALE_TO_N_TASKS:
+                scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
+                break;
+            case RESELECT_ACCELERATORS:
+                reselectAccelerators(response.getApplicationId(), response.getDeploymentId());
+                break;
+            default:
+                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                break;
+        }
+        response.setPerformed(true);
+    }
+    
+    public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }    
+    
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -68,11 +114,6 @@ public class AldeActuator implements ActuatorInvoker {
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void actuate(Response response) {
-        System.out.println("Would have performed some actuation");
     }
 
     @Override
