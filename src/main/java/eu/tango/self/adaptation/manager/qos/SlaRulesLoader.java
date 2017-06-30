@@ -117,9 +117,19 @@ public class SlaRulesLoader {
      */
     public SLALimits getLimits(boolean reload) {
         if (reload) {
-        limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);    
+            reloadLimits();   
         }
         return limits;
+    }
+    
+    /**
+     * This reloads the SLA criteria held in the rules sets. It also resets
+     * the application based SLA limits, so that they must be reloaded in from 
+     * disk.
+     */
+    public void reloadLimits() {
+        limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);
+        appSpecificLimits.clear();
     }    
     
     /**
@@ -145,6 +155,21 @@ public class SlaRulesLoader {
         //Creating a new SLA Limits, prevents unintended changes when merging the two rulesets.
         SLALimits answer = new SLALimits();
         //Load these application specific rules in from disk
+        /**
+         * TODO consider if the loading of app rules in from disk should be 
+         * deprecated, given all rules could be held in a single file
+         * and application metrics could be reported to collectd for processing.
+         * 
+         * It can however be left in just because.
+         * 
+         * Format of these kind of app terms should be:
+         * 
+         * "APP:<HOST_OPTIONAL>:<APP_NAME>:"<DEPLOYMENT_ID>
+         * 
+         * The version that looks like the following would be the aggregation 
+         * for an application:
+         * "APP:<APP_NAME>:"<DEPLOYMENT_ID>
+         */
         String appRulesFile = workingDir + RULES_FILE_START + applicationID + RULES_FILE_END;
         if (new File(appRulesFile).exists() && !appSpecificLimits.containsKey(applicationID)) {
             appSpecificLimits.put(applicationID, SLALimits.loadFromDisk(appRulesFile));

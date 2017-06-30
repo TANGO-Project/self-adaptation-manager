@@ -50,7 +50,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private EventAssessor eventAssessor;
     private final HostDataSource datasource;
     private boolean running = true;
-    private SLALimits limits;
+    private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
 
     /**
      * Instantiates the Environment monitor with the default CollectD data
@@ -80,8 +80,6 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
         }
-        SlaRulesLoader loader = SlaRulesLoader.getInstance();
-        limits = loader.getLimits();
     }
 
     @Override
@@ -98,14 +96,13 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     public void stopListening() {
         running = false;
     }
-
+    
     /**
      * This reloads the SLA criteria held in the environment monitor.
      */
     public void reloadLimits() {
-        SlaRulesLoader loader = SlaRulesLoader.getInstance();
-        limits = loader.getLimits(true);
-    }
+        limits.reloadLimits();
+    }    
 
     /**
      * This starts the environment monitor going, in a daemon thread.
@@ -123,7 +120,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             printRecognisedTerms();//This provides guidance on how to create detection rules.
             // Wait for a message
             while (running) {
-                for (EventData event : detectEvent(limits)) {
+                for (EventData event : detectEvent(limits.getLimits())) {
                     eventAssessor.assessEvent(event);
                 }
                 try {
