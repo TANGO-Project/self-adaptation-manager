@@ -37,9 +37,28 @@ public class SlaRulesLoader {
     private String workingDir;
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private static final String RULES_FILE = "QoSEventCriteria.csv";
-    private final SLALimits limits;
+    private SLALimits limits;
 
-    public SlaRulesLoader() {
+    /**
+     * SingletonHolder is loaded on the first execution of
+     * Singleton.getInstance() or the first access to SingletonHolder.INSTANCE,
+     * not before.
+     */
+    private static class SingletonHolder {
+
+        private static final SlaRulesLoader INSTANCE = new SlaRulesLoader();
+    }
+
+    /**
+     * This creates a new singleton instance of the sla rules loader.
+     *
+     * @return A singleton instance of a sla rules loader.
+     */
+    public static SlaRulesLoader getInstance() {
+        return SingletonHolder.INSTANCE;
+    }    
+    
+    private SlaRulesLoader() {
         try {
             PropertiesConfiguration config;
             if (new File(CONFIG_FILE).exists()) {
@@ -70,6 +89,18 @@ public class SlaRulesLoader {
     
     /**
      * This returns the SLA limits for all terms
+     * @param reload provides the opportunity to reload the QoS terms. 
+     * @return 
+     */
+    public SLALimits getLimits(boolean reload) {
+        if (reload) {
+        limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);    
+        }
+        return limits;
+    }    
+    
+    /**
+     * This returns the SLA limits for all terms
      * @return 
      */
     public ArrayList<SLATerm> getSlaTerms() {
@@ -78,7 +109,10 @@ public class SlaRulesLoader {
    
     /**
      * This returns the SLA limits for all terms
-     * @return 
+     * @param applicationID The application id to get the rules for
+     * @param deploymentID The deployment id to get the rules for
+     * @return The complete set of QoS rules that should be applied to a given 
+     * application
      */
     public SLALimits getSlaLimits(String applicationID, String deploymentID) {
         /**

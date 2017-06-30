@@ -46,7 +46,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * connections for different purposes.
      */
     private ActuatorInvoker actuator;
-    private final SlaRulesLoader loader = new SlaRulesLoader();
+    //Singleton instance helps avoid loading rules in multiple times, i.e. once per decision engine.
+    private final SlaRulesLoader loader = SlaRulesLoader.getInstance();
 
     public AbstractDecisionEngine() {
     }

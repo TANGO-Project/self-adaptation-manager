@@ -48,12 +48,12 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private EventAssessor eventAssessor;
     private final HostDataSource datasource = new SlurmDataSourceAdaptor();
     private boolean running = true;
-    private final SLALimits limits;
+    private SLALimits limits;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
 
     public SlurmJobMonitor() {
-        SlaRulesLoader loader = new SlaRulesLoader();
+        SlaRulesLoader loader = SlaRulesLoader.getInstance();
         limits = loader.getLimits();
     }
 
@@ -81,6 +81,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     public void stopListening() {
         running = false;
     }
+    
+    /**
+     * This reloads the SLA criteria held in the environment monitor.
+     */
+    public void reloadLimits() {
+        SlaRulesLoader loader = SlaRulesLoader.getInstance();
+        limits = loader.getLimits(true);
+    }    
 
     @Override
     public void run() {

@@ -80,7 +80,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
         }
-        SlaRulesLoader loader = new SlaRulesLoader();
+        SlaRulesLoader loader = SlaRulesLoader.getInstance();
         limits = loader.getLimits();
     }
 
@@ -103,8 +103,8 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      * This reloads the SLA criteria held in the environment monitor.
      */
     public void reloadLimits() {
-        SlaRulesLoader loader = new SlaRulesLoader();
-        limits = loader.getLimits();
+        SlaRulesLoader loader = SlaRulesLoader.getInstance();
+        limits = loader.getLimits(true);
     }
 
     /**
