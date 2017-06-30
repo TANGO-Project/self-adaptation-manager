@@ -179,6 +179,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 String appName = termStr[1];
                 String appId = termStr[2];
                 String agreementTerm = termStr[3];
+                EventData event = detectAppEvent(term, agreementTerm, appName, appId);
                 if (event != null) {
                     answer.add(event);
                 }
