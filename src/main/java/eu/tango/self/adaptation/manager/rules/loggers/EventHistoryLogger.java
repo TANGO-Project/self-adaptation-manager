@@ -21,6 +21,7 @@ import eu.ascetic.ioutils.io.GenericLogger;
 import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.io.File;
 
 /**
@@ -44,10 +45,11 @@ public class EventHistoryLogger extends GenericLogger<EventData> {
         store.add("Time");
         store.append("Application ID");
         store.append("Deployment ID");
+        store.append("Host");
         store.append("Agreement Term");
-        store.append("Guranteed Value");          
+        store.append("Guarantee Value");          
         store.append("Raw Value");   
-        store.append("Gurantee Operator");   
+        store.append("Guarantee Operator");   
     }
 
     @Override
@@ -58,6 +60,11 @@ public class EventHistoryLogger extends GenericLogger<EventData> {
         store.append(((ApplicationEventData)eventData).getDeploymentId());
         } else {
             store.append("");
+            store.append("");
+        }
+        if (eventData instanceof HostEventData) {
+            store.append(((HostEventData)eventData).getHost());
+        } else {
             store.append("");
         }
         store.append(eventData.getAgreementTerm());

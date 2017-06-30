@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.rules.loggers;
 
 import eu.ascetic.ioutils.io.GenericLogger;
 import eu.ascetic.ioutils.io.ResultsStore;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.File;
 
@@ -44,13 +45,14 @@ public class ResponseHistoryLogger extends GenericLogger<Response> {
         store.add("Time");
         store.append("Application ID");
         store.append("Deployment ID");
-        store.append("VM ID");
+        store.append("Task ID");
+        store.append("Host");
         store.append("Action Type");
         store.append("Further Details");
         store.append("Agreement Term");
         store.append("Guranteed Value");          
         store.append("Raw Value");   
-        store.append("Gurantee Operator");
+        store.append("Guarantee Operator");
         store.append("Able to Respond");
         store.append("Action Performed"); 
     }
@@ -61,6 +63,11 @@ public class ResponseHistoryLogger extends GenericLogger<Response> {
         store.append(response.getApplicationId());
         store.append(response.getDeploymentId());
         store.append(response.getTaskId());
+        if (response.getCause() instanceof HostEventData) {
+            store.append(((HostEventData)response.getCause()).getHost());
+        } else {
+            store.append("");
+        }
         store.append(response.getActionType().toString());
         store.append(response.getAdaptationDetails());
         store.append(response.getCause().getAgreementTerm());
