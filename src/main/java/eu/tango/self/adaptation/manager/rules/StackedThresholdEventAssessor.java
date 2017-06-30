@@ -42,7 +42,7 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
 
     private int threshold = 2;
     private ArrayList<FiringCriteria> rules = new ArrayList<>();
-    private static final String CONFIG_FILE = "paas-self-adaptation-manager-threshold.properties";
+    private static final String CONFIG_FILE = "self-adaptation-manager-threshold.properties";
     private static final String RULES_FILE = "rules.csv";
     private String workingDir;
     private ResultsStore rulesFile;
@@ -61,9 +61,9 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
                 config.setFile(new File(CONFIG_FILE));
             }
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
-            threshold = config.getInt("paas.self.adaptation.manager.threshold", threshold);
-            config.setProperty("paas.self.adaptation.manager.threshold", threshold);
-            workingDir = config.getString("paas.self.adaptation.manager.working.directory", ".");
+            threshold = config.getInt("self.adaptation.manager.threshold", threshold);
+            config.setProperty("self.adaptation.manager.threshold", threshold);
+            workingDir = config.getString("self.adaptation.manager.working.directory", ".");
         } catch (ConfigurationException ex) {
             Logger.getLogger(StackedThresholdEventAssessor.class.getName()).log(Level.INFO, "Error loading the configuration of the PaaS Self adaptation manager", ex);
         }

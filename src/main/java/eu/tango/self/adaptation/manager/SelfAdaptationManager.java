@@ -63,7 +63,7 @@ public class SelfAdaptationManager {
             eventAssessorName = config.getString("self.adaptation.manager.event.assessor", eventAssessorName);
             config.setProperty("self.adaptation.manager.event.assessor", eventAssessorName);
             useCollectD = config.getBoolean("self.adaptation.manager.environment.monitor.use.collectd", useCollectD);
-            config.setProperty("self.adaptation.manager.event.assessor", useCollectD);            
+            config.setProperty("self.adaptation.manager.environment.monitor.use.collectd", useCollectD);            
         } catch (ConfigurationException ex) {
             Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
