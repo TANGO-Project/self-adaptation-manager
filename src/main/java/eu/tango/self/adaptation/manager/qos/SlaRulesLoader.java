@@ -23,6 +23,7 @@ import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -38,6 +39,7 @@ public class SlaRulesLoader {
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private static final String RULES_FILE = "QoSEventCriteria.csv";
     private SLALimits limits;
+    private HashMap<String, SLALimits> appSpecificLimits = new HashMap<>();
 
     /**
      * SingletonHolder is loaded on the first execution of
@@ -88,6 +90,25 @@ public class SlaRulesLoader {
     }
     
     /**
+     * This adds application specific limits to the QoS goals
+     * @param applicationId The application to add the limits to
+     * @param limits The extra application specific limits
+     */
+    public void addApplicationSpecificLimits(String applicationId, SLALimits limits) {
+        appSpecificLimits.put(applicationId, limits);
+    }
+    
+    /**
+     * This adds application specific limits to the QoS goals
+     * @param applicationId The application to add the limits to
+     * @param limits The extra application specific limits
+     */
+    public void removeApplicationSpecificLimits(String applicationId, SLALimits limits) {
+        appSpecificLimits.remove(applicationId);
+    }
+        
+    
+    /**
      * This returns the SLA limits for all terms
      * @param reload provides the opportunity to reload the QoS terms. 
      * @return 
@@ -116,9 +137,16 @@ public class SlaRulesLoader {
      */
     public SLALimits getSlaLimits(String applicationID, String deploymentID) {
         /**
-         * This should load rules in from disk and take the application definition
-         * and extract additional rules from that as well.
+         * This loads rules in from disk and allows for the application definition
+         * to have additional rules as well.
          */
+        //Creating a new SLA Limits, prevents unintended changes when merging the two rulesets.
+        SLALimits answer = new SLALimits();
+        SLALimits appAnswer = appSpecificLimits.get(applicationID);
+        if (appAnswer != null) {
+            answer.addQoSCriteria(appAnswer.getQosCriteria());
+        }
+        answer.addQoSCriteria(getLimits().getQosCriteria());
         return getLimits();
     }    
     

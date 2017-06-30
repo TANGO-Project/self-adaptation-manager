@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.model;
 import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +45,10 @@ public class SLALimits {
     public void addQoSCriteria(SLATerm criteria) {
         qosCriteria.add(criteria);
     }
+    
+    public void addQoSCriteria(Collection<SLATerm> criteria) {
+        qosCriteria.addAll(criteria);
+    }    
 
     public void removeQoSCriteria(SLATerm criteria) {
         qosCriteria.remove(criteria);
