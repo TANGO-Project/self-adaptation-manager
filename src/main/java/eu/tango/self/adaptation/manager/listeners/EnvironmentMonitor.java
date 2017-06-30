@@ -123,8 +123,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             printRecognisedTerms();//This provides guidance on how to create detection rules.
             // Wait for a message
             while (running) {
-                EventData event = detectBreach(limits);
-                if (event != null) {
+                for (EventData event : detectEvent(limits)) {
                     eventAssessor.assessEvent(event);
                 }
                 try {
@@ -146,11 +145,15 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      * @param limits The QoS goal limits.
      * @return The first SLA breach event. Null if none found.
      */
-    private EventData detectBreach(SLALimits limits) {
+    private ArrayList<EventData> detectEvent(SLALimits limits) {
+        ArrayList<EventData> answer = new ArrayList<>();
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
         for (SLATerm term : criteria) {
-            //Structure assumed to be: HOST:ns32:power
-            //Otherwise the structure is simply to match against the agreement term
+            /**
+             * Structure assumed to be: HOST:ns32:power or HOST:ALL:power
+             * Otherwise it simply matches against the agreement term for all
+             * hosts
+             */
             if (term.getAgreementTerm().contains("HOST:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length != 3) {
@@ -159,26 +162,65 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 }
                 String agreementTerm = termStr[2];
                 Host host = datasource.getHostByName(termStr[1]);
-                if (host == null) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The host could not be found: {0}", termStr[1]);
-                    continue;
+                EventData event = detectEvent(term, agreementTerm, host);
+                if (event != null) {
+                    answer.add(event);
                 }
-                //TODO: Generalise a rule for all hosts at once?
-                HostMeasurement measurement = datasource.getHostData(host);
-                if (measurement.getMetric(agreementTerm) == null) { //Check the metric term exists
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term could not be found: {0}", agreementTerm);
-                    continue;
-                }
-                double currentValue = measurement.getMetric(agreementTerm).getValue();
-                if (term.isBreached(currentValue)) {
-                    return new HostEventData(measurement.getClock(), host.getHostName(),
-                            currentValue, term.getGuranteedValue(),
-                            term.getSeverity(),
-                            term.getGuranteeOperator(),
-                            term.getGuaranteeid(),
-                            term.getAgreementTerm());
-                }
+            } else {
+                answer.addAll(detectEvent(term, datasource.getHostList()));
             }
+        }
+        return answer;
+    }
+
+    /**
+     * Detects any QoS term breaches
+     * @param term The sla term to check against
+     * @param hosts The list of hosts to test for a breach of SLA criteria
+     * @return  The list of SLA breach events, the empty list is returned if
+     * no breach occurs.
+     */
+    private ArrayList<EventData> detectEvent(SLATerm term, List<Host> hosts) {
+        ArrayList<EventData> answer = new ArrayList<>();
+        for (Host host : hosts) {
+            EventData event = detectEvent(term, term.getAgreementTerm(), host);
+            if (event != null) {
+                answer.add(event);
+            }
+        }
+        return answer;
+    }
+
+    /**
+     * Detects any QoS term breaches
+     * @param term The sla term to check against
+     * @param agreementTerm The parsed string for the agreement term
+     * @param host The host to test for a breach of SLA criteria
+     * @return The SLA breach events if it occurs, otherwise null
+     */
+    private HostEventData detectEvent(SLATerm term, String agreementTerm, Host host) {
+        if (host == null) {
+            return null;
+        }
+        HostMeasurement measurement = datasource.getHostData(host);
+
+        if (measurement.getMetric(agreementTerm) == null) {
+            /**
+             * Check the metric term exists, it may be that another monitor
+             * reads the file and uses special terms such as: IDLE_HOST"
+             * "APP_FINISHED" "IDLE_HOST+PENDING_JOB" CLOSE_TO_DEADLINE" or
+             * simply the data source isn't providing the information needed.
+             */
+            return null;
+        }
+        double currentValue = measurement.getMetric(agreementTerm).getValue();
+        if (term.isBreached(currentValue)) {
+            return new HostEventData(measurement.getClock(), host.getHostName(),
+                    currentValue, term.getGuranteedValue(),
+                    term.getSeverity(),
+                    term.getGuranteeOperator(),
+                    term.getGuaranteeid(),
+                    term.getAgreementTerm());
         }
         return null;
     }
@@ -191,8 +233,10 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         //Wait for the environment to catch up before printing.
         try {
             Thread.sleep(1000);
+
         } catch (InterruptedException ex) {
-            Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(EnvironmentMonitor.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         HashSet<String> namesList = new HashSet<>();
         ResultsStore store = new ResultsStore("RecognisedTerms.csv");
@@ -229,35 +273,33 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      */
     public static EventData convertEventData(Notification notification) {
         /**
-         * This is an example of the output of the notification element.
-         * Host: VM10-10-1-13
-         * Severity: FAILURE
-         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
-         *          type cpu (instance idle): Data source "value" is currently nan. 
-         *          That is within the failure region of 0.000000 and 12000.000000.
-         * Message: Host VM10-10-1-13, plugin aggregation 
-         *          (instance cpu-average) type cpu (instance idle): Data source 
-         *          "value" is currently nan. That is within the failure 
-         *          region of 0.000000 and 12000.000000.
-         * Plugin: aggregation
-         * Plugin Instance: cpu-average
-         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
-         * Type: cpu
-         * Type Instance: idle
+         * This is an example of the output of the notification element. Host:
+         * VM10-10-1-13 Severity: FAILURE Data: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Message: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Plugin: aggregation Plugin Instance:
+         * cpu-average Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
+         * Type: cpu Type Instance: idle
          */
         /**
          * Second Example:
          *
-        * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-        * Host: VM10-10-1-13
-        * Severity: FAILURE
-        * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-        * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu (instance user): Data source "value" is currently 0.500090. That is above the failure threshold of 0.000000.
-        * Plugin: aggregation
-        * Plugin Instance: cpu-average
-        * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
-        * Type: cpu
-        * Type Instance: user
+         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host
+         * VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu
+         * (instance user): Data source "value" is currently 0.500090. That is
+         * above the failure threshold of 0.000000. Host: VM10-10-1-13 Severity:
+         * FAILURE Data: Host VM10-10-1-13, plugin aggregation (instance
+         * cpu-average) type cpu (instance user): Data source "value" is
+         * currently 0.500090. That is above the failure threshold of 0.000000.
+         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average)
+         * type cpu (instance user): Data source "value" is currently 0.500090.
+         * That is above the failure threshold of 0.000000. Plugin: aggregation
+         * Plugin Instance: cpu-average Source:
+         * VM10-10-1-13/aggregation/cpu-average/cpu/user Type: cpu Type
+         * Instance: user
          *
          */
         HostEventData answer = new HostEventData();
