@@ -269,22 +269,6 @@ public class SlurmActuator extends AbstractActuator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
-        String taskType = response.getAdaptationDetail("TASK_TYPE");
-        String tasksToRemove = response.getAdaptationDetail("TASKS_TO_REMOVE");
-        if (tasksToRemove == null) { //Add Tasks
-            int count = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
-            for (int i = 0; i < count; i++) {
-                addTask(applicationId, deploymentId, taskType);
-            }
-        } else { //Remove tasks
-            for (String taskId : tasksToRemove.split(",")) {
-                deleteTask(applicationId, deploymentId, taskId.trim());
-            }
-        }
-    }
-
     /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.

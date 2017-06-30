@@ -126,9 +126,4 @@ public class AldeActuator extends AbstractActuator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
 }

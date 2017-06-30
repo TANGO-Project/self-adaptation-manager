@@ -118,5 +118,21 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
         }
         return output;
     }
+    
+    @Override
+    public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
+        String taskType = response.getAdaptationDetail("TASK_TYPE");
+        String tasksToRemove = response.getAdaptationDetail("TASKS_TO_REMOVE");
+        if (tasksToRemove == null) { //Add Tasks
+            int count = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
+            for (int i = 0; i < count; i++) {
+                addTask(applicationId, deploymentId, taskType);
+            }
+        } else { //Remove tasks
+            for (String taskId : tasksToRemove.split(",")) {
+                deleteTask(applicationId, deploymentId, taskId.trim());
+            }
+        }
+    }    
 
 }
