@@ -30,6 +30,8 @@ import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.ascetic.ioutils.io.ResultsStore;
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
@@ -96,13 +98,13 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     public void stopListening() {
         running = false;
     }
-    
+
     /**
      * This reloads the SLA criteria held in the environment monitor.
      */
     public void reloadLimits() {
         limits.reloadLimits();
-    }    
+    }
 
     /**
      * This starts the environment monitor going, in a daemon thread.
@@ -163,6 +165,23 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 if (event != null) {
                     answer.add(event);
                 }
+            } else if (term.getAgreementTerm().contains("APP:")) {
+                String[] termStr = term.getSplitAgreementTerm();
+                /**
+                 * Application based data should follow the format:
+                 *
+                 * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
+                 */
+                if (termStr.length < 3 || termStr.length > 4) {
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
+                    continue;
+                }
+                String appName = termStr[1];
+                String appId = termStr[2];
+                String agreementTerm = termStr[3];
+                if (event != null) {
+                    answer.add(event);
+                }
             } else {
                 answer.addAll(detectEvent(term, datasource.getHostList()));
             }
@@ -172,10 +191,11 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
 
     /**
      * Detects any QoS term breaches
+     *
      * @param term The sla term to check against
      * @param hosts The list of hosts to test for a breach of SLA criteria
-     * @return  The list of SLA breach events, the empty list is returned if
-     * no breach occurs.
+     * @return The list of SLA breach events, the empty list is returned if no
+     * breach occurs.
      */
     private ArrayList<EventData> detectEvent(SLATerm term, List<Host> hosts) {
         ArrayList<EventData> answer = new ArrayList<>();
@@ -190,6 +210,53 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
 
     /**
      * Detects any QoS term breaches
+     *
+     * @param term The sla term to check against
+     * @param agreementTerm The parsed string for the agreement term
+     * @param host The host to test for a breach of SLA criteria
+     * @return The SLA breach events if it occurs, otherwise null
+     */
+    private ApplicationEventData detectAppEvent(SLATerm term, String agreementTerm, String applicationId, String deploymentId) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, deploymentId, Integer.getInteger(deploymentId));
+        HashSet<Host> hosts = new HashSet<>();
+        for (ApplicationOnHost app : apps) {
+            hosts.add(app.getAllocatedTo());
+        }
+        List<Host> hostList = new ArrayList<>(hosts);
+        List<HostMeasurement> measurements = datasource.getHostData(hostList);
+        for (HostMeasurement measurement : measurements) {
+
+            if (measurement.getMetric(agreementTerm) == null) {
+                /**
+                 * Check the metric term exists, it may be that another monitor
+                 * reads the file and uses special terms such as: IDLE_HOST"
+                 * "APP_FINISHED" "IDLE_HOST+PENDING_JOB" CLOSE_TO_DEADLINE" or
+                 * simply the data source isn't providing the information
+                 * needed.
+                 */
+                return null;
+            }
+            double currentValue = measurement.getMetric(agreementTerm).getValue();
+            if (term.isBreached(currentValue)) {
+                ApplicationEventData answer = new ApplicationEventData(measurement.getClock(),
+                        currentValue, term.getGuranteedValue(),
+                        term.getSeverity(),
+                        term.getGuranteeOperator(),
+                        applicationId,
+                        deploymentId,
+                        term.getGuaranteeid(),
+                        term.getAgreementTerm());
+                //TODO set originating host if required
+                return answer;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Detects any QoS term breaches
+     *
      * @param term The sla term to check against
      * @param agreementTerm The parsed string for the agreement term
      * @param host The host to test for a breach of SLA criteria
@@ -270,44 +337,35 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      */
     public static EventData convertEventData(Notification notification) {
         /**
-         * This is an example of the output of the notification element.
-         * Host: VM10-10-1-13
-         * Severity: FAILURE
-         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
-         *  type cpu (instance idle): Data source "value" is currently nan. 
-         *  That is within the failure region of 0.000000 and 12000.000000.
-         * Message: Host VM10-10-1-13, plugin aggregation 
-         *  (instance cpu-average) type cpu (instance idle): Data source 
-         *  "value" is currently nan. That is within the failure 
-         *  region of 0.000000 and 12000.000000.
-         * Plugin: aggregation
-         * Plugin Instance: cpu-average
-         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
-         * Type: cpu
-         * Type Instance: idle
-        */
+         * This is an example of the output of the notification element. Host:
+         * VM10-10-1-13 Severity: FAILURE Data: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Message: Host VM10-10-1-13, plugin
+         * aggregation (instance cpu-average) type cpu (instance idle): Data
+         * source "value" is currently nan. That is within the failure region of
+         * 0.000000 and 12000.000000. Plugin: aggregation Plugin Instance:
+         * cpu-average Source: VM10-10-1-13/aggregation/cpu-average/cpu/idle
+         * Type: cpu Type Instance: idle
+         */
         /**
          * Second Example:
          *
-         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host VM10-10-1-13, 
-         * plugin aggregation (instance cpu-average) type cpu (instance user): 
-         * Data source "value" is currently 0.500090. That is above the failure 
-         * threshold of 0.000000.
-         * Host: VM10-10-1-13
-         * Severity: FAILURE
-         * Data: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
-         *   type cpu (instance user): Data source "value" is currently 0.500090. 
-         *   That is above the failure threshold of 0.000000.
-         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average) 
-         *   type cpu (instance user): Data source "value" is currently 0.500090. 
-         *   That is above the failure threshold of 0.000000.
-         * Plugin: aggregation
-         * Plugin Instance: cpu-average
-         * Source: VM10-10-1-13/aggregation/cpu-average/cpu/user
-         * Type: cpu
-         * Type Instance: user
+         * org.jcollectd.agent.api.Notification@264ab70a [FAILURE] Host
+         * VM10-10-1-13, plugin aggregation (instance cpu-average) type cpu
+         * (instance user): Data source "value" is currently 0.500090. That is
+         * above the failure threshold of 0.000000. Host: VM10-10-1-13 Severity:
+         * FAILURE Data: Host VM10-10-1-13, plugin aggregation (instance
+         * cpu-average) type cpu (instance user): Data source "value" is
+         * currently 0.500090. That is above the failure threshold of 0.000000.
+         * Message: Host VM10-10-1-13, plugin aggregation (instance cpu-average)
+         * type cpu (instance user): Data source "value" is currently 0.500090.
+         * That is above the failure threshold of 0.000000. Plugin: aggregation
+         * Plugin Instance: cpu-average Source:
+         * VM10-10-1-13/aggregation/cpu-average/cpu/user Type: cpu Type
+         * Instance: user
          *
-        */
+         */
         HostEventData answer = new HostEventData();
         answer.setHost(notification.getHost());
 

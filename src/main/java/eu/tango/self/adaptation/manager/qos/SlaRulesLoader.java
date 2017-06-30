@@ -164,11 +164,12 @@ public class SlaRulesLoader {
          * 
          * Format of these kind of app terms should be:
          * 
-         * "APP:<HOST_OPTIONAL>:<APP_NAME>:"<DEPLOYMENT_ID>
-         * 
+         * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
+         * i.e. "TEST_APP:1:power:ns32"
          * The version that looks like the following would be the aggregation 
          * for an application:
-         * "APP:<APP_NAME>:"<DEPLOYMENT_ID>
+         * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>
+         * i.e. "TEST_APP:1:power"
          */
         String appRulesFile = workingDir + RULES_FILE_START + applicationID + RULES_FILE_END;
         if (new File(appRulesFile).exists() && !appSpecificLimits.containsKey(applicationID)) {
