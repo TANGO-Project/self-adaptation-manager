@@ -37,7 +37,9 @@ public class SlaRulesLoader {
 
     private String workingDir;
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
-    private static final String RULES_FILE = "QoSEventCriteria.csv";
+    private static final String RULES_FILE_START = "QoSEventCriteria";
+    private static final String RULES_FILE_END = ".csv";
+    private static final String RULES_FILE = RULES_FILE_START + RULES_FILE_END;    
     private SLALimits limits;
     private HashMap<String, SLALimits> appSpecificLimits = new HashMap<>();
 
@@ -142,8 +144,13 @@ public class SlaRulesLoader {
          */
         //Creating a new SLA Limits, prevents unintended changes when merging the two rulesets.
         SLALimits answer = new SLALimits();
+        //Load these application specific rules in from disk
+        String appRulesFile = workingDir + RULES_FILE_START + applicationID + RULES_FILE_END;
+        if (new File(appRulesFile).exists() && !appSpecificLimits.containsKey(applicationID)) {
+            appSpecificLimits.put(applicationID, SLALimits.loadFromDisk(appRulesFile));
+        }
         SLALimits appAnswer = appSpecificLimits.get(applicationID);
-        if (appAnswer != null) {
+        if (appSpecificLimits.containsKey(applicationID)) {
             answer.addQoSCriteria(appAnswer.getQosCriteria());
         }
         answer.addQoSCriteria(getLimits().getQosCriteria());
