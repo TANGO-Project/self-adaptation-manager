@@ -268,6 +268,23 @@ public class SlurmActuator extends AbstractActuator {
     public void startupHost(Host host) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    public void decreasePowerCap() {
+        //scontrol show powercap should be able to read current values        
+        //Usses the slurm command: scontrol update powercap=1400000
+        //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
+        //See: https://slurm.schedmd.com/SLUG15/Power_Adaptive_final.pdf
+        //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
+        //See: https://slurm.schedmd.com/power_mgmt.html
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+    }
+    
+    public void increasePowerCap() {
+        //scontrol show powercap should be able to read current values        
+        //Usses the slurm command: scontrol update powercap=1400000
+        //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+    }
 
     /**
      * This executes a given action for a response that has been placed in the
@@ -318,6 +335,12 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case REDUCE_WALL_TIME:
                 decreaseWallTime(response.getApplicationId(), response.getDeploymentId(), response);
+                break;
+            case INCREASE_POWER_CAP:
+                increasePowerCap();
+                break;
+            case REDUCE_POWER_CAP:
+                decreasePowerCap();
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
