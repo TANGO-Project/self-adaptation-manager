@@ -12,8 +12,10 @@ jdk:
   
 # SonnarQube Configuration
 addons:
-  sonarcloud: true
-
-script: mvn install -DskipTest -q
-  
-- sonar-scanner -X -Dsonar.login="4bfd776407ac9a01b64454c66f5dcb811a7acc49"
+  sonarcloud:
+    organization: "GitHub_Integration"
+    token:
+      secure: 4bfd776407ac9a01b64454c66f5dcb811a7acc49
+script: 
+  - mvn install -DskipTest -q
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
