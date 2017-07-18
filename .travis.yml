@@ -1,0 +1,26 @@
+# Travis-CI script for the Energy Modeller
+#
+# This is being developed for the TANGO Project: http://tango-project.eu
+#
+# Copyright: Richard Kavanagh, University of Leeds, 2016.
+#
+# This code is licensed under an Apache 2.0 license. Please, refer to the LICENSE.TXT file for more information
+
+language: java
+jdk:
+  - oraclejdk8
+  
+# SonnarQube Configuration
+addons:
+  sonarcloud: true
+  apt:
+    packages:
+      - oracle-java8-installer
+
+install: 
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true -B -V
+script:
+  - sudo update-java-alternatives --set "java-8-oracle"
+  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
+  
+- sonar-scanner -X -Dsonar.login="4bfd776407ac9a01b64454c66f5dcb811a7acc49"
