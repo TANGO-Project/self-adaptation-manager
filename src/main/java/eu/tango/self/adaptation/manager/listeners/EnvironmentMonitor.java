@@ -418,7 +418,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
          * Data source "value" is currently nan. That is within the failure
          * region of 0.000000 and 12000.000000.
          */
-        try (Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+")) {;
+        try (Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+")) {
             //Indicates if the region is giving a bounds where the value cannot go or not.
             boolean reversed = data.contains("within the failure region");
             double current = scanner.nextDouble();
