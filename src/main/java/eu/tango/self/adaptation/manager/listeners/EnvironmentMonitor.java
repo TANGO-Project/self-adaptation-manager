@@ -418,57 +418,58 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
          * Data source "value" is currently nan. That is within the failure
          * region of 0.000000 and 12000.000000.
          */
-        Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+");
-        //Indicates if the region is giving a bounds where the value cannot go or not.
-        boolean reversed = data.contains("within the failure region");
-        double current = scanner.nextDouble();
-        event.setRawValue(current); //Sets the measured current value
-        double firstBound = scanner.nextDouble();
-        if (scanner.hasNextInt()) { //A second number means an upper bound.
-            double upperbound = scanner.nextDouble();
-            if (reversed) { //case where an exclusion zone is given
-                //TODO something clever by considering distance from boundary conditions
-                event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
+        try (Scanner scanner = new Scanner(toParse).useDelimiter("[^\\d]+")) {;
+            //Indicates if the region is giving a bounds where the value cannot go or not.
+            boolean reversed = data.contains("within the failure region");
+            double current = scanner.nextDouble();
+            event.setRawValue(current); //Sets the measured current value
+            double firstBound = scanner.nextDouble();
+            if (scanner.hasNextInt()) { //A second number means an upper bound.
+                double upperbound = scanner.nextDouble();
+                if (reversed) { //case where an exclusion zone is given
+                    //TODO something clever by considering distance from boundary conditions
+                    event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
+                    event.setGuranteedValue(firstBound);
+                    return event;
+                }
+                //Case where a green good zone is given instead
+                if (current <= firstBound) {
+                    event.setGuranteeOperator(EventData.Operator.LT); //LT first bound
+                    event.setGuranteedValue(firstBound);
+                    return event;
+                } else if (current >= upperbound) {
+                    event.setGuranteeOperator(EventData.Operator.GT); //GT second bound
+                    event.setGuranteedValue(upperbound);
+                    return event;
+                }
+            } else { //dealing with the simple case of one bound.
+                //current/raw value is already set, so setting the boundary condition.
                 event.setGuranteedValue(firstBound);
-                return event;
-            }
-            //Case where a green good zone is given instead
-            if (current <= firstBound) {
-                event.setGuranteeOperator(EventData.Operator.LT); //LT first bound
-                event.setGuranteedValue(firstBound);
-                return event;
-            } else if (current >= upperbound) {
-                event.setGuranteeOperator(EventData.Operator.GT); //GT second bound
-                event.setGuranteedValue(upperbound);
-                return event;
-            }
-        } else { //dealing with the simple case of one bound.
-            //current/raw value is already set, so setting the boundary condition.
-            event.setGuranteedValue(firstBound);
-            if (reversed) {
-                //Flips values around ensuring correct answer is given
-                double temp = current;
-                current = firstBound;
-                firstBound = temp;
-            }
+                if (reversed) {
+                    //Flips values around ensuring correct answer is given
+                    double temp = current;
+                    current = firstBound;
+                    firstBound = temp;
+                }
 
-            /**
-             * The bounds of LE or LTE are difficult to test, or LTE and EQ thus
-             * only LT, EQ and GT can be inferred from a breach with any
-             * certainty.
-             */
-            if (current == firstBound) {
-                event.setGuranteeOperator(EventData.Operator.EQ);
-                return event;
-            } else if (current > firstBound) {
-                //current value higher than bound caused breach
-                event.setGuranteeOperator(EventData.Operator.LT); //so current value should normally be less than
-                return event;
-            } else {
-                event.setGuranteeOperator(EventData.Operator.GT);
-                return event;
-            }
+                /**
+                 * The bounds of LE or LTE are difficult to test, or LTE and EQ
+                 * thus only LT, EQ and GT can be inferred from a breach with
+                 * any certainty.
+                 */
+                if (current == firstBound) {
+                    event.setGuranteeOperator(EventData.Operator.EQ);
+                    return event;
+                } else if (current > firstBound) {
+                    //current value higher than bound caused breach
+                    event.setGuranteeOperator(EventData.Operator.LT); //so current value should normally be less than
+                    return event;
+                } else {
+                    event.setGuranteeOperator(EventData.Operator.GT);
+                    return event;
+                }
 
+            }
         }
         event.setGuranteeOperator(EventData.Operator.LT); //default e.g. current power < guaranteed value
         return event;
