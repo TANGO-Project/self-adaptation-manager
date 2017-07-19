@@ -52,7 +52,8 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
                 if (currentItem != null) {
                     ArrayList<Response> actions = new ArrayList<>();
                     actions.add(currentItem);
-                    queue.drainTo(actions);
+                    int draincount = queue.drainTo(actions);
+                    Logger.getLogger(SlurmActuator.class.getName()).log(Level.FINEST, "The actuator just processed {0} actions.", draincount);
                     for (Response action : actions) {
                         try {
                             launchAction(action);
