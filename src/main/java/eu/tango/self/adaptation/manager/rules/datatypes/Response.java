@@ -43,6 +43,9 @@ public class Response implements Comparable<Response> {
     static {
         ADAPTATION_TYPE_MAPPING.put("INCREASE_WALL_TIME", Response.AdaptationType.INCREASE_WALL_TIME);
         ADAPTATION_TYPE_MAPPING.put("REDUCE_WALL_TIME", Response.AdaptationType.REDUCE_WALL_TIME);
+        ADAPTATION_TYPE_MAPPING.put("ADD_TASK", Response.AdaptationType.ADD_TASK);
+        ADAPTATION_TYPE_MAPPING.put("REMOVE_TASK", Response.AdaptationType.REMOVE_TASK);
+        ADAPTATION_TYPE_MAPPING.put("SCALE_TO_N_TASKS", Response.AdaptationType.SCALE_TO_N_TASKS);
         ADAPTATION_TYPE_MAPPING.put("ADD_CPU", Response.AdaptationType.ADD_CPU);
         ADAPTATION_TYPE_MAPPING.put("ADD_MEMORY", Response.AdaptationType.ADD_MEMORY);
         ADAPTATION_TYPE_MAPPING.put("REMOVE_CPU", Response.AdaptationType.REMOVE_CPU);
