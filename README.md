@@ -106,6 +106,7 @@ APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
 
 This file works in conjunction with the self-adaptation-manager-threshold.properties file. It specifies some basic rules, for adaptation to occur. There are three fields that must exist and are common to both StackedThresholdEventAssessor and the ThresholdEventAssessor. These are: the agreement term, the direction and the response type.
 
+```
 Agreement Term	Direction	Response Type
 energy_usage_per_app	LT	REMOVE_TASK
 power_usage_per_app	LT	REMOVE_TASK
@@ -115,6 +116,7 @@ energy_usage_per_app	GT	ADD_TASK
 power_usage_per_app	GT	ADD_TASK
 energy_usage_per_app	GTE	ADD_TASK
 power_usage_per_app	GTE	ADD_TASK
+```
 
 The first is the agreement term. This can either be any value that is monitored by the infrastructure. In addition it can be based upon the following events:
 
@@ -125,10 +127,23 @@ The first is the agreement term. This can either be any value that is monitored 
 
 The next field is the direction, this indicates if the breach value is higher or lower than the metric value specified. The possible values are LT, LTE, EQ, GT, and GTE. I.e. less than, less than or equal, equals, greater than and greater than or equal to. 
 
-The final field indicates the response type. The possible values are INCREASE_WALL_TIME, REDUCE_WALL_TIME, ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS, ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY, PAUSE_APP, UNPAUSE_APP, KILL_APP, HARD_KILL_APP, RESELECT_ACCELERATORS, REDUCE_POWER_CAP, INCREASE_POWER_CAP, SHUTDOWN_HOST, STARTUP_HOST.
+The final field indicates the response type. The possible values are:  
+
+```
+INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
+ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS, 
+ADD_CPU, REMOVE_CPU, 
+ADD_MEMORY, REMOVE_MEMORY, 
+PAUSE_APP, UNPAUSE_APP, 
+KILL_APP, HARD_KILL_APP, 
+RESELECT_ACCELERATORS, 
+REDUCE_POWER_CAP, INCREASE_POWER_CAP, 
+SHUTDOWN_HOST, STARTUP_HOST.
+```
 
 The Stacked Threshold Event assessor has additional optional arguments, which allow for more complex behaviour.
 
+```
 Agreement Term	Comparator	Response Type	Event Type (Violation or Warning)	Lower bound	Upper bound	Parameters
 energy_usage_per_app	GT	REMOVE_TASK	 	 	 	 
 power_usage_per_app	GT	REMOVE_TASK	 	 	 	 
@@ -138,6 +153,7 @@ lower_load_period	EQ	SCALE_TO_N_TASKS	Other	0	1000	TASK_COUNT=1
 higher_load_period	EQ	SCALE_TO_N_TASKS	Other	0	1000	TASK_COUNT=3
 lower_load_period	EQ	SCALE_TO_N_TASK	violation	0	1000	TASK_COUNT=1
 higher_load_period	EQ	SCALE_TO_N_TASKS	violation	0	1000	TASK_COUNT=3
+```
 
 The additional parameters are: Event Type (Violation or Warning), Lower bound, Upper bound and Parameters. These additional parameters allow for the prospect of having several rules with similar initial parameters of: agreement term, direction, but dependent upon the scale of the violation may have different adaptation responses. 
 
