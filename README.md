@@ -18,13 +18,17 @@ This guide it is divided into two different guides, one specific to compilation 
 
 #### Requirements
 
-The SAM's primary two prerequisites are:
+The SAM's primary prerequisites are:
 
 * Java
 * Maven
+* Tango Energy Modeller
 
 #### Installation and configuration procedure
 
+To compile the self-adaptation manager, the following steps must be performed:
+1.	Generate the self-adaptation manager jar using the command: mvn clean package (executed  in the self-adaptation manager directory)
+2.	Install the energy modeller.
 
 #### Build status from Travis-CI
 
