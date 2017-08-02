@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  */
 public class SLALimits {
 
-    private static String POWER = "POWER";
+    private static final String POWER = "POWER";
     private final ArrayList<SLATerm> qosCriteria = new ArrayList<>();
 
     public SLALimits() {

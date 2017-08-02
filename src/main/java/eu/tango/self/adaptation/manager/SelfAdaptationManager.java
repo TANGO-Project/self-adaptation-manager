@@ -17,7 +17,9 @@
  */
 package eu.tango.self.adaptation.manager;
 
-import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.HostDataSource;
+import eu.tango.energymodeller.datasourceclient.WattsUpMeterDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.actuators.AldeAndSlurmActuator;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
@@ -44,8 +46,9 @@ public class SelfAdaptationManager {
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private static final String DEFAULT_EVENT_ASSESSOR_PACKAGE
             = "eu.tango.self.adaptation.manager.rules";
+    private static final String DEFAULT_DATA_SOURCE_PACKAGE = "eu.tango.energymodeller.datasourceclient";
     private String eventAssessorName = "ThresholdEventAssessor";
-    private boolean useCollectD = false;
+    private HostDataSource datasource;
 
     /**
      * This creates a new instance of the self-adaptation manager.
@@ -62,18 +65,15 @@ public class SelfAdaptationManager {
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
             eventAssessorName = config.getString("self.adaptation.manager.event.assessor", eventAssessorName);
             config.setProperty("self.adaptation.manager.event.assessor", eventAssessorName);
-            useCollectD = config.getBoolean("self.adaptation.manager.environment.monitor.use.collectd", useCollectD);
-            config.setProperty("self.adaptation.manager.environment.monitor.use.collectd", useCollectD);            
+            String datasourceStr = config.getString("self.adaptation.manager.environment.monitor.datasource", "CollectdDataSourceAdaptor");
+            config.setProperty("self.adaptation.manager.environment.monitor.datasource", datasourceStr);
+            setDataSource(datasourceStr);
         } catch (ConfigurationException ex) {
             Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
         setEventAssessor(eventAssessorName);
         EventListener listener;
-        if (useCollectD) {
-            listener = new EnvironmentMonitor();
-        } else {
-            listener = new EnvironmentMonitor(new SlurmDataSourceAdaptor());
-        }
+        listener = new EnvironmentMonitor(datasource);
         listener.setEventAssessor(eventAssessor);
         listener.startListening();        
         listeners.add(listener);
@@ -111,6 +111,40 @@ public class SelfAdaptationManager {
             Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.WARNING, "The setting of the decision engine did not work", ex);
         }
     }
+    
+    /**
+     * This allows the energy modellers data source to be set
+     *
+     * @param dataSource The name of the data source to use for the energy
+     * modeller
+     */
+    private void setDataSource(String dataSource) {
+        try {
+            if (!dataSource.startsWith(DEFAULT_DATA_SOURCE_PACKAGE)) {
+                dataSource = DEFAULT_DATA_SOURCE_PACKAGE + "." + dataSource;
+            }
+            /**
+             * This is a special case that requires it to be loaded under the
+             * singleton design pattern.
+             */
+            String wattsUpMeter = DEFAULT_DATA_SOURCE_PACKAGE + ".WattsUpMeterDataSourceAdaptor";
+            if (wattsUpMeter.equals(dataSource)) {
+                datasource = WattsUpMeterDataSourceAdaptor.getInstance();
+            } else {
+                datasource = (HostDataSource) (Class.forName(dataSource).newInstance());
+            }
+        } catch (ClassNotFoundException ex) {
+            if (datasource == null) {
+                datasource = new CollectdDataSourceAdaptor();
+            }
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "The data source specified was not found");
+        } catch (InstantiationException | IllegalAccessException ex) {
+            if (datasource == null) {
+                datasource = new CollectdDataSourceAdaptor();
+            }
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "The data source did not work", ex);
+        }
+    }    
 
     /**
      * This creates a new self-adaptation manager and is the main entry point

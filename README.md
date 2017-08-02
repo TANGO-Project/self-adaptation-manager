@@ -58,7 +58,7 @@ These settings must be tailored to the specific infrastructure. The settings are
 This file is the main configuration file for the SAM. An example is provided below:
 
 ```
-self.adaptation.manager.environment.monitor.use.collectd=false
+self.adaptation.manager.environment.monitor.datasource=CollectdDataSourceAdaptor
 self.adaptation.manager.history.length = 300
 self.adaptation.manager.history.poll.interval = 5
 self.adaptation.manager.event.assessor= StackedThresholdEventAssessor
@@ -66,7 +66,8 @@ self.adaptation.manager.decision.engine = RandomDecisionEngine
 self.adaptation.manager.logging = true
 ```
 
-The first parameter self.adaptation.manager.environment.monitor.use.collectd. Indicates if collectd should be used as the data source for the self-adaptation manager, or if slurm should be used instead. This is the source of data coming in for the environment monitor, whereby it will check that metrics arriving do not exceed the thresholds set.
+The first parameter self.adaptation.manager.environment.monitor.datasource. Indicates what should be used as the data source for the self-adaptation manager, the default is: CollectdDataSourceAdaptor, but alternatively 
+CollectDInfluxDbDataSourceAdaptor, SlurmDataSourceAdaptor or TangoEnvironmentDataSourceAdaptor may be used instead. It represents the source of data coming in for the environment monitor, whereby it will check that metrics arriving do not exceed the thresholds set.
 
 This includes parameters such as how long to keep history records for in seconds, using the field:  self.adaptation.manager.history.length, as well as the rate at which this history log is cleared using the poll interval field: 
 
