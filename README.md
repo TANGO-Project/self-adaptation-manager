@@ -46,8 +46,8 @@ In this case, we are going to detail how to run the application so that it can m
 
 The SAM is highly configurable and can be configured using configuration files to change its behaviour. The SAM has the following settings files in order to achieve these changes:
 
-*paas-self-adaptation-manager.properties* Holds properties such as which event assessor and decision engine to use.
-*paas-self-adaptation-manager-threshold.properties* -	This holds settings regarding thresholds before a response occurs.
+*self-adaptation-manager.properties* Holds properties such as which event assessor and decision engine to use.  
+*self-adaptation-manager-threshold.properties* -	This holds settings regarding thresholds before a response occurs.  
 *QoSEventCriteria.csv* - This specify the QoS rules that are required to create events
 *rules.csv* -	This holds the listing of rules used for the StackedThresholdEventAssessor and ThresholdEventAssessor, which indicate how to perform the adaptation, based upon the events that are created.  
 
