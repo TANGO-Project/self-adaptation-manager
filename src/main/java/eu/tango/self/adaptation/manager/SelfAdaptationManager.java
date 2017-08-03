@@ -115,23 +115,23 @@ public class SelfAdaptationManager {
     /**
      * This allows the energy modellers data source to be set
      *
-     * @param dataSource The name of the data source to use for the energy
+     * @param dataSourceStr The name of the data source to use for the energy
      * modeller
      */
-    private void setDataSource(String dataSource) {
+    private void setDataSource(String dataSourceStr) {
         try {
-            if (!dataSource.startsWith(DEFAULT_DATA_SOURCE_PACKAGE)) {
-                dataSource = DEFAULT_DATA_SOURCE_PACKAGE + "." + dataSource;
+            if (!dataSourceStr.startsWith(DEFAULT_DATA_SOURCE_PACKAGE)) {
+                dataSourceStr = DEFAULT_DATA_SOURCE_PACKAGE + "." + dataSourceStr;
             }
             /**
              * This is a special case that requires it to be loaded under the
              * singleton design pattern.
              */
             String wattsUpMeter = DEFAULT_DATA_SOURCE_PACKAGE + ".WattsUpMeterDataSourceAdaptor";
-            if (wattsUpMeter.equals(dataSource)) {
+            if (wattsUpMeter.equals(dataSourceStr)) {
                 datasource = WattsUpMeterDataSourceAdaptor.getInstance();
             } else {
-                datasource = (HostDataSource) (Class.forName(dataSource).newInstance());
+                datasource = (HostDataSource) (Class.forName(dataSourceStr).newInstance());
             }
         } catch (ClassNotFoundException ex) {
             if (datasource == null) {
