@@ -268,6 +268,13 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             return null;
         }
         HostMeasurement measurement = datasource.getHostData(host);
+        if (measurement == null) {
+            /**
+             * If the host is down then no measurement data will arrive, hence
+             * it should be ignored.
+             */
+            return null;
+        }
 
         if (measurement.getMetric(agreementTerm) == null) {
             /**
@@ -318,7 +325,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         store.add("Unique Id,Agreement Term,Comparator,Event Type (SLA_BREACH or WARNING),Guarantee Value");
         store.add("1,A term below in the provided format,EQ,SLA_BREACH,0");
         store.add("");
-        store.add("The is the list of known hosts. This gets added HOST:<To be added here>:<term>");
+        store.add("The is the list of known hosts. This can be added as an agreement term in the format: HOST:<To be added here>:<term>");
         for (Host host : datasource.getHostList()) {
             store.add(host.getHostName());
         }
