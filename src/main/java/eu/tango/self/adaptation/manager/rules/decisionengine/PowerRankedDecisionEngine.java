@@ -21,7 +21,6 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,11 +42,15 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
                 break;
             case KILL_APP: 
             case HARD_KILL_APP:
-                /**
-                 * There is no version of informing the app to shutdown safely
-                 * currently implemented. Thus these terms are the same.
-                 */
-                response = hardKillApp(response);
+            case INCREASE_WALL_TIME:
+            case REDUCE_WALL_TIME:
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case ADD_CPU:
+            case REMOVE_CPU:
+            case ADD_MEMORY:
+            case REMOVE_MEMORY:
+                response = getHighestPowerConsumingApp(response);
                 break;                
             case SCALE_TO_N_TASKS:
                 response = scaleToNTasks(response);
@@ -62,7 +65,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
-    public Response hardKillApp(Response response) {
+    public Response getHighestPowerConsumingApp(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
@@ -72,6 +75,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             HostEventData eventData = (HostEventData) response.getCause();
             List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
             if (!tasks.isEmpty()) {
+                //TODO sort based upon power consumption
+                //such as via: getActuator().getPowerUsageTask(null, null, taskId);                
                 Collections.shuffle(tasks);
                 response.setTaskId(tasks.get(0).getId() + "");
                 return response;
