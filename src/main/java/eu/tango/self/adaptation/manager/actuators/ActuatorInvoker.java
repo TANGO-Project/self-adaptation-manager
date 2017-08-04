@@ -43,6 +43,13 @@ public interface ActuatorInvoker {
     public abstract ApplicationDefinition getApplication(String name, String deploymentId);
     
     /**
+     * This gets the list of tasks on a given host
+     * @param host The host to get the list of tasks for
+     * @return The list of tasks on a given host
+     */
+    public List<ApplicationOnHost> getTasksOnHost(String host);
+    
+    /**
      * This gets a task of a given application, deployment and task id.
      *
      * @param name The application name or identifier

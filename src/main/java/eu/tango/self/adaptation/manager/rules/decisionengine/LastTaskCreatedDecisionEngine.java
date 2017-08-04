@@ -12,13 +12,16 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * This is being developed for the TANGO Project: http://tango-project.eu
- * 
+ *
  */
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,8 +31,8 @@ import java.util.List;
  * decide where this adaptation should occur.
  *
  * The last task created decision engine will pick tasks and task types to adapt
- * randomly and when deleting tasks it will pick the task which was created last. It
- * uses no outside data source to guide this decision.
+ * randomly and when deleting tasks it will pick the task which was created
+ * last. It uses no outside data source to guide this decision.
  *
  * @author Richard Kavanagh
  */
@@ -37,12 +40,48 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
 
     @Override
     public Response decide(Response response) {
-        if (response.getActionType().equals(Response.AdaptationType.ADD_TASK)) {
-            response = addTask(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.REMOVE_TASK)) {
-            response = deleteTask(response);
-        } else if (response.getActionType().equals(Response.AdaptationType.SCALE_TO_N_TASKS)) {
-            response = scaleToNTasks(response);
+        switch (response.getActionType()) {
+            case ADD_TASK:
+                response = addTask(response);
+                break;
+            case REMOVE_TASK:
+                response = deleteTask(response);
+                break;
+            case SCALE_TO_N_TASKS:
+                response = scaleToNTasks(response);
+                break;
+        }
+        return response;
+    }
+
+    /**
+     * The decision logic for adding a task.
+     *
+     * @param response The response to finalise details for.
+     * @return The finalised response object
+     */
+    public Response hardKillApp(Response response) {
+        if (getActuator() == null) {
+            response.setAdaptationDetails("Unable to find actuator.");
+            response.setPossibleToAdapt(false);
+            return response;
+        }
+        if (response.getCause() instanceof HostEventData) {
+            HostEventData eventData = (HostEventData) response.getCause();
+            ArrayList<Integer> ids = new ArrayList<>();
+            List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
+            for (ApplicationOnHost task : tasks) {
+                ids.add(task.getId());
+            }
+            if (!ids.isEmpty()) {
+                Collections.sort(ids);
+                Collections.reverse(ids);
+                response.setTaskId(ids.get(0) + "");
+                return response;
+            } else {
+                response.setAdaptationDetails("Could not find a task to delete");
+                response.setPossibleToAdapt(false);
+            }
         }
         return response;
     }

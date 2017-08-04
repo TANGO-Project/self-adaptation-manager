@@ -43,6 +43,11 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
+    public List<ApplicationOnHost> getTasksOnHost(String host) {
+        return slurm.getTasksOnHost(host);
+    }
+    
+    @Override
     public ApplicationOnHost getTask(String name, String deployment, int taskId) {
         return slurm.getTask(name, deployment, taskId);
     }

@@ -129,6 +129,12 @@ public class SlurmActuator extends AbstractActuator {
         }
         return answer;
     }
+    
+    @Override
+    public List<ApplicationOnHost> getTasksOnHost(String host) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();  
+        return ApplicationOnHost.filter(apps, datasource.getHostByName(host));
+    }
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
