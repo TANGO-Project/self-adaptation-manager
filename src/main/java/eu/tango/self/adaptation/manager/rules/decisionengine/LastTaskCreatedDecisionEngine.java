@@ -95,6 +95,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
                 response.setPossibleToAdapt(false);
             }
         }
+        //Note: if the event data was from an application the task id would already be set        
         return response;
     }
 

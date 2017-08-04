@@ -44,7 +44,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 break;
             case REMOVE_TASK:
                 response = deleteTask(response);
-                break;   
+                break;              
             case KILL_APP: 
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
@@ -81,13 +81,14 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
             if (!tasks.isEmpty()) {
                 Collections.shuffle(tasks);
-                response.setTaskId(tasks.get(0).getId() + "");
+                    response.setTaskId(tasks.get(0).getId() + "");
                 return response;
             } else {
                 response.setAdaptationDetails("Could not find a task to actuate against");
                 response.setPossibleToAdapt(false);
             }
         }
+        //Note: if the event data was from an application the task id would already be set
         return response;
     }
 
