@@ -285,4 +285,12 @@ public class Response implements Comparable<Response> {
         this.taskId = taskId;
     }
 
+    /**
+     * This gets the actuator to be used when the response is executed.
+     * @return The actuator that is to be used to execute the response.
+     */
+    public ActuatorInvoker getActuator() {
+        return actuator;
+    }
+
 }
