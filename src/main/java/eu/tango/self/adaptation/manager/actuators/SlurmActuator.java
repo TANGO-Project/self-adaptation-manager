@@ -105,7 +105,7 @@ public class SlurmActuator extends AbstractActuator {
         ApplicationOnHost task = getTask(deploymentId, deploymentId, taskId);
         if (task == null) {
             return 0;
-        }
+    }
         return modeller.getCurrentEnergyForApplication(task).getPower();
     }
 
@@ -325,7 +325,7 @@ public class SlurmActuator extends AbstractActuator {
                 pauseJob(response.getApplicationId(), response.getDeploymentId());
                 break;
             case UNPAUSE_APP:
-                pauseJob(response.getApplicationId(), response.getDeploymentId());
+                resumeJob(response.getApplicationId(), response.getDeploymentId());
                 break;
             case HARD_KILL_APP:
                 hardKillApp(response.getApplicationId(), response.getDeploymentId());
