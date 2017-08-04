@@ -135,12 +135,16 @@ public abstract class AbstractEventAssessor implements EventAssessor {
     @Override
     public Response assessEvent(EventData event) {
         //Add the current event into the sequence of all events.
-        eventHistory.add(event);
+        List<EventData> eventHistoryToAssess = new ArrayList<>();
+        synchronized (this) { 
+            eventHistory.add(event);
+            eventHistoryToAssess.addAll(eventHistory);
+        }
         if (logging) {
             eventHistoryLogger.printToFile(event);
         }
         //filter event sequence for only relevent data    
-        List<EventData> eventData = EventDataAggregator.filterEventData(eventHistory, event.getGuaranteeid(), event.getAgreementTerm());
+        List<EventData> eventData = EventDataAggregator.filterEventData(eventHistoryToAssess, event.getGuaranteeid(), event.getAgreementTerm());
         //Purge old event map data
         eventData = EventDataAggregator.filterEventDataByTime(eventData, historyLengthSeconds);
         return assessEvent(event, eventData);

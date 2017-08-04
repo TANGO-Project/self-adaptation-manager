@@ -37,7 +37,7 @@ public class EventDataAggregator {
      * @param eventData The list of events in which to perform the analysis on
      * @return The direction and magnitude of event data.
      */
-    public static double analyseEventData(List<EventData> eventData) {
+    public synchronized static double analyseEventData(List<EventData> eventData) {
         if (eventData.isEmpty()) {
             //This is a error case!
             return Double.NaN;
@@ -50,7 +50,7 @@ public class EventDataAggregator {
             EventData latest = eventData.get(eventData.size() -1);
             return EventData.getChangeInSlack(earliest, latest);
         }
-        return Double.NaN; //This is a error case!
+        return Double.NaN; //This is an error case!
     }
     
     /**
@@ -62,7 +62,7 @@ public class EventDataAggregator {
      * @return The list of events associated with a given guarantee of an SLA, in
      * ascending chronological order. i.e. earliest first.
      */
-    public static List<EventData> filterEventData(List<EventData> events, String guranteeId, String agreementTerm) {
+    public synchronized static List<EventData> filterEventData(List<EventData> events, String guranteeId, String agreementTerm) {
         ArrayList<EventData> answer = new ArrayList<>();
         for (EventData eventData : events) {
             if (eventData.getGuaranteeid().equals(guranteeId) && eventData.getAgreementTerm().equals(agreementTerm)) {
@@ -82,7 +82,7 @@ public class EventDataAggregator {
      * @return The list of responses associated with a given SLA,in ascending
      * chronological order. i.e. earliest first.
      */
-    public static List<EventData> filterResponseHistory(List<EventData> events,
+    public synchronized static List<EventData> filterResponseHistory(List<EventData> events,
             String guaranteeId) {
         ArrayList<EventData> answer = new ArrayList<>();
         for (EventData event : events) {
@@ -101,7 +101,7 @@ public class EventDataAggregator {
      * @return The list of events in ascending chronological order. 
      * i.e. earliest first, that meet the time criteria.
      */
-    public static List<EventData> filterEventDataByTime(List<EventData> eventList, int ageSeconds) {
+    public synchronized static List<EventData> filterEventDataByTime(List<EventData> eventList, int ageSeconds) {
         ArrayList<EventData> answer = new ArrayList<>();
         long now = System.currentTimeMillis();
         now = now / 1000;
