@@ -50,6 +50,18 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case SCALE_TO_N_TASKS:
                 response = scaleToNTasks(response);
                 break;
+            case KILL_APP: 
+            case HARD_KILL_APP:
+            case INCREASE_WALL_TIME:
+            case REDUCE_WALL_TIME:
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case ADD_CPU:
+            case REMOVE_CPU:
+            case ADD_MEMORY:
+            case REMOVE_MEMORY:
+                response = getLastApp(response);
+            break;
         }
         return response;
     }
@@ -60,7 +72,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
-    public Response hardKillApp(Response response) {
+    public Response getLastApp(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
@@ -79,7 +91,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
                 response.setTaskId(ids.get(0) + "");
                 return response;
             } else {
-                response.setAdaptationDetails("Could not find a task to delete");
+                response.setAdaptationDetails("Could not find a task to actuate against");
                 response.setPossibleToAdapt(false);
             }
         }

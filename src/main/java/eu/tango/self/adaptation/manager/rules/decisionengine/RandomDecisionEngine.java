@@ -44,14 +44,18 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 break;
             case REMOVE_TASK:
                 response = deleteTask(response);
-                break;
+                break;   
             case KILL_APP: 
             case HARD_KILL_APP:
-                /**
-                 * There is no version of informing the app to shutdown safely
-                 * currently implemented. Thus these terms are the same.
-                 */
-                response = hardKillApp(response);
+            case INCREASE_WALL_TIME:
+            case REDUCE_WALL_TIME:
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case ADD_CPU:
+            case REMOVE_CPU:
+            case ADD_MEMORY:
+            case REMOVE_MEMORY:
+                response = randomlySelectApp(response);
                 break;
             case SCALE_TO_N_TASKS:
                 response = scaleToNTasks(response);
@@ -59,14 +63,14 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
-
+    
     /**
      * The decision logic for adding a task.
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
-    public Response hardKillApp(Response response) {
+    public Response randomlySelectApp(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
@@ -80,7 +84,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 response.setTaskId(tasks.get(0).getId() + "");
                 return response;
             } else {
-                response.setAdaptationDetails("Could not find a task to delete");
+                response.setAdaptationDetails("Could not find a task to actuate against");
                 response.setPossibleToAdapt(false);
             }
         }
