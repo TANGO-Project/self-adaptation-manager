@@ -135,16 +135,9 @@ public class SlurmActuator extends AbstractActuator {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();  
         return ApplicationOnHost.filter(apps, datasource.getHostByName(host));
     }
-
-    public void hardKillApp(String taskId) {
-        //TODO Conider if this is still ok if there are multiple tasks in a job??
-        execCmd("scancel " + taskId);
-    }    
     
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
-        System.out.println("scancel " + deploymentId);
-        System.out.println("scancel " + applicationName);
         execCmd("scancel " + deploymentId);
     }
 
@@ -347,7 +340,7 @@ public class SlurmActuator extends AbstractActuator {
             case HARD_KILL_APP:
             case KILL_APP:
                 //Note: no soft implementation exists at this time
-                hardKillApp(response.getTaskId());
+                hardKillApp(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case INCREASE_WALL_TIME:
                 increaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
