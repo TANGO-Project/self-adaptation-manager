@@ -156,7 +156,11 @@ public class SlurmActuator extends AbstractActuator {
      *
      */
     public void pauseJob(String applicationName, String deploymentId) {
-        execCmd("scontrol hold " + deploymentId);
+        /**
+         * "hold" is a related command that pauses a job that is yet to start
+         * running
+         */
+        execCmd("scontrol suspend " + deploymentId); 
     }
 
     /**
@@ -225,7 +229,7 @@ public class SlurmActuator extends AbstractActuator {
      */
     private int getNodeCount(String deploymentId) {
         int answer = -1;
-        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " --format=\"%D\"");
+        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " -h --format=\"%D\"");
         if (!cpuCount.isEmpty()) {
             return Integer.parseInt(cpuCount.get(0));
         }
@@ -240,7 +244,7 @@ public class SlurmActuator extends AbstractActuator {
      */
     private int getCpuCount(String deploymentId) {
         int answer = -1;
-        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " --format=\"%C\"");
+        ArrayList<String> cpuCount = execCmd("squeue -j " + deploymentId + " -h --format=\"%C\"");
         if (!cpuCount.isEmpty()) {
             return Integer.parseInt(cpuCount.get(0));
         }
