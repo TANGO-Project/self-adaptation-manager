@@ -320,25 +320,25 @@ public class SlurmActuator extends AbstractActuator {
         }
         switch (response.getActionType()) {
             case ADD_CPU:
-                addCpu(response.getApplicationId(), response.getDeploymentId());
+                addCpu(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case REMOVE_CPU:
-                removeCpu(response.getApplicationId(), response.getDeploymentId());
+                removeCpu(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case ADD_TASK:
-                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetails());
+                addTask(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
                 break;
             case REMOVE_TASK:
-                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getTaskId());
+                deleteTask(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
                 break;
             case SCALE_TO_N_TASKS:
-                scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
+                scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
             case PAUSE_APP:
-                pauseJob(response.getApplicationId(), response.getDeploymentId());
+                pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case UNPAUSE_APP:
-                resumeJob(response.getApplicationId(), response.getDeploymentId());
+                resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case HARD_KILL_APP:
             case KILL_APP:
@@ -346,10 +346,10 @@ public class SlurmActuator extends AbstractActuator {
                 hardKillApp(response.getTaskId());
                 break;
             case INCREASE_WALL_TIME:
-                increaseWallTime(response.getApplicationId(), response.getDeploymentId(), response);
+                increaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
             case REDUCE_WALL_TIME:
-                decreaseWallTime(response.getApplicationId(), response.getDeploymentId(), response);
+                decreaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
             case INCREASE_POWER_CAP:
                 increasePowerCap();
@@ -362,6 +362,23 @@ public class SlurmActuator extends AbstractActuator {
                 break;
         }
         response.setPerformed(true);
+    }
+    
+    /**
+     * The deployment id and application id originate from the event, thus if
+     * a response originates from the host these values are not set. Thus the
+     * task Id is the only means to specify which task to perform action against.
+     * @param response The response object
+     * @return The task/deployment id to be used by slurm to act upon the job.
+     */
+    private String getTaskDeploymentId(Response response) {
+        if (response.getTaskId()!= null && !response.getTaskId().isEmpty()) {
+            return response.getTaskId();
+        }
+        if (response.getDeploymentId() != null && !response.getDeploymentId().isEmpty()) {
+            return response.getDeploymentId();
+        }
+        return "";
     }
 
 }
