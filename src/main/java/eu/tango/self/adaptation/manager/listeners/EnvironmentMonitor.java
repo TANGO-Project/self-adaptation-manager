@@ -179,6 +179,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 String appName = termStr[1];
                 String appId = termStr[2];
                 String agreementTerm = termStr[3];
+                //TODO why is host optional and not used at all??
                 EventData event = detectAppEvent(term, agreementTerm, appName, appId);
                 if (event != null) {
                     answer.add(event);
@@ -219,13 +220,25 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      */
     private ApplicationEventData detectAppEvent(SLATerm term, String agreementTerm, String applicationId, String deploymentId) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, deploymentId, Integer.getInteger(deploymentId));
+        int deployId = -1;
+        /**
+         * The assumption is that they place a * instead of a deployment id,
+         * however any non-numeric value would actually do
+         */
+        if (deploymentId.matches("[-+]?\\d*\\.?\\d+")) {
+            deployId = Integer.getInteger(deploymentId);
+        }
+        if (!applicationId.equals("*")) {
+            apps = ApplicationOnHost.filter(apps, deploymentId, deployId);
+        }
+        //Get the set of hosts which the applications are running upon
         HashSet<Host> hosts = new HashSet<>();
         for (ApplicationOnHost app : apps) {
             hosts.add(app.getAllocatedTo());
         }
         List<Host> hostList = new ArrayList<>(hosts);
         List<HostMeasurement> measurements = datasource.getHostData(hostList);
+        //For each of these hosts scan through for application related metrics
         for (HostMeasurement measurement : measurements) {
 
             if (measurement.getMetric(agreementTerm) == null) {
@@ -248,7 +261,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                         deploymentId,
                         term.getGuaranteeid(),
                         term.getAgreementTerm());
-                //TODO set originating host if required
+                //TODO Consider if an originating host term should be added?
                 return answer;
             }
         }
