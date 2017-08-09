@@ -150,10 +150,10 @@ public class SlurmActuator extends AbstractActuator {
      */
     public void pauseJob(String applicationName, String deploymentId) {
         /**
-         * "hold" is a related command that pauses a job that is yet to start
-         * running
+         * "hold" and "suspend" are related commands that pauses a job that is 
+         * yet to start running or requires elevated privileges. 
          */
-        execCmd("scontrol suspend " + deploymentId); 
+        execCmd("scancel --signal=STOP " + deploymentId); 
     }
 
     /**
@@ -163,7 +163,7 @@ public class SlurmActuator extends AbstractActuator {
      * @param deploymentId The deployment instance identifier
      */
     public void resumeJob(String applicationName, String deploymentId) {
-        execCmd("scontrol resume " + deploymentId);
+        execCmd("scancel --signal=CONT " + deploymentId);
     }
 
     /**
