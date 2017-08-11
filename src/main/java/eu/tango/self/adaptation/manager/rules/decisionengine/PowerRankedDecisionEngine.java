@@ -75,10 +75,15 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             HostEventData eventData = (HostEventData) response.getCause();
             List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
             if (!tasks.isEmpty()) {
-                //TODO sort based upon power consumption
-                //such as via: getActuator().getPowerUsageTask(null, null, taskId);                
-                Collections.shuffle(tasks);
-                response.setTaskId(tasks.get(0).getId() + "");
+                double power = 0;
+                for (ApplicationOnHost task : tasks) {
+                    double currentPower = getActuator().getTotalPowerUsage(task.getName(),task.getId() + "");
+                    //Select the most power consuming task
+                    if (currentPower > power || response.getTaskId().isEmpty()) {
+                        response.setTaskId(task.getId() + "");
+                        power = currentPower;
+                    }
+                }
                 return response;
             } else {
                 response.setAdaptationDetails("Could not find a task to delete");
