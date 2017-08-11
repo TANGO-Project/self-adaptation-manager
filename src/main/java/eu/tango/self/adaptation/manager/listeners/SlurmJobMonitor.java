@@ -138,12 +138,15 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         if (containsTerm(limits, "APP_FINISHED")) {
             answer.addAll(detectRecentCompletedApps());
         }
+        if (containsTerm(limits, "IDLE_HOST+SUSPENDED_JOB")) {
+            answer.addAll(detectIdleHostsWithSuspendedJobs());
+        }            
         if (containsTerm(limits, "IDLE_HOST+PENDING_JOB")) {
             answer.addAll(detectIdleHostsWithPendingJobs());
         }
         if (containsTerm(limits, "CLOSE_TO_DEADLINE")) {
             answer.addAll(detectCloseToDeadlineJobs());
-        }
+        }    
         //Add next test here
 
         //TODO Consider duration host is idle.
@@ -240,6 +243,29 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
+    
+    /**
+     * This detects hosts that have jobs stuck on them with pending resource
+     * requirements.
+     *
+     * @return The list of events indicating which hosts have stuck jobs.
+     */
+    private ArrayList<EventData> detectIdleHostsWithSuspendedJobs() {
+        ArrayList<EventData> answer = new ArrayList<>();
+        List<Host> stuckHosts = getIdleHostsWithSuspendedJobs();
+        EventData event;
+        for (Host stuckHost : stuckHosts) {
+            event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
+                    0.0,
+                    0.0,
+                    EventData.Type.OTHER,
+                    EventData.Operator.EQ,
+                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB",
+                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB");
+            answer.add(event);
+        }
+        return answer;
+    }    
 
     /**    
      * This detects jobs that are nearing their deadline.
@@ -286,6 +312,26 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
+    
+    /**
+     * This lists the pending jobs on an idle host. This means the SAM has the
+     * possibility of detecting this and therefore responding to it. e.g. it
+     * might get the ALDE to recompile so it can place the job elsewhere.
+     *
+     * @return The list of idle hosts with pending jobs (i.e. blocked for
+     * another reason, such as not all resources were obtainable)
+     */
+    private List<Host> getIdleHostsWithSuspendedJobs() {
+        List<Host> answer = new ArrayList<>();
+        HashSet<Host> currentIdle = getIdleHosts();
+        List<ApplicationOnHost> suspendedJobs = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.SUSPENDED);
+        for (ApplicationOnHost suspendedJob : suspendedJobs) {
+            if (currentIdle.contains(suspendedJob.getAllocatedTo())) {
+                answer.add(suspendedJob.getAllocatedTo());
+            }
+        }
+        return answer;
+    }    
 
     /**
      * This lists the hosts that are idle
