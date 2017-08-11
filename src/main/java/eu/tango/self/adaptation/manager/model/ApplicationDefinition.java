@@ -29,7 +29,7 @@ public class ApplicationDefinition {
     
     private String name;
     private String deploymentId;
-    private ArrayList<SLALimits> slaLimits = new ArrayList<>();
+    private SLALimits slaLimits;
     private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
 
     public ApplicationDefinition(String name, String deploymentId) {
@@ -74,7 +74,7 @@ public class ApplicationDefinition {
      * of these criteria are breached then an SLA event violation occurs.
      * @return The list of sla limits associated with the application
      */
-    public ArrayList<SLALimits> getSlaLimits() {
+    public SLALimits getSlaLimits() {
         return slaLimits;
     }
 
@@ -83,7 +83,7 @@ public class ApplicationDefinition {
      * of these criteria are breached then an SLA event violation occurs.
      * @param slaLimits The list of sla limits associated with the application 
      */
-    public void setSlaLimits(ArrayList<SLALimits> slaLimits) {
+    public void setSlaLimits(SLALimits slaLimits) {
         this.slaLimits = slaLimits;
     }
 

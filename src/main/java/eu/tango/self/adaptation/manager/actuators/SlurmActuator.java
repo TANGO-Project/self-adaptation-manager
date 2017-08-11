@@ -25,9 +25,9 @@ import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
+import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +53,8 @@ public class SlurmActuator extends AbstractActuator {
             if ((app.getName().trim().equals(applicationName.trim()))
                     && (app.getId() + "").equals(deploymentId.trim())) {
                 ApplicationDefinition answer = new ApplicationDefinition(applicationName, deploymentId);
+                answer.setSlaLimits(SlaRulesLoader.getInstance().getSlaLimits(applicationName, deploymentId));
+                //TODO Consider the loading of the adaptation criteria as well.
                 return answer;
             }
         }
@@ -64,10 +66,11 @@ public class SlurmActuator extends AbstractActuator {
         /**
          * The energy modeller's app id is a number
          */
-        Host host = getHostFromTaskId(taskId);
         List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
         for (ApplicationOnHost task : tasks) {
-            if (task.getAllocatedTo().equals(host)) {
+            //TODO Consider how this can be used to get sub tasks?
+            if ((task.getName().trim().equals(name.trim()))
+                    && (task.getId() + "").equals(deploymentId.trim())) {
                 return task;
             }
         }
@@ -82,22 +85,6 @@ public class SlurmActuator extends AbstractActuator {
             answer = answer + record.getPower();
         }
         return answer;
-    }
-
-    /**
-     * Converts a task Id into a host
-     *
-     * @param taskId The task id to convert
-     * @return The host
-     */
-    private Host getHostFromTaskId(int taskId) {
-        Collection<Host> hosts = modeller.getHostList();
-        for (Host host : hosts) {
-            if (host.getId() == taskId) {
-                return host;
-            }
-        }
-        return null;
     }
 
     @Override
