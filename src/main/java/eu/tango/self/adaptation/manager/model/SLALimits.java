@@ -71,10 +71,6 @@ public class SLALimits {
      * @param power the power to set
      */
     public void setPower(double power) {
-        /**
-         * TODO note: this only changes current power qos goal, it can't be used
-         * to set the goal outright.
-         */
         for (SLATerm qosCriteria1 : qosCriteria) {
             if (qosCriteria1.getAgreementTerm().equals(POWER)) {
                 qosCriteria1.setGuranteedValue(power);
