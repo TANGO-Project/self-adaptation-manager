@@ -92,25 +92,6 @@ public class SlaRulesLoader {
     }
     
     /**
-     * This adds application specific limits to the QoS goals
-     * @param applicationId The application to add the limits to
-     * @param limits The extra application specific limits
-     */
-    public void addApplicationSpecificLimits(String applicationId, SLALimits limits) {
-        appSpecificLimits.put(applicationId, limits);
-    }
-    
-    /**
-     * This adds application specific limits to the QoS goals
-     * @param applicationId The application to add the limits to
-     * @param limits The extra application specific limits
-     */
-    public void removeApplicationSpecificLimits(String applicationId, SLALimits limits) {
-        appSpecificLimits.remove(applicationId);
-    }
-        
-    
-    /**
      * This returns the SLA limits for all terms
      * @param reload provides the opportunity to reload the QoS terms. 
      * @return 
@@ -130,7 +111,25 @@ public class SlaRulesLoader {
     public void reloadLimits() {
         limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);
         appSpecificLimits.clear();
-    }    
+    }       
+    
+    /**
+     * This adds application specific limits to the QoS goals
+     * @param applicationId The application to add the limits to
+     * @param limits The extra application specific limits
+     */
+    public void addApplicationSpecificLimits(String applicationId, SLALimits limits) {
+        appSpecificLimits.put(applicationId, limits);
+    }
+    
+    /**
+     * This adds application specific limits to the QoS goals
+     * @param applicationId The application to add the limits to
+     * @param limits The extra application specific limits
+     */
+    public void removeApplicationSpecificLimits(String applicationId, SLALimits limits) {
+        appSpecificLimits.remove(applicationId);
+    } 
     
     /**
      * This returns the SLA limits for all terms
@@ -141,13 +140,13 @@ public class SlaRulesLoader {
     }
    
     /**
-     * This returns the SLA limits for all terms
-     * @param applicationID The application id to get the rules for
+     * This loads application specific limits from disk
+     * @param applicationName The application id to get the rules for
      * @param deploymentID The deployment id to get the rules for
      * @return The complete set of QoS rules that should be applied to a given 
      * application
      */
-    public SLALimits getSlaLimits(String applicationID, String deploymentID) {
+    public SLALimits getSlaLimits(String applicationName, String deploymentID) {
         /**
          * This loads rules in from disk and allows for the application definition
          * to have additional rules as well.
@@ -171,16 +170,18 @@ public class SlaRulesLoader {
          * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>
          * i.e. "TEST_APP:1:power"
          */
-        String appRulesFile = workingDir + RULES_FILE_START + applicationID + RULES_FILE_END;
-        if (new File(appRulesFile).exists() && !appSpecificLimits.containsKey(applicationID)) {
-            appSpecificLimits.put(applicationID, SLALimits.loadFromDisk(appRulesFile));
+        String appRulesFile = workingDir + RULES_FILE_START + applicationName + RULES_FILE_END;
+        if (new File(appRulesFile).exists() && !appSpecificLimits.containsKey(applicationName)) {
+            Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.INFO, "Rules for the application {0} was loaded.", applicationName);
+            appSpecificLimits.put(applicationName, SLALimits.loadFromDisk(appRulesFile));
         }
-        SLALimits appAnswer = appSpecificLimits.get(applicationID);
-        if (appSpecificLimits.containsKey(applicationID)) {
+        if (appSpecificLimits.containsKey(applicationName)) {
+            SLALimits appAnswer = appSpecificLimits.get(applicationName);
             answer.addQoSCriteria(appAnswer.getQosCriteria());
         }
+        //This adds teh gloabal set of limits for a given application
         answer.addQoSCriteria(getLimits().getQosCriteria());
-        return getLimits();
+        return answer;
     }    
     
     
