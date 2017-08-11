@@ -28,28 +28,15 @@ import java.util.ArrayList;
 public class ApplicationDefinition {
     
     private String name;
-    private String deploymentId;    
-    private ArrayList<FiringCriteria> qosCriteria = new ArrayList<>();
+    private String deploymentId;
+    private ArrayList<SLALimits> slaLimits = new ArrayList<>();
+    private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
 
     public ApplicationDefinition(String name, String deploymentId) {
         this.name = name;
         this.deploymentId = deploymentId;
     }
     
-    /**
-     * @return the qosCriteria
-     */
-    public ArrayList<FiringCriteria> getQosCriteria() {
-        return qosCriteria;
-    }
-
-    /**
-     * @param qosCriteria the qosCriteria to set
-     */
-    public void setQosCriteria(ArrayList<FiringCriteria> qosCriteria) {
-        this.qosCriteria = qosCriteria;
-    }
-
     /**
      * @return the name or id of the application
      */
@@ -81,5 +68,41 @@ public class ApplicationDefinition {
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
+
+    /**
+     * This gets the list of sla limits associated with an application, if one
+     * of these criteria are breached then an SLA event violation occurs.
+     * @return The list of sla limits associated with the application
+     */
+    public ArrayList<SLALimits> getSlaLimits() {
+        return slaLimits;
+    }
+
+    /**
+     * This sets the list of sla limits associated with an application, if one
+     * of these criteria are breached then an SLA event violation occurs.
+     * @param slaLimits The list of sla limits associated with the application 
+     */
+    public void setSlaLimits(ArrayList<SLALimits> slaLimits) {
+        this.slaLimits = slaLimits;
+    }
+
+    /**
+     * This gets the rules that define the mapping between and event and
+     * the form of adaptation required to correct the issue.
+     * @return the adaptation rules for this application
+     */
+    public ArrayList<FiringCriteria> getAdaptationRules() {
+        return adaptationRules;
+    }    
+
+    /**
+     * This sets the rules that define the mapping between and event and
+     * the adaptation required to correct the issue.
+     * @param adaptationRules The adaptation rules to set for this application
+     */
+    public void setAdaptationRules(ArrayList<FiringCriteria> adaptationRules) {
+        this.adaptationRules = adaptationRules;
+    } 
     
 }

@@ -236,7 +236,7 @@ public class FiringCriteria {
             return answer;
         }
         //This ensures rules that are gloabal are collected correctly
-        answer.addAll(applicationDefinition.getQosCriteria());
+        answer.addAll(applicationDefinition.getAdaptationRules());
         return answer;
     }
 
