@@ -147,5 +147,21 @@ public class SLALimits {
         }
         return answer;
     }
+    
+    /**
+     * This obtains all terms for a set of SLA limits that are for a named application.
+     * @param toFilter The SLA Limits to filter
+     * @param applicationName The application to filter against
+     * @return The SLA limits filtered to only include an applications specific rules.
+     */
+    public static SLALimits filterTerms(SLALimits toFilter, String applicationName) {
+        SLALimits answer = new SLALimits();
+        for(SLATerm term : toFilter.getQosCriteria()) {
+            if (term.getAgreementTerm().contains("APP:") && term.getAgreementTerm().contains(applicationName)) {
+                answer.addQoSCriteria(term);
+            }
+        }
+        return answer;           
+    }
 
 }

@@ -179,7 +179,7 @@ public class SlaRulesLoader {
             SLALimits appAnswer = appSpecificLimits.get(applicationName);
             answer.addQoSCriteria(appAnswer.getQosCriteria());
         }
-        //This adds teh gloabal set of limits for a given application
+        //This adds the gloabal set of limits for a given application
         answer.addQoSCriteria(getLimits().getQosCriteria());
         return answer;
     }    

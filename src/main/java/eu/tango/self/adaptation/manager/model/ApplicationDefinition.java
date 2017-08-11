@@ -86,6 +86,21 @@ public class ApplicationDefinition {
     public void setSlaLimits(SLALimits slaLimits) {
         this.slaLimits = slaLimits;
     }
+    
+    /**
+     * This sets the list of sla limits associated with an application, if one
+     * of these criteria are breached then an SLA event violation occurs.
+     * @param slaLimits The list of sla limits associated with the application 
+     * @param filter This indicates if the sla limits should be filtered to only
+     * rules that mention the application explicitly
+     */
+    public void setSlaLimits(SLALimits slaLimits, boolean filter) {
+        if (filter) {
+            setSlaLimits(SLALimits.filterTerms(slaLimits, name));
+        } else {
+            setSlaLimits(slaLimits);
+        }
+    }    
 
     /**
      * This gets the rules that define the mapping between and event and
