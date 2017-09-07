@@ -18,28 +18,28 @@
  */
 package eu.tango.self.adaptation.manager.listeners;
 
+import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
-import eu.ascetic.ioutils.io.ResultsStore;
-import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jcollectd.agent.api.Notification.Severity;
 import org.jcollectd.agent.api.Notification;
+import org.jcollectd.agent.api.Notification.Severity;
 
 /**
  * This creates an environment monitor that connects directly into CollectD via
@@ -165,6 +165,27 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 if (event != null) {
                     answer.add(event);
                 }
+            } else if (term.getAgreementTerm().contains("app_power:")) {
+                /**
+                 * Application power based data should follow the format:
+                 *
+                 * app_power:<APP_NAME>:<DEPLOYMENT_ID>:[HOST_OPTIONAL]
+                 */
+                //TODO check above format is correct
+                System.out.println("Seen App Power: " + term.getAgreementTerm());
+                String[] termStr = term.getSplitAgreementTerm();
+                if (termStr.length < 3 || termStr.length > 4) {
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
+                    continue;
+                }
+                String appName = termStr[1];
+                String appId = termStr[2];
+                String agreementTerm = termStr[0]; //i.e. app_power
+                //TODO why is host optional and not used at all??
+                EventData event = detectAppEvent(term, agreementTerm, appName, appId);
+                if (event != null) {
+                    answer.add(event);
+                }                
             } else if (term.getAgreementTerm().contains("APP:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 /**
@@ -228,8 +249,11 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (deploymentId.matches("[-+]?\\d*\\.?\\d+")) {
             deployId = Integer.getInteger(deploymentId);
         }
-        if (!applicationId.equals("*")) {
-            apps = ApplicationOnHost.filter(apps, deploymentId, deployId);
+        if (!deploymentId.equals("*") && !deploymentId.equals("[0-9]*+")) {
+            apps = ApplicationOnHost.filter(apps, applicationId, deployId);
+        }
+        if (apps.isEmpty()) {
+            return null;
         }
         //Get the set of hosts which the applications are running upon
         HashSet<Host> hosts = new HashSet<>();
@@ -240,18 +264,18 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         List<HostMeasurement> measurements = datasource.getHostData(hostList);
         //For each of these hosts scan through for application related metrics
         for (HostMeasurement measurement : measurements) {
-
-            if (measurement.getMetric(agreementTerm) == null) {
-                /**
-                 * Check the metric term exists, it may be that another monitor
-                 * reads the file and uses special terms such as: IDLE_HOST"
-                 * "APP_FINISHED" "IDLE_HOST+PENDING_JOB" CLOSE_TO_DEADLINE" or
-                 * simply the data source isn't providing the information
-                 * needed.
-                 */
-                return null;
+            double currentValue = -1;
+            if (measurement.getMetric(agreementTerm) != null) {
+                //e.g. app_power or app_power:comppss:100 hard coded in the expression
+                currentValue = measurement.getMetric(agreementTerm).getValue();
             }
-            double currentValue = measurement.getMetric(agreementTerm).getValue();
+            if (deployId == -1 && measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+") != null) {
+                //app_power:comppss:* or app_power:comppss:100, using regular expression
+                currentValue = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+").getValue();
+            }
+            if (currentValue == -1) {
+                continue;
+            }
             if (term.isBreached(currentValue)) {
                 ApplicationEventData answer = new ApplicationEventData(measurement.getClock(),
                         currentValue, term.getGuranteedValue(),
