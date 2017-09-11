@@ -201,23 +201,20 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         HashSet<ApplicationOnHost> currentRunning = new HashSet<>(datasource.getHostApplicationList());
         HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);
         recentFinished.removeAll(currentRunning);
-        if (!recentFinished.isEmpty()) {
-            for (ApplicationOnHost finished : recentFinished) {
-                //return the recently finished applications.
-                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
-                        0.0,
-                        0.0,
-                        EventData.Type.OTHER,
-                        EventData.Operator.EQ,
-                        finished.getName(),
-                        finished.getId() + "",
-                        "APP_FINISHED",
-                        "APP_FINISHED");
-                runningJobs = currentRunning;
+        for (ApplicationOnHost finished : recentFinished) {
+            //return the recently finished applications.
+            EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                0.0,
+                0.0,
+                EventData.Type.OTHER,
+                EventData.Operator.EQ,
+                finished.getName(),
+                finished.getId() + "",
+                "APP_FINISHED",
+                "APP_FINISHED");
                 answer.add(event);
-            }
-
         }
+        runningJobs = currentRunning;
         return answer;
     }
 
