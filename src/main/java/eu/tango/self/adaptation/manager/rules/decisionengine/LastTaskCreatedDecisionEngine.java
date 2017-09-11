@@ -50,6 +50,9 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case SCALE_TO_N_TASKS:
                 response = scaleToNTasks(response);
                 break;
+            case KILL_SIMILAR_APPS:
+                killSimilarApps(response);
+                break;
             case KILL_APP: 
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:

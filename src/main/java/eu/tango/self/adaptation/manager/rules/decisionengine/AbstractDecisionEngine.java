@@ -22,6 +22,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -173,6 +174,36 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 //        }
         return response;
     }
+    
+    /**
+     * This takes a response caused by an application and kills all other instances
+     * of that application.
+     * @param response The response object caused by an application based event.
+     * @return The response object with indication of if the adaptation action is 
+     * possible or not.
+     */
+    public Response killSimilarApps(Response response) {
+        if (getActuator() == null) {
+            response.setAdaptationDetails("Unable to find actuator.");
+            response.setPossibleToAdapt(false);
+            return response;
+        }
+        if (!(response.getCause() instanceof ApplicationEventData)) {
+            response.setAdaptationDetails("Wrong type of event cause, not an application.");
+            response.setPossibleToAdapt(false);
+            return response; 
+        }
+        ApplicationEventData cause = (ApplicationEventData)response.getCause();
+        response.setTaskId(cause.getDeploymentId());
+        List<ApplicationOnHost> tasks = getActuator().getTasks();
+        ApplicationOnHost.filter(tasks, cause.getApplicationId(), -1);
+        if (tasks == null || tasks.isEmpty()) {
+            response.setAdaptationDetails("There were no other tasks possible to delete.");
+            response.setPossibleToAdapt(false);
+            return response;
+        }
+        return response;        
+    }    
 
     /**
      * This generates the list of Tasks to remove

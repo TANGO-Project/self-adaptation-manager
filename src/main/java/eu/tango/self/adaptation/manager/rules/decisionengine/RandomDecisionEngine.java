@@ -44,7 +44,10 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 break;
             case REMOVE_TASK:
                 response = deleteTask(response);
-                break;              
+                break;
+            case KILL_SIMILAR_APPS:
+                killSimilarApps(response);
+                break;                
             case KILL_APP: 
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:

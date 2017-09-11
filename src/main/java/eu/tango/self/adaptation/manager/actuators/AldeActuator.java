@@ -87,6 +87,11 @@ public class AldeActuator extends AbstractActuator {
     }
 
     @Override
+    public List<ApplicationOnHost> getTasks() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public ApplicationOnHost getTask(String name, String deployment, int taskId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

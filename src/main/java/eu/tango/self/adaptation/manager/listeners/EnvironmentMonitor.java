@@ -171,8 +171,6 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                  *
                  * app_power:<APP_NAME>:<DEPLOYMENT_ID>:[HOST_OPTIONAL]
                  */
-                //TODO check above format is correct
-                System.out.println("Seen App Power: " + term.getAgreementTerm());
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length < 3 || termStr.length > 4) {
                     Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");

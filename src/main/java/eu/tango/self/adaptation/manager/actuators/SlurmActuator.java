@@ -124,9 +124,22 @@ public class SlurmActuator extends AbstractActuator {
     }
     
     @Override
+    public List<ApplicationOnHost> getTasks() {
+        return datasource.getHostApplicationList();  
+    }    
+    
+    @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         execCmd("scancel " + deploymentId);
     }
+    
+    public void killSimilarApps(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            execCmd("scancel " + app.getId());            
+        }
+    }    
 
     /**
      * Pauses a job, so that it can be executed later.
@@ -140,7 +153,8 @@ public class SlurmActuator extends AbstractActuator {
          * "hold" and "suspend" are related commands that pauses a job that is 
          * yet to start running or requires elevated privileges. 
          */
-        execCmd("scancel --signal=STOP " + deploymentId); 
+        execCmd("scancel --signal=STOP " + deploymentId);
+        //TODO consider unpausing after a set period of time.
     }
 
     /**
@@ -283,6 +297,16 @@ public class SlurmActuator extends AbstractActuator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
     }
 
+    public void checkpointAndRequeue() {
+        //Checkpoint is not possible: i.e. as per the command: scontrol checkpoint able 3100
+        //scontrol_checkpoint error: Requested operation not supported on this system
+
+        //Uses the slurm command: scontrol checkpoint requue jobid  
+        //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+    }
+    
+    
     /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.
@@ -329,6 +353,9 @@ public class SlurmActuator extends AbstractActuator {
                 //Note: no soft implementation exists at this time
                 hardKillApp(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
+            case KILL_SIMILAR_APPS:
+                killSimilarApps(response.getApplicationId());
+                break;                
             case INCREASE_WALL_TIME:
                 increaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
