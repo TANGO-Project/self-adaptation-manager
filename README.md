@@ -138,6 +138,8 @@ The first is the agreement term. This can either be any value that is monitored 
 * APP_FINISHED - This event indicates that a job has finished
 * CLOSE_TO_DEADLINE - This event indicates a job is close to its deadline, (where it will be ejected from the infrastructure).
 
+These special agreement terms such as APP_FINISHED, in the event of a notification being created, generate Warnings with a comparitor of EQ	and guranteed value and actual value of 0.
+
 The next field is the direction, this indicates if the breach value is higher or lower than the metric value specified. The possible values are LT, LTE, EQ, GT, and GTE. I.e. less than, less than or equal, equals, greater than and greater than or equal to. 
 
 The final field indicates the response type. The possible values are:  
@@ -175,6 +177,11 @@ Event Type (Violation or Warning): This can take the value of violation, warning
 The Lower and Upper bound, values indicate how far the guaranteed value should be away from the actual measured value before the rule fires. This allows the rules to be stacked so the highest priority rules are at the top. Thus when the boundary conditions for each rule are met the first rule found fires. In the event that rule doesn’t work the alternative rules afterwards may then fire instead.
 
 In this case the “SCALE_TO_N_TASKS” response type is used and count of tasks (TASK_COUNT=1) to specify as parameters is used as well.
+
+Application based events, such as APP_FINISHED, may have in the rules file the parameter specified "application=MY_APP", so that rules only fire when the named application finishes. A valid example of such a rule is:
+
+APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench
+
 
 ## Usage Guide
 

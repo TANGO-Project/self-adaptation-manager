@@ -84,6 +84,18 @@ public class FiringCriteria {
         if (type != null && !event.getType().equals(type)) {
             return false;
         }
+        if (event instanceof ApplicationEventData) {
+            /**
+             * This ensures rules can be targeted at specific applications only.
+             */
+            ApplicationEventData appEvent = (ApplicationEventData) event;
+            String appName = appEvent.getApplicationId();
+            if (getParameter("application") != null) {
+                if (!getParameter("application").equals(appName)) {
+                    return false;
+                }
+            }
+        }
         return (agreementTerm.equals(event.getAgreementTerm())
                 && operator.equals(event.getGuranteeOperator()));
     }

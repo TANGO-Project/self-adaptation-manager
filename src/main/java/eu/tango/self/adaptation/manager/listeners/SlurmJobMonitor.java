@@ -179,7 +179,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                 event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
                         0.0,
                         0.0,
-                        EventData.Type.OTHER,
+                        EventData.Type.WARNING,
                         EventData.Operator.EQ,
                         "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
                         "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
@@ -207,7 +207,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                 0.0,
                 0.0,
-                EventData.Type.OTHER,
+                EventData.Type.WARNING,
                 EventData.Operator.EQ,
                 finished.getName(),
                 finished.getId() + "",
@@ -234,7 +234,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
                     0.0,
                     0.0,
-                    EventData.Type.OTHER,
+                    EventData.Type.WARNING,
                     EventData.Operator.EQ,
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB",
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB");
@@ -258,7 +258,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), stuckHost.getHostName(),
                     0.0,
                     0.0,
-                    EventData.Type.OTHER,
+                    EventData.Type.WARNING,
                     EventData.Operator.EQ,
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB",
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB");
