@@ -190,10 +190,10 @@ public abstract class EventData implements Comparable<EventData> {
     }
 
     /**
-     * @param guranteedValue the guaranteedValue to set
+     * @param guaranteedValue the guaranteedValue to set
      */
-    public void setGuranteedValue(double guranteedValue) {
-        this.guaranteedValue = guranteedValue;
+    public void setGuaranteedValue(double guaranteedValue) {
+        this.guaranteedValue = guaranteedValue;
     }
     
     /**

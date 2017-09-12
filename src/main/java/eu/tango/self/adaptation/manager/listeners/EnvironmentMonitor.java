@@ -471,22 +471,22 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 if (reversed) { //case where an exclusion zone is given
                     //TODO something clever by considering distance from boundary conditions
                     event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
-                    event.setGuranteedValue(firstBound);
+                    event.setGuaranteedValue(firstBound);
                     return event;
                 }
                 //Case where a green good zone is given instead
                 if (current <= firstBound) {
                     event.setGuranteeOperator(EventData.Operator.LT); //LT first bound
-                    event.setGuranteedValue(firstBound);
+                    event.setGuaranteedValue(firstBound);
                     return event;
                 } else if (current >= upperbound) {
                     event.setGuranteeOperator(EventData.Operator.GT); //GT second bound
-                    event.setGuranteedValue(upperbound);
+                    event.setGuaranteedValue(upperbound);
                     return event;
                 }
             } else { //dealing with the simple case of one bound.
                 //current/raw value is already set, so setting the boundary condition.
-                event.setGuranteedValue(firstBound);
+                event.setGuaranteedValue(firstBound);
                 if (reversed) {
                     //Flips values around ensuring correct answer is given
                     double temp = current;
