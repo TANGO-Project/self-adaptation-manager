@@ -36,6 +36,11 @@ public abstract class EventData implements Comparable<EventData> {
     private EventData.Operator guranteeOperator; // threshold direction
     private String agreementTerm;
     private String guaranteeid; //sla gurantee id
+    /**
+     * States that only a single event is needed to cause action, 
+     * i.e. without a threshold being reached.
+     */
+    private boolean significantOnOwn = false; 
 
     private static final Map<String, Operator> OPERATOR_MAPPING
             = new HashMap<>();
@@ -190,6 +195,24 @@ public abstract class EventData implements Comparable<EventData> {
     public void setGuranteedValue(double guranteedValue) {
         this.guranteedValue = guranteedValue;
     }
+    
+    /**
+     * Indicates if the event is significant on its own, i.e. without the event
+     * occurring multiple times, to breach a threshold 
+     * @return the significantOnOwn
+     */
+    public boolean isSignificantOnOwn() {
+        return significantOnOwn;
+    }
+
+    /**
+     * Sets the indicator that states if the event is significant on its own, 
+     * i.e. without the event occurring multiple times, to breach a threshold 
+     * @param significantOnOwn the significantOnOwn to set
+     */
+    public void setSignificantOnOwn(boolean significantOnOwn) {
+        this.significantOnOwn = significantOnOwn;
+    }    
 
     @Override
     public int compareTo(EventData event) {

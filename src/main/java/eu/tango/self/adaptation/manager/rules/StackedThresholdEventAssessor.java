@@ -159,7 +159,7 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
     public Response assessEvent(EventData event, List<EventData> sequence, List<Response> recentAdaptation) {
         Response answer = null;
         List<EventData> previousData = EventDataAggregator.filterEventData(sequence, event.getGuaranteeid(), event.getAgreementTerm());
-        if (previousData.size() >= threshold) {
+        if (previousData.size() >= threshold || event.isSignificantOnOwn()) {
             /**
              * The rule should determine the type of response, i.e. scale up
              * down in or out. This will be read in from file.

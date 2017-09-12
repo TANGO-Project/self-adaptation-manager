@@ -183,6 +183,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         EventData.Operator.EQ,
                         "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
                         "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                event.setSignificantOnOwn(true);
                 answer.add(event);
                 idleHosts = currentIdle;
             }
@@ -213,6 +214,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                 "APP_FINISHED",
                 "APP_FINISHED");
                 answer.add(event);
+            event.setSignificantOnOwn(true);
         }
         runningJobs = currentRunning;
         return answer;
@@ -236,6 +238,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     EventData.Operator.EQ,
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB",
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB");
+            event.setSignificantOnOwn(true);
             answer.add(event);
         }
         return answer;
@@ -259,6 +262,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     EventData.Operator.EQ,
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB",
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB");
+           event.setSignificantOnOwn(true); 
             answer.add(event);
         }
         return answer;
@@ -284,6 +288,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         job.getId() + "",
                         "APP_CLOSE_TO_DEADLINE",
                         "APP_CLOSE_TO_DEADLINE");
+                event.setSignificantOnOwn(true);
                 answer.add(event);   
             }
         }
