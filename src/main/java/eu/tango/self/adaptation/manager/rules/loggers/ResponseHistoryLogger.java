@@ -50,7 +50,7 @@ public class ResponseHistoryLogger extends GenericLogger<Response> {
         store.append("Action Type");
         store.append("Further Details");
         store.append("Agreement Term");
-        store.append("Guranteed Value");          
+        store.append("Guaranteed Value");          
         store.append("Raw Value");   
         store.append("Guarantee Operator");
         store.append("Able to Respond");
@@ -71,7 +71,7 @@ public class ResponseHistoryLogger extends GenericLogger<Response> {
         store.append(response.getActionType().toString());
         store.append(response.getAdaptationDetails());
         store.append(response.getCause().getAgreementTerm());
-        store.append(response.getCause().getGuranteedValue());          
+        store.append(response.getCause().getGuaranteedValue());          
         store.append(response.getCause().getRawValue());   
         store.append(response.getCause().getGuranteeOperator());
         store.append(response.isPossibleToAdapt());

@@ -68,7 +68,7 @@ public class EventHistoryLogger extends GenericLogger<EventData> {
             store.append("");
         }
         store.append(eventData.getAgreementTerm());
-        store.append(eventData.getGuranteedValue());          
+        store.append(eventData.getGuaranteedValue());          
         store.append(eventData.getRawValue());   
         store.append(eventData.getGuranteeOperator()); 
     }

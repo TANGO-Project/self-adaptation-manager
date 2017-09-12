@@ -31,7 +31,7 @@ public abstract class EventData implements Comparable<EventData> {
 
     private long time; //the time of the event
     private double rawValue; //the metric raw value
-    private double guranteedValue; //the guranteed value
+    private double guaranteedValue; //the guranteed value
     private EventData.Type type; //breach, warning or other (i.e. informative)
     private EventData.Operator guranteeOperator; // threshold direction
     private String agreementTerm;
@@ -97,7 +97,7 @@ public abstract class EventData implements Comparable<EventData> {
             Operator guranteeOperator, String guaranteeid, String agreementTerm) {
         this.time = time;
         this.rawValue = rawValue;
-        this.guranteedValue = guranteedValue;
+        this.guaranteedValue = guranteedValue;
         this.type = type;
         this.guranteeOperator = guranteeOperator;
         this.guaranteeid = guaranteeid;
@@ -183,17 +183,17 @@ public abstract class EventData implements Comparable<EventData> {
     }
 
     /**
-     * @return the guranteedValue
+     * @return the guaranteedValue
      */
-    public double getGuranteedValue() {
-        return guranteedValue;
+    public double getGuaranteedValue() {
+        return guaranteedValue;
     }
 
     /**
-     * @param guranteedValue the guranteedValue to set
+     * @param guranteedValue the guaranteedValue to set
      */
     public void setGuranteedValue(double guranteedValue) {
-        this.guranteedValue = guranteedValue;
+        this.guaranteedValue = guranteedValue;
     }
     
     /**
@@ -238,7 +238,7 @@ public abstract class EventData implements Comparable<EventData> {
      * @return
      */
     public double getDeviationBetweenRawAndGuarantee() {
-        return guranteedValue - rawValue;
+        return guaranteedValue - rawValue;
     }
 
     /**
@@ -249,7 +249,7 @@ public abstract class EventData implements Comparable<EventData> {
      * @return
      */
     public double getDeviationBetweenRawAndGuarantee(boolean absolute) {
-        double answer = guranteedValue - rawValue;
+        double answer = guaranteedValue - rawValue;
         if (absolute) {
             return Math.abs(answer);
         }
@@ -266,13 +266,13 @@ public abstract class EventData implements Comparable<EventData> {
     public double getGuaranteeSlack() {
         switch (guranteeOperator) {
             case EQ:
-                return Math.abs(rawValue - guranteedValue);
+                return Math.abs(rawValue - guaranteedValue);
             case GT:
             case GTE:
-                return rawValue - guranteedValue;
+                return rawValue - guaranteedValue;
             case LT:
             case LTE:
-                return guranteedValue - rawValue;
+                return guaranteedValue - rawValue;
         }
         return 0;
     }
