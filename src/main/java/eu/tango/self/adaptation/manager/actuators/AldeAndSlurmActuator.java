@@ -97,6 +97,8 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case SCALE_TO_N_TASKS:
             case PAUSE_APP:
             case UNPAUSE_APP:
+            case KILL_SIMILAR_APPS:
+            case KILL_APP:
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
