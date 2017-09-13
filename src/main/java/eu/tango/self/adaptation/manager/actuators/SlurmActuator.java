@@ -132,7 +132,10 @@ public class SlurmActuator extends AbstractActuator {
     public void hardKillApp(String applicationName, String deploymentId) {
         execCmd("scancel " + deploymentId);
     }
-    
+    /**
+     * This takes a named application and kills all instances of it.
+     * @param applicationName The name of the application to kill
+     */
     public void killSimilarApps(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
