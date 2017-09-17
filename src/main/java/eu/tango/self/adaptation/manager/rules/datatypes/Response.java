@@ -294,4 +294,27 @@ public class Response implements Comparable<Response> {
         return actuator;
     }
 
+    @Override
+    public String toString() {
+        String answer = "";
+        answer = answer + getTime() + " : ";
+        answer = answer + getApplicationId() + " : ";
+        answer = answer + getDeploymentId() + " : ";
+        answer = answer + getTaskId() + " : ";
+        if (getCause() instanceof HostEventData) {
+            answer = answer + ((HostEventData)getCause()).getHost() + " : ";
+        }
+        answer = answer + getActionType().toString() + " : ";
+        answer = answer + getAdaptationDetails() + " : ";
+        answer = answer + getCause().getAgreementTerm() + " : ";
+        answer = answer + getCause().getGuaranteedValue() + " : ";    
+        answer = answer + getCause().getRawValue() + " : ";
+        answer = answer + getCause().getGuranteeOperator() + " : ";
+        answer = answer + isPossibleToAdapt() + " : ";
+        answer = answer + isPerformed();
+        return answer;
+    }
+    
+    
+
 }

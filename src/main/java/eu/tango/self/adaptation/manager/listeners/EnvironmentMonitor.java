@@ -23,6 +23,7 @@ import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
+import eu.tango.energymodeller.datasourceclient.MetricValue;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
@@ -247,7 +248,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (deploymentId.matches("[-+]?\\d*\\.?\\d+")) {
             deployId = Integer.getInteger(deploymentId);
         }
-        if (!deploymentId.equals("*") && !deploymentId.equals("[0-9]*+")) {
+        if (!deploymentId.equals("*") && !deploymentId.matches("[0-9]*+")) {
             apps = ApplicationOnHost.filter(apps, applicationId, deployId);
         }
         if (apps.isEmpty()) {
@@ -263,18 +264,28 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         //For each of these hosts scan through for application related metrics
         for (HostMeasurement measurement : measurements) {
             double currentValue = -1;
+            MetricValue value = null;
+            measurement.cleanStaleMetrics(30);
+            
             if (measurement.getMetric(agreementTerm) != null) {
-                //e.g. app_power or app_power:comppss:100 hard coded in the expression
-                currentValue = measurement.getMetric(agreementTerm).getValue();
+                //e.g. app_power or app_power:compss:100 hard coded in the expression
+                value = measurement.getMetric(agreementTerm);                
+                currentValue = value.getValue();
             }
             if (deployId == -1 && measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+") != null) {
-                //app_power:comppss:* or app_power:comppss:100, using regular expression
-                currentValue = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+").getValue();
+                //app_power:comppss:* or app_power:compss:100, using regular expression
+                value = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+");                
+                currentValue = value.getValue();
             }
-            if (currentValue == -1) {
+            //Ensuring stale values are ignored and metrics that can't be found.
+            if (currentValue == -1 || value == null || measurement.getClockDifference(value.getClock()) > 30) {
                 continue;
             }
             if (term.isBreached(currentValue)) {
+                String[] splitArray = value.getKey().split(":");
+                if (splitArray.length == 3) {
+                    deploymentId = splitArray[2];
+                }
                 ApplicationEventData answer = new ApplicationEventData(measurement.getClock(),
                         currentValue, term.getGuranteedValue(),
                         term.getSeverity(),

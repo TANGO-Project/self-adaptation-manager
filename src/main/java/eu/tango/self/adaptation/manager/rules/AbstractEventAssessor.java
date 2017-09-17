@@ -174,6 +174,7 @@ public abstract class AbstractEventAssessor implements EventAssessor {
                 if (actuator != null && answer.isPossibleToAdapt()) {
                     actuator.actuate(answer);
                     Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.WARNING, "Actuator - Performing Work");
+                    Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.WARNING, answer.toString());
                 }
                 if (logging) {
                     responseHistoryLogger.printToFile(answer);

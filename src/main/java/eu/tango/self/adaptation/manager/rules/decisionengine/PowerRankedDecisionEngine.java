@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.Collections;
@@ -93,6 +94,18 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
                 response.setPossibleToAdapt(false);
             }
         }
+        if (!(response.getCause() instanceof ApplicationEventData)) {
+            ApplicationEventData cause = (ApplicationEventData) response.getCause();
+            if (response.getTaskId() == null || response.getTaskId().isEmpty() || response.getTaskId().equals("*")) {
+                if (cause.getDeploymentId() != null && !response.getTaskId().isEmpty()) {
+                    response.setTaskId(cause.getDeploymentId());
+                } else {
+                    response.setAdaptationDetails("Could not find a task to actuate against");
+                    response.setPossibleToAdapt(false);
+                }
+                
+            }
+        }        
         return response;
     }     
 
