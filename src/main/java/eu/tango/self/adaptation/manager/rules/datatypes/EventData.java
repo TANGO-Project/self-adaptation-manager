@@ -31,7 +31,7 @@ public abstract class EventData implements Comparable<EventData> {
 
     private long time; //the time of the event
     private double rawValue; //the metric raw value
-    private double guaranteedValue; //the guranteed value
+    private double guaranteedValue; //the guaranteed value
     private EventData.Type type; //breach, warning or other (i.e. informative)
     private EventData.Operator guranteeOperator; // threshold direction
     private String agreementTerm;

@@ -37,7 +37,7 @@ public class HostEventData extends EventData {
      * @param host The host from where the event originated
      * @param rawValue The raw value reported by the SLA manager, for the metric
      * that breached its guarantee.
-     * @param guranteedValue The value for the threshold that forms the
+     * @param guaranteedValue The value for the threshold that forms the
      * guarantee placed upon the value that breached.
      * @param type This indicates if the event notifies of a breach or a warning
      * of a potential future breach.
@@ -46,8 +46,8 @@ public class HostEventData extends EventData {
      * @param guaranteeid The id of the guarantee that was breached
      * @param agreementTerm The type of guarantee that was breached.
      */    
-    public HostEventData(long time, String host, double rawValue, double guranteedValue, Type type, Operator guranteeOperator, String guaranteeid, String agreementTerm) {
-        super(time, rawValue, guranteedValue, type, guranteeOperator, guaranteeid, agreementTerm);
+    public HostEventData(long time, String host, double rawValue, double guaranteedValue, Type type, Operator guranteeOperator, String guaranteeid, String agreementTerm) {
+        super(time, rawValue, guaranteedValue, type, guranteeOperator, guaranteeid, agreementTerm);
         this.host = host;
     }
 
