@@ -1,0 +1,151 @@
+/**
+ * Copyright 2017 University of Leeds
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * This is being developed for the TANGO Project: http://tango-project.eu
+ *
+ */
+package eu.tango.self.adaptation.manager.actuators;
+
+import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.File;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+
+/**
+ * This client directly interfaces with the ALDE to query it
+ *
+ * @author Richard Kavanagh
+ */
+public class AldeClient {
+
+    private static final String CONFIG_FILE = "self-adaptation-manager.properties";
+    private static String baseUri = "http://localhost:5000/api/v1/";
+
+    public AldeClient() {
+        try {
+            PropertiesConfiguration config;
+            if (new File(CONFIG_FILE).exists()) {
+                config = new PropertiesConfiguration(CONFIG_FILE);
+            } else {
+                config = new PropertiesConfiguration();
+                config.setFile(new File(CONFIG_FILE));
+            }
+            config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
+            baseUri = config.getString("self.adaptation.manager.alde.rest.uri", baseUri);
+            if (!baseUri.endsWith("/")) {
+                baseUri = baseUri + "/";
+            }
+            config.setProperty("self.adaptation.manager.alde.rest.uri", baseUri);
+        } catch (ConfigurationException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
+        }
+    }
+
+    /**
+     * This lists all applications that are deployable by the ALDE
+     *
+     * @return The list of applications known to the ALDE
+     */
+    public ArrayList<ApplicationDefinition> getDeployableApplications() {
+        ArrayList<ApplicationDefinition> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "applications");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    ApplicationDefinition app = new ApplicationDefinition(object.getString("name"), "-1");
+                    app.setAldeAppId(object.getInt("id"));
+                    app.setExecutables(object.getJSONArray("executables"));
+                    app.setConfigurations(object.getJSONArray("execution_configurations"));
+                    answer.add(app);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }
+
+    /**
+     * This lists all applications that are deployable by the ALDE
+     *
+     * @return The list of applications known to the ALDE
+     */
+    public ArrayList<JSONObject> getTestbeds() {
+        ArrayList<JSONObject> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "testbeds");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(object);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }
+
+    /**
+     * This reads the entire contents from a reader and generates a String
+     *
+     * @param rd The reader to perform the full read with
+     * @return The String representation of the contents of the reader.
+     * @throws IOException
+     */
+    private static String readAll(Reader rd) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int cp;
+        while ((cp = rd.read()) != -1) {
+            sb.append((char) cp);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * This takes a url and parses the json from it into a Json object.
+     *
+     * @param url The url to parse
+     * @return The json object provided by the named url
+     * @throws IOException
+     */
+    public static JSONObject readJsonFromUrl(String url) throws IOException {
+        try (InputStream is = new URL(url).openStream()) {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String jsonText = readAll(rd);
+            JSONObject json = new JSONObject(jsonText);
+            return json;
+        }
+    }
+
+}

@@ -20,6 +20,8 @@ package eu.tango.self.adaptation.manager.model;
 
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This class covers the application definition
@@ -28,10 +30,13 @@ import java.util.ArrayList;
 public class ApplicationDefinition {
     
     private String name;
+    private int aldeAppId = -1;
     private String deploymentId;
     private SLALimits slaLimits;
     private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
-
+    private JSONArray executables;
+    private JSONArray configurations;
+            
     public ApplicationDefinition(String name, String deploymentId) {
         this.name = name;
         this.deploymentId = deploymentId;
@@ -49,6 +54,22 @@ public class ApplicationDefinition {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * This sets the id that the ALDE knows this application by
+     * @param aldeAppId The id value which this application is known by
+     */
+    public void setAldeAppId(int aldeAppId) {
+        this.aldeAppId = aldeAppId;
+    }
+
+    /**
+     * This gets the id that the ALDE knows this application by
+     * @return The id value which this application is known by
+     */    
+    public int getAldeAppId() {
+        return aldeAppId;
     }
 
     /**
@@ -118,6 +139,35 @@ public class ApplicationDefinition {
      */
     public void setAdaptationRules(ArrayList<FiringCriteria> adaptationRules) {
         this.adaptationRules = adaptationRules;
-    } 
+    }
+
+    public JSONArray getExecutables() {
+        return executables;
+    }
+
+    public void setExecutables(JSONArray executables) {
+        this.executables = executables;
+    }
+
+    public JSONArray getConfigurations() {
+        return configurations;
+    }
+
+    public void setConfigurations(JSONArray configurations) {
+        this.configurations = configurations;
+    }  
+    
+    /**
+     * Indicates if the definition of the application represents and application
+     * that has been deployed or not.
+     * @return True if the application has been deployed otherwise false.
+     */
+    public boolean isRealisedInstance() {
+        /**
+         * The deployment id should be -1 if not deployed. i.e. defined only by
+         * the ALDE for example, ready to deploy.
+         */
+        return deploymentId.equals("-1");
+    }
     
 }
