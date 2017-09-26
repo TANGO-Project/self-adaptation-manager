@@ -22,6 +22,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +34,8 @@ import java.util.logging.Logger;
  */
 public class AldeActuator extends AbstractActuator {
 
+    AldeClient client = new AldeClient();
+    
    /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.
@@ -78,7 +81,15 @@ public class AldeActuator extends AbstractActuator {
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<ApplicationDefinition> allApps = client.getDeployableApplications();
+        for (ApplicationDefinition app : allApps) {
+            if (app.getName().equals(name) && 
+                    (app.getDeploymentId().equals(deploymentId) ||
+                    deploymentId == null || deploymentId.isEmpty())) {
+                return app;
+            }
+        }
+        return null;
     }
 
     @Override
