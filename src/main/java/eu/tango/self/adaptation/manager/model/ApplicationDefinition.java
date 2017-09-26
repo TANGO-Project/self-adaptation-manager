@@ -25,7 +25,6 @@ import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import java.util.ArrayList;
 import java.util.Map;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * This class covers the application definition
@@ -40,13 +39,32 @@ public class ApplicationDefinition {
     private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
     private JSONArray executables;
     private JSONArray configurations;
-            
+      
+    /**
+     * The main constructor for an application definition
+     * @param name The name of the application
+     * @param deploymentId The deployment id of the application, set to -1 if not currently deployed
+     */
     public ApplicationDefinition(String name, String deploymentId) {
         this.name = name;
         this.deploymentId = deploymentId;
     }
+
+    /**
+     * A copy constructor for an application definition
+     * @param toClone The application definition to clone.
+     */
+    public ApplicationDefinition (ApplicationDefinition toClone) {
+        this.name = toClone.name;
+        this.deploymentId = toClone.deploymentId;
+        this.slaLimits = toClone.slaLimits;
+        this.adaptationRules = toClone.adaptationRules;
+        this.executables = toClone.executables;
+        this.configurations = toClone.configurations;
+    }
     
     /**
+     * This gets the applications name
      * @return the name or id of the application
      */
     public String getName() {
@@ -54,6 +72,7 @@ public class ApplicationDefinition {
     }
 
     /**
+     * This sets the applications name
      * @param name the name or id of the application
      */
     public void setName(String name) {
@@ -144,7 +163,19 @@ public class ApplicationDefinition {
     public void setAdaptationRules(ArrayList<FiringCriteria> adaptationRules) {
         this.adaptationRules = adaptationRules;
     }
+    
+    /**
+     * This sets the executables for this application.
+     * @param executables The executables as a json object, the internal representation of the ALDE.
+     */
+    public void setExecutables(JSONArray executables) {
+        this.executables = executables;
+    }    
 
+    /**
+     * This lists the executables for this application.
+     * @return The executables as a json object, the internal representation of the ALDE.
+     */
     public JSONArray getExecutables() {
         return executables;
     }
@@ -173,19 +204,25 @@ public class ApplicationDefinition {
         String json = executables.get(index).toString();
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
-    }    
-
-    public void setExecutables(JSONArray executables) {
-        this.executables = executables;
     }
 
-    public JSONArray getConfigurations() {
-        return configurations;
-    }
-
+    /**
+     * This sets the application configurations for this application.
+     * @param configurations The application configurations as a json object, 
+     * the internal representation of the ALDE.
+     */
     public void setConfigurations(JSONArray configurations) {
         this.configurations = configurations;
     }
+    
+    /**
+     * This gets the application configurations for this application.
+     * @return configurations The application configurations as a json object, 
+     * the internal representation of the ALDE.
+     */
+    public JSONArray getConfigurations() {
+        return configurations;
+    }    
     
     /**
      * This returns the count of configurations that are available for this application
