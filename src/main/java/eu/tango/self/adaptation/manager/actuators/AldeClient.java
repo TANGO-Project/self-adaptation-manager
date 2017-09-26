@@ -19,10 +19,6 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -35,6 +31,14 @@ import org.json.JSONObject;
 import java.io.File;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 /**
  * This client directly interfaces with the ALDE to query it
@@ -148,4 +152,22 @@ public class AldeClient {
         }
     }
 
+    public void executeApplication(int executionId) throws IOException {
+        /**
+         * The command that this code replicates:
+         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/execution_configurations/1 -d'{"launch_execution": true}'
+         */
+        JSONObject json = new JSONObject();
+        json.put("launch_execution", "true");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            HttpPatch request = new HttpPatch(baseUri + "execution_configurations/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            // handle exception here
+        }
+    }
 }
