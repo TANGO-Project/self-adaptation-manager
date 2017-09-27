@@ -356,9 +356,11 @@ public class ApplicationDefinition {
      * @param index The index number for the configuration
      * @return The number of nodes needed by the configuration
      */
+    public double getNodesNeededByConfiguration(int index) {
          Map<String, Object> properties = getConfiguration(index);
         //Tests to see if the excutable_id belongs to a compiled application
         if (properties.containsKey("num_nodes")) {
+            return (double) properties.get("num_nodes");
         }
         //the default assumption is zero.
         return 0;       
