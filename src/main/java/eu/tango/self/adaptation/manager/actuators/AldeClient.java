@@ -75,7 +75,7 @@ public class AldeClient {
      *
      * @return The list of applications known to the ALDE
      */
-    public ArrayList<ApplicationDefinition> getDeployableApplications() {
+    public ArrayList<ApplicationDefinition> getApplicationDefinitions() {
         ArrayList<ApplicationDefinition> answer = new ArrayList<>();
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "applications");
@@ -96,6 +96,21 @@ public class AldeClient {
         }
         return answer;
     }
+    
+    /**
+     * This gets the application definition of a single application
+     * @param name The name of the application to get
+     * @return The definition of the named application
+     */
+    public ApplicationDefinition getApplicationDefintion(String name) {
+        ArrayList<ApplicationDefinition> allApps = getApplicationDefinitions();
+        for (ApplicationDefinition app : allApps) {
+            if (app.getName().equals(name)) {
+                return app;
+            }
+        }
+        return null;
+    }    
 
     /**
      * This lists all applications that are deployable by the ALDE
@@ -119,6 +134,29 @@ public class AldeClient {
         }
         return answer;
     }
+    
+    /**
+     * This lists all deployments of an applications by the ALDE
+     *
+     * @return The list of application deployments known to the ALDE
+     */
+    public ArrayList<JSONObject> getDeployments() {
+        ArrayList<JSONObject> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "deployments");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(object);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }    
 
     /**
      * This reads the entire contents from a reader and generates a String

@@ -181,6 +181,18 @@ public class ApplicationDefinition {
     }
     
     /**
+     * This lists the executables for this application.
+     * @return The executables as a json object, the internal representation of the ALDE.
+     */
+    public ArrayList<Map<String, Object>> getExecutablesAsMap() {
+        ArrayList<Map<String, Object>> answer = new ArrayList<>();
+        for (int i = 0; i < getExecutablesCount(); i++) {
+            answer.add(getExecutable(i));
+        }
+        return answer;
+    }    
+       
+    /**
      * This returns the count of executables that are available for this application
      * @return The count of executables available for this application.
      */
@@ -189,14 +201,32 @@ public class ApplicationDefinition {
             return 0;
         }
         return executables.length();
-    }    
+    }
     
     /**
      * This gets a specific execution as a map.
      * @param index The index value of the execution, 0 is the first in the index.
-     * @return The configuration as a map of settings.
+     * @return The executables as a map of settings.
      */
     public Map<String, Object> getExecutable(int index) {
+        /**
+         * {
+         * "executables": [
+         * {
+         *    "application_id": 1,
+         *    "compilation_script": "compilation.sh",
+         *    "compilation_type": "singularity:pm",
+         *    "executable_file": null,
+         *    "id": 1,
+         *    "source_code_file": "f5a8e16b-6c36-4092-97cb-6081374d9b29.zip",
+         *    "status": "NOT_COMPILED"
+         }
+         ],
+         "execution_scripts": [],
+         "id": 1,
+         "name": "my_app"
+         }
+         */
         if (executables == null || index >= executables.length()) {
             return new LinkedTreeMap<>();
         }        
@@ -204,6 +234,21 @@ public class ApplicationDefinition {
         String json = executables.get(index).toString();
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
+    }
+    
+    /**
+     * This indicates if the executable with a given index is ready.
+     * @param index The index of executable
+     * @return If the executable is in a state that is suitable for running
+     */
+    public boolean isExecutableReady(int index) {
+        Map<String, Object> properties = getExecutable(index);
+        //If the status is set, then the application must be compiled.
+        if (properties.containsKey("status")) {
+            return properties.get("status").equals("COMPILED");
+        }
+        //the default assumption is that it isn't ready.
+        return false;
     }
 
     /**
@@ -222,7 +267,19 @@ public class ApplicationDefinition {
      */
     public JSONArray getConfigurations() {
         return configurations;
-    }    
+    }
+    
+    /**
+     * This gets the application configurations for this application.
+     * @return The list of configurations as a map of settings.
+     */
+    public ArrayList<Map<String, Object>> getConfigurationsAsMap() {
+        ArrayList<Map<String, Object>> answer = new ArrayList<>();
+        for (int i = 0; i < getConfigurationsCount(); i++) {
+            answer.add(getConfiguration(i));
+        }
+        return answer;
+    }       
     
     /**
      * This returns the count of configurations that are available for this application

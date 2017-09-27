@@ -77,11 +77,11 @@ public class AldeActuator extends AbstractActuator {
     
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }    
+    }
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
-        ArrayList<ApplicationDefinition> allApps = client.getDeployableApplications();
+        ArrayList<ApplicationDefinition> allApps = client.getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.getName().equals(name) && 
                     (app.getDeploymentId().equals(deploymentId) ||
