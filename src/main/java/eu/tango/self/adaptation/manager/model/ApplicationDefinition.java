@@ -208,7 +208,7 @@ public class ApplicationDefinition {
      * @param index The index value of the execution, 0 is the first in the index.
      * @return The executables as a map of settings.
      */
-    public Map<String, Object> getExecutable(int index) {
+    public Map<String, Object> getExecutable(double index) {
         /**
          * {
          * "executables": [
@@ -231,7 +231,7 @@ public class ApplicationDefinition {
             return new LinkedTreeMap<>();
         }        
         Gson gson = new Gson();       
-        String json = executables.get(index).toString();
+        String json = executables.get((int) index).toString();
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
     }
@@ -241,7 +241,7 @@ public class ApplicationDefinition {
      * @param index The index of executable
      * @return If the executable is in a state that is suitable for running
      */
-    public boolean isExecutableReady(int index) {
+    public boolean isExecutableReady(double index) {
         Map<String, Object> properties = getExecutable(index);
         //If the status is set, then the application must be compiled.
         if (properties.containsKey("status")) {
@@ -320,6 +320,79 @@ public class ApplicationDefinition {
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
     }
+    
+    /**
+     * This indicates if the executable with a given index is ready.
+     * @param index The index of executable
+     * @return If the executable is in a state that is suitable for running
+     */
+    public boolean isConfigurationReady(int index) {
+        Map<String, Object> properties = getConfiguration(index);
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (properties.containsKey("executable_id")) {
+            return isExecutableReady((double) properties.get("executable_id"));
+        }
+        //the default assumption is that it isn't ready.
+        return false;
+    }
+    
+    /**
+     * This gets the id of the executable to be used in the configuration
+     * @param index The index number for the configuration
+     * @return The id of the executable to be used in the configuration
+     */
+    public int getConfigurationsExecutableId(int index) {
+         Map<String, Object> properties = getConfiguration(index);
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (properties.containsKey("executable_id")) {
+            return (int) properties.get("executable_id");
+        }
+        //the default answer is zero, in the event the id cannot be found.
+        return 0;       
+    }       
+    
+    /**
+     * This gets the count of nodes needed by a configuration
+     * @param index The index number for the configuration
+     * @return The number of nodes needed by the configuration
+     */
+         Map<String, Object> properties = getConfiguration(index);
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (properties.containsKey("num_nodes")) {
+        }
+        //the default assumption is zero.
+        return 0;       
+    }       
+    
+    /**
+     * This gets the count of nodes needed by a configuration
+     * @param index The index number for the configuration
+     * @return The number of CPUs per node needed by the configuration
+     */    
+    public double getCpusNeededPerNodeByConfiguration(int index) {
+         Map<String, Object> properties = getConfiguration(index);
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (properties.containsKey("num_cpus_per_node")) {
+            return (double) properties.get("num_cpus_per_node");
+        }
+        //the default assumption is zero.
+        return 0;       
+    }    
+
+    /**
+     * This gets the count of GPUs needed per node by a configuration
+     * @param index The index number for the configuration
+     * @return The number of GPUs per node needed by the configuration
+     */    
+    public double getGpusNeededPerNodeByConfiguration(int index) {
+         Map<String, Object> properties = getConfiguration(index);
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (properties.containsKey("num_gpus_per_node")) {
+            return (double) properties.get("num_gpus_per_node");
+        }
+        //the default assumption is zero.
+        return 0;       
+    }   
     
     /**
      * Indicates if the definition of the application represents and application
