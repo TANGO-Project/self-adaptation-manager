@@ -73,13 +73,14 @@ public class SelfAdaptationManager {
         }
         setEventAssessor(eventAssessorName);
         EventListener listener;
+        //Add the environment monitor
         listener = new EnvironmentMonitor(datasource);
-        listener.setEventAssessor(eventAssessor);
-        listener.startListening();        
+        listener.setEventAssessor(eventAssessor);    
         listeners.add(listener);
+        //Add the slurm job monitor
         listener = new SlurmJobMonitor();
         listener.setEventAssessor(eventAssessor);
-        listener.startListening();  
+        //Add the actuator
         actuator = new AldeAndSlurmActuator();
         eventAssessor.setActuator(actuator);
         eventAssessor.setListeners(listeners);

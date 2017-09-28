@@ -49,4 +49,9 @@ public interface EventListener {
      */
     public void stopListening();
     
+    /**
+     * Indicates if this listener is listening.
+     */
+    public boolean isListening();
+    
 }

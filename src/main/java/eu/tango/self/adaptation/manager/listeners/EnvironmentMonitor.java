@@ -52,7 +52,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
 
     private EventAssessor eventAssessor;
     private final HostDataSource datasource;
-    private boolean running = true;
+    private boolean running = false;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
 
     /**
@@ -118,8 +118,14 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     }
 
     @Override
+    public boolean isListening() {
+        return running;
+    }
+
+    @Override
     public void run() {
         try {
+            running = true;
             printRecognisedTerms();//This provides guidance on how to create detection rules.
             // Wait for a message
             while (running) {

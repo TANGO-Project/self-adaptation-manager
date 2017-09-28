@@ -226,7 +226,7 @@ public abstract class AbstractEventAssessor implements EventAssessor {
         this.listeners = listeners;
         for (EventListener listener : listeners) {
             listener.setEventAssessor(this);
-            if (listener instanceof Runnable) {
+            if (listener instanceof Runnable && !listener.isListening()) {
                 Thread thread = new Thread((Runnable) listener);
                 thread.start();
             }

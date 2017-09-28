@@ -47,7 +47,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
 
     private EventAssessor eventAssessor;
     private final HostDataSource datasource = new SlurmDataSourceAdaptor();
-    private boolean running = true;
+    private boolean running = false;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
@@ -80,6 +80,11 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         running = false;
     }
     
+    @Override
+    public boolean isListening() {
+        return running;
+    }
+    
     /**
      * This reloads the SLA criteria held in the slurm job monitor.
      */
@@ -89,6 +94,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
 
     @Override
     public void run() {
+        running = true;
         try {
             // Wait for a message
             while (running) {
@@ -146,7 +152,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         if (containsTerm(limits, "CLOSE_TO_DEADLINE")) {
             answer.addAll(detectCloseToDeadlineJobs());
-        }    
+        }
         //Add next test here
 
         //TODO Consider duration host is idle.
@@ -219,7 +225,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         runningJobs = currentRunning;
         return answer;
     }
-
+    
     /**
      * This detects hosts that have jobs stuck on them with pending resource
      * requirements.
@@ -278,7 +284,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         ArrayList<EventData> answer = new ArrayList<>();
         HashSet<ApplicationOnHost> currentRunning = new HashSet<>(datasource.getHostApplicationList());
         for (ApplicationOnHost job : currentRunning) {
-            if (job.getProgress() > 95) { //Make the % completion customizable.
+            if (job.getProgress() > 95) { //TODO Make the % completion customizable.
                 EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                         0.0,
                         0.0,
@@ -293,7 +299,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             }
         }
         return answer;
-    }
+    }  
 
     /**
      * This lists the pending jobs on an idle host. This means the SAM has the
