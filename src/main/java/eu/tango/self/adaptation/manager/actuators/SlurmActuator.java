@@ -201,7 +201,27 @@ public class SlurmActuator extends AbstractActuator {
         //Example: "scontrol update JobID=" + deploymentId + " Timelimit=+30:00"
         execCmd("scontrol update JobID=" + deploymentId + " Timelimit=+" + walltimeIncrement);
     }
+    
+    /**
+     * This prevents a pending task that is to be submitted from running alongside 
+     * other applications at the same time.
+     * @param applicationName The application to give exclusive node access to
+     * @param deploymentId The deployment id of the task to give exclusive access to resources
+     */
+    public void makeTaskExclusive(String applicationName, String deploymentId) {
+        execCmd("scontrol update JobId=" + deploymentId + "OverSubscribe=no");
+    }    
 
+    /**
+     * This makes it possible for a pending task to be submitted so that it can
+     * run alongside other applications at the same time.
+     * @param applicationName The application to oversubscribe
+     * @param deploymentId The deployment id of the task to over subscribe
+     */
+    public void makeTaskOverSubscribed(String applicationName, String deploymentId) {
+        execCmd("scontrol update JobId=" + deploymentId + "OverSubscribe=yes");
+    }    
+    
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
         int oldCount = getNodeCount(deploymentId);
@@ -351,6 +371,12 @@ public class SlurmActuator extends AbstractActuator {
             case UNPAUSE_APP:
                 resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
+            case OVERSUBSCRIBE_APP:
+                makeTaskOverSubscribed(response.getApplicationId(), getTaskDeploymentId(response));
+                break;
+            case EXCLUSIVE_APP:
+                makeTaskExclusive(response.getApplicationId(), getTaskDeploymentId(response));
+                break;                
             case HARD_KILL_APP:
             case KILL_APP:
                 //Note: no soft implementation exists at this time
