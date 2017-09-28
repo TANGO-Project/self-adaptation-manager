@@ -55,6 +55,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             case REDUCE_WALL_TIME:
             case PAUSE_APP:
             case UNPAUSE_APP:
+            case OVERSUBSCRIBE_APP:
+            case EXCLUSIVE_APP:                
             case ADD_CPU:
             case REMOVE_CPU:
             case ADD_MEMORY:
