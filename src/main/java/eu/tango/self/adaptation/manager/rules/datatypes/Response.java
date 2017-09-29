@@ -31,7 +31,7 @@ import java.util.Map;
 public class Response implements Comparable<Response> {
 
     private final ActuatorInvoker actuator;
-    private final EventData cause;
+    private EventData cause;
     private AdaptationType actionType;
     private String adaptationDetails;
     private String taskId;
@@ -123,7 +123,7 @@ public class Response implements Comparable<Response> {
     }
 
     /**
-     * This returns a copy of the event that was the original cause of the
+     * This returns the event that was the original cause of the
      * response to be created.
      *
      * @return The event that caused the response (or at least the last in a
@@ -132,6 +132,18 @@ public class Response implements Comparable<Response> {
     public EventData getCause() {
         return cause;
     }
+    
+    /**
+     * This sets the event that was the original cause of the response to be created.
+     * This allows for cases such as clock based trigger events to be recast into
+     * more specific causes.
+     *
+     * @param cause The event that caused the response (or at least the last in a
+     * sequence of events).
+     */
+    public void setCause(EventData cause) {
+        this.cause = cause;
+    }    
 
     @Override
     public int compareTo(Response response) {

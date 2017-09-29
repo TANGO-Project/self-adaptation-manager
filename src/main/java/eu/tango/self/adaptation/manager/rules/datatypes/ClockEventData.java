@@ -33,4 +33,39 @@ public class ClockEventData extends EventData {
         setSignificantOnOwn(true);
     }
     
+    /**
+     * This allows this clock event data to be converted into a application event data
+     * @param applicationId The application id to give to this event
+     * @param deploymentId The deployment id to give to this event
+     * @return The application based event data equivalent of this event 
+     */
+    public ApplicationEventData castToApplicationEventData(String applicationId, String deploymentId) {
+        ApplicationEventData answer = new ApplicationEventData(this.getTime(), this.getRawValue(), 
+                this.getGuaranteedValue(), 
+                this.getType(), 
+                this.getGuaranteeOperator(), 
+                applicationId, 
+                deploymentId, 
+                this.getGuaranteeid(), 
+                this.getAgreementTerm());
+        return answer;
+    }
+    
+    /**
+     * This allows this clock event data to be converted into a application event data
+     * @param hostname The name of the host to give to this event
+     * @return The host based event data equivalent of this event 
+     */
+    public HostEventData castToHostEventData(String hostname) {
+        HostEventData answer = new HostEventData(this.getTime(), 
+                hostname,
+                this.getRawValue(), 
+                this.getGuaranteedValue(), 
+                this.getType(), 
+                this.getGuaranteeOperator(),
+                this.getGuaranteeid(), 
+                this.getAgreementTerm());
+        return answer;
+    }    
+    
 }
