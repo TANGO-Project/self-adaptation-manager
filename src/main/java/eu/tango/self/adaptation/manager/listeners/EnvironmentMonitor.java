@@ -279,7 +279,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 currentValue = value.getValue();
             }
             if (deployId == -1 && measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+") != null) {
-                //app_power:comppss:* or app_power:compss:100, using regular expression
+                //app_power:compss:* or app_power:compss:100, using regular expression
                 value = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+");                
                 currentValue = value.getValue();
             }
