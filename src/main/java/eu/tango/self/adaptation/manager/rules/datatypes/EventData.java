@@ -33,7 +33,7 @@ public abstract class EventData implements Comparable<EventData> {
     private double rawValue; //the metric raw value
     private double guaranteedValue; //the guaranteed value
     private EventData.Type type; //breach, warning or other (i.e. informative)
-    private EventData.Operator guranteeOperator; // threshold direction
+    private EventData.Operator guaranteeOperator; // threshold direction
     private String agreementTerm;
     private String guaranteeid; //sla gurantee id
     /**
@@ -99,23 +99,25 @@ public abstract class EventData implements Comparable<EventData> {
         this.rawValue = rawValue;
         this.guaranteedValue = guranteedValue;
         this.type = type;
-        this.guranteeOperator = guranteeOperator;
+        this.guaranteeOperator = guranteeOperator;
         this.guaranteeid = guaranteeid;
         this.agreementTerm = agreementTerm;
     }
 
     /**
-     * @return the guranteeOperator
+     * This gets the guarantee operator, a comparator such as LT, LTE, EQ, GTE, GT
+     * @return The guarantee operator for the event
      */
-    public EventData.Operator getGuranteeOperator() {
-        return guranteeOperator;
+    public EventData.Operator getGuaranteeOperator() {
+        return guaranteeOperator;
     }
 
     /**
-     * @param guranteeOperator the guranteeOperator to set
+     * This sets the guarantee operator, a comparator such as LT, LTE, EQ, GTE, GT
+     * @param guaranteeOperator the comparator that triggered this event
      */
-    public void setGuranteeOperator(EventData.Operator guranteeOperator) {
-        this.guranteeOperator = guranteeOperator;
+    public void setGuaranteeOperator(EventData.Operator guaranteeOperator) {
+        this.guaranteeOperator = guaranteeOperator;
     }
 
     /**
@@ -136,11 +138,16 @@ public abstract class EventData implements Comparable<EventData> {
         this.agreementTerm = agreementTerm;
     }
 
+    /**
+     * The agreement term/metric that triggered this event
+     * @return The agreement term
+     */
     public String getAgreementTerm() {
         return agreementTerm;
     }
 
     /**
+     * The time this event was triggered
      * @return the time
      */
     public long getTime() {
@@ -148,6 +155,7 @@ public abstract class EventData implements Comparable<EventData> {
     }
 
     /**
+     * Sets the time this event was triggered
      * @param time the time to set
      */
     public void setTime(long time) {
@@ -264,7 +272,7 @@ public abstract class EventData implements Comparable<EventData> {
      * @return The slack associated with the guarantee
      */
     public double getGuaranteeSlack() {
-        switch (guranteeOperator) {
+        switch (guaranteeOperator) {
             case EQ:
                 return Math.abs(rawValue - guaranteedValue);
             case GT:

@@ -247,7 +247,8 @@ public class Response implements Comparable<Response> {
      * This returns the deployment id associated with the event that caused the
      * response.
      *
-     * @return
+     * @return The name of the application that the response is associated with,
+     * blank if the cause is not from an application based event
      */
     public String getApplicationId() {
         if (cause instanceof ApplicationEventData) {
@@ -312,7 +313,7 @@ public class Response implements Comparable<Response> {
         answer = answer + getCause().getAgreementTerm() + " : ";
         answer = answer + getCause().getGuaranteedValue() + " : ";    
         answer = answer + getCause().getRawValue() + " : ";
-        answer = answer + getCause().getGuranteeOperator() + " : ";
+        answer = answer + getCause().getGuaranteeOperator() + " : ";
         answer = answer + isPossibleToAdapt() + " : ";
         answer = answer + isPerformed();
         return answer;

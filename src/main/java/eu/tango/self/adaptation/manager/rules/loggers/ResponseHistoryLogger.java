@@ -73,7 +73,7 @@ public class ResponseHistoryLogger extends GenericLogger<Response> {
         store.append(response.getCause().getAgreementTerm());
         store.append(response.getCause().getGuaranteedValue());          
         store.append(response.getCause().getRawValue());   
-        store.append(response.getCause().getGuranteeOperator());
+        store.append(response.getCause().getGuaranteeOperator());
         store.append(response.isPossibleToAdapt());
         store.append(response.isPerformed());   
     }

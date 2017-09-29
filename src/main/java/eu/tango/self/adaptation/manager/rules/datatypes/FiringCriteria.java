@@ -97,7 +97,7 @@ public class FiringCriteria {
             }
         }
         return (agreementTerm.equals(event.getAgreementTerm())
-                && operator.equals(event.getGuranteeOperator()));
+                && operator.equals(event.getGuaranteeOperator()));
     }
 
     /**
