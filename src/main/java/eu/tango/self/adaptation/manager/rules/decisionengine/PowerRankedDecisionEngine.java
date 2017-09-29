@@ -76,7 +76,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
-        }
+        }    
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
             List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
@@ -96,10 +96,10 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
                 response.setPossibleToAdapt(false);
             }
         }
-        if (!(response.getCause() instanceof ApplicationEventData)) {
+        if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
             if (response.getTaskId() == null || response.getTaskId().isEmpty() || response.getTaskId().equals("*")) {
-                if (cause.getDeploymentId() != null && !response.getTaskId().isEmpty()) {
+                if (cause.getDeploymentId() != null) {
                     response.setTaskId(cause.getDeploymentId());
                 } else {
                     response.setAdaptationDetails("Could not find a task to actuate against");
