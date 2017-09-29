@@ -487,17 +487,17 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 double upperbound = scanner.nextDouble();
                 if (reversed) { //case where an exclusion zone is given
                     //TODO something clever by considering distance from boundary conditions
-                    event.setGuranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
+                    event.setGuaranteeOperator(EventData.Operator.GT); //GT Lower bound but also LT upper bound
                     event.setGuaranteedValue(firstBound);
                     return event;
                 }
                 //Case where a green good zone is given instead
                 if (current <= firstBound) {
-                    event.setGuranteeOperator(EventData.Operator.LT); //LT first bound
+                    event.setGuaranteeOperator(EventData.Operator.LT); //LT first bound
                     event.setGuaranteedValue(firstBound);
                     return event;
                 } else if (current >= upperbound) {
-                    event.setGuranteeOperator(EventData.Operator.GT); //GT second bound
+                    event.setGuaranteeOperator(EventData.Operator.GT); //GT second bound
                     event.setGuaranteedValue(upperbound);
                     return event;
                 }
@@ -517,20 +517,20 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                  * any certainty.
                  */
                 if (current == firstBound) {
-                    event.setGuranteeOperator(EventData.Operator.EQ);
+                    event.setGuaranteeOperator(EventData.Operator.EQ);
                     return event;
                 } else if (current > firstBound) {
                     //current value higher than bound caused breach
-                    event.setGuranteeOperator(EventData.Operator.LT); //so current value should normally be less than
+                    event.setGuaranteeOperator(EventData.Operator.LT); //so current value should normally be less than
                     return event;
                 } else {
-                    event.setGuranteeOperator(EventData.Operator.GT);
+                    event.setGuaranteeOperator(EventData.Operator.GT);
                     return event;
                 }
 
             }
         }
-        event.setGuranteeOperator(EventData.Operator.LT); //default e.g. current power < guaranteed value
+        event.setGuaranteeOperator(EventData.Operator.LT); //default e.g. current power < guaranteed value
         return event;
     }
 
