@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case KILL_SIMILAR_APPS:
                 killSimilarApps(response);
                 break;
-            case KILL_APP: 
+            case KILL_APP:
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
@@ -67,7 +68,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case ADD_MEMORY:
             case REMOVE_MEMORY:
                 response = getLastApp(response);
-            break;
+                break;
         }
         return response;
     }
@@ -83,26 +84,19 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
-        }      
-        if (response.getCause() instanceof HostEventData) {
-            HostEventData eventData = (HostEventData) response.getCause();
-            ArrayList<Integer> ids = new ArrayList<>();
-            List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
-            for (ApplicationOnHost task : tasks) {
-                ids.add(task.getId());
-            }
-            if (!ids.isEmpty()) {
-                Collections.sort(ids);
-                Collections.reverse(ids);
-                response.setTaskId(ids.get(0) + "");
-                return response;
-            } else {
-                response.setAdaptationDetails("Could not find a task to actuate against");
-                response.setPossibleToAdapt(false);
+        }
+        if (response.getCause() instanceof ClockEventData) {
+            if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
+                response = selectTaskOnHost(response, response.getAdaptationDetail("host"));
             }
         }
+        if (response.getCause() instanceof HostEventData) {
+            HostEventData eventData = (HostEventData) response.getCause();
+            response = selectTaskOnHost(response, eventData.getHost());
+
+        }
         if (response.getCause() instanceof ApplicationEventData) {
-            ApplicationEventData cause = (ApplicationEventData) response.getCause();          
+            ApplicationEventData cause = (ApplicationEventData) response.getCause();
             if (response.getTaskId() == null || response.getTaskId().isEmpty() || response.getTaskId().equals("*")) {
                 if (cause.getDeploymentId() != null) {
                     response.setTaskId(cause.getDeploymentId());
@@ -110,10 +104,36 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
                     response.setAdaptationDetails("Could not find a task to actuate against");
                     response.setPossibleToAdapt(false);
                 }
-                
+
             }
         }
         //Note: if the event data was from an application the task id would already be set        
+        return response;
+    }
+
+    /**
+     * Selects a task on the host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param hostname The hostname to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskOnHost(Response response, String hostname) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
+        for (ApplicationOnHost task : tasks) {
+            ids.add(task.getId());
+        }
+        if (!ids.isEmpty()) {
+            Collections.sort(ids);
+            Collections.reverse(ids);
+            response.setTaskId(ids.get(0) + "");
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to actuate against");
+            response.setPossibleToAdapt(false);
+        }
         return response;
     }
 

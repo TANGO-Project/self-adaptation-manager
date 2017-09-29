@@ -22,6 +22,7 @@ import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.WattsUpMeterDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.actuators.AldeAndSlurmActuator;
+import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
@@ -79,6 +80,11 @@ public class SelfAdaptationManager {
         listeners.add(listener);
         //Add the slurm job monitor
         listener = new SlurmJobMonitor();
+        listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);
+        //Add the clock monitor
+        listener = new ClockMonitor();
+        listeners.add(listener);
         listener.setEventAssessor(eventAssessor);
         //Add the actuator
         actuator = new AldeAndSlurmActuator();

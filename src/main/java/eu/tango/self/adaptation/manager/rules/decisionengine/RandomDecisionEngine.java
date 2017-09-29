@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.Collections;
@@ -48,15 +49,15 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 break;
             case KILL_SIMILAR_APPS:
                 killSimilarApps(response);
-                break;                
-            case KILL_APP: 
+                break;
+            case KILL_APP:
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
             case PAUSE_APP:
             case UNPAUSE_APP:
             case OVERSUBSCRIBE_APP:
-            case EXCLUSIVE_APP:                
+            case EXCLUSIVE_APP:
             case ADD_CPU:
             case REMOVE_CPU:
             case ADD_MEMORY:
@@ -69,7 +70,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
-    
+
     /**
      * The decision logic for adding a task.
      *
@@ -81,18 +82,15 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
-        }       
+        }
+        if (response.getCause() instanceof ClockEventData) {
+            if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
+                response = selectTaskOnHost(response, response.getAdaptationDetail("host"));
+            }
+        }
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
-            List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(eventData.getHost());
-            if (!tasks.isEmpty()) {
-                Collections.shuffle(tasks);
-                    response.setTaskId(tasks.get(0).getId() + "");
-                return response;
-            } else {
-                response.setAdaptationDetails("Could not find a task to actuate against");
-                response.setPossibleToAdapt(false);
-            }
+            response = selectTaskOnHost(response, eventData.getHost());
         }
         if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
@@ -103,10 +101,31 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                     response.setAdaptationDetails("Could not find a task to actuate against");
                     response.setPossibleToAdapt(false);
                 }
-                
+
             }
         }
         //Note: if the event data was from an application the task id would already be set
+        return response;
+    }
+
+    /**
+     * Selects a task on the host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param hostname The hostname to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskOnHost(Response response, String hostname) {
+        List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
+        if (!tasks.isEmpty()) {
+            Collections.shuffle(tasks);
+            response.setTaskId(tasks.get(0).getId() + "");
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to actuate against");
+            response.setPossibleToAdapt(false);
+        }
         return response;
     }
 
