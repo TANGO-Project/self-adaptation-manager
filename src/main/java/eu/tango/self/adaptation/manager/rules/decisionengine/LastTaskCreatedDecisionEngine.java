@@ -87,13 +87,19 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         }
         if (response.getCause() instanceof ClockEventData) {
             if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
-                response = selectTaskOnHost(response, response.getAdaptationDetail("host"));
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
             }
+            if (response.getAdaptationDetail("application") != null && !response.getAdaptationDetail("application").isEmpty()) {
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response = selectLastTask(response, response.getAdaptationDetail("application"));
+                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
+            }            
         }
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
             response = selectTaskOnHost(response, eventData.getHost());
-
         }
         if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
@@ -136,6 +142,33 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
+    
+    /**
+     * Selects a task on the to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param applicationName The application id/name
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectLastTask(Response response, String applicationName) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        List<ApplicationOnHost> tasks = getActuator().getTasks();
+        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
+        for (ApplicationOnHost task : tasks) {
+            ids.add(task.getId());
+        }
+        if (!ids.isEmpty()) {
+            Collections.sort(ids);
+            Collections.reverse(ids);
+            response.setTaskId(ids.get(0) + "");
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to actuate against");
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }    
 
     /**
      * The decision logic for deleting a task. It removes the last task to be

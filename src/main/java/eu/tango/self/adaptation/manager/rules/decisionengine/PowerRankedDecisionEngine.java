@@ -21,8 +21,10 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,7 +82,14 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         }
         if (response.getCause() instanceof ClockEventData) {
             if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
-                response = selectTaskOnHost(response, response.getAdaptationDetail("host"));
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
+            }
+            if (response.getAdaptationDetail("application") != null && !response.getAdaptationDetail("application").isEmpty()) {
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response = selectPowerHungryTask(response, response.getAdaptationDetail("application"));
+                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
             }
         }
         if (response.getCause() instanceof HostEventData) {
@@ -127,6 +136,35 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
+    
+    /**
+     * Selects a task on the to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param applicationName The application id/name
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectPowerHungryTask(Response response, String applicationName) {
+        List<ApplicationOnHost> tasks = getActuator().getTasks();
+        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
+        if (!tasks.isEmpty()) {
+            double power = 0;
+            for (ApplicationOnHost task : tasks) {
+                double currentPower = getActuator().getTotalPowerUsage(task.getName(), task.getId() + "");
+                //Select the most power consuming task
+                if (currentPower > power || response.getTaskId().isEmpty()) {
+                    response.setTaskId(task.getId() + "");
+                    power = currentPower;
+                }
+            }
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to act upon");
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }       
 
     /**
      * The decision logic for deleting a task. It removes the last task to be

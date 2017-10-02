@@ -23,6 +23,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -85,8 +86,15 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         }
         if (response.getCause() instanceof ClockEventData) {
             if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
-                response = selectTaskOnHost(response, response.getAdaptationDetail("host"));
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
             }
+            if (response.getAdaptationDetail("application") != null && !response.getAdaptationDetail("application").isEmpty()) {
+                ClockEventData cause = (ClockEventData) response.getCause();
+                response = selectRandomTask(response, response.getAdaptationDetail("application"));
+                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
+            }            
         }
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
@@ -128,6 +136,29 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
+    
+    /**
+     * Selects a task on the to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param applicationName The application id/name
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectRandomTask(Response response, String applicationName) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        List<ApplicationOnHost> tasks = getActuator().getTasks();
+        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
+        if (!tasks.isEmpty()) {
+            Collections.shuffle(tasks);
+            response.setTaskId(tasks.get(0).getId() + "");
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to actuate against");
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }      
 
     /**
      * The decision logic for adding a task.
