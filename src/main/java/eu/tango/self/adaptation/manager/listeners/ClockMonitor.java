@@ -19,7 +19,6 @@
 package eu.tango.self.adaptation.manager.listeners;
 
 import eu.ascetic.ioutils.io.ResultsStore;
-import eu.tango.self.adaptation.manager.model.SLALimits;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -55,15 +54,34 @@ public class ClockMonitor implements EventListener, Runnable, Job {
     private Scheduler scheduler;
     private static final String CONFIG_FILE = "CronEvents.csv";
 
-    public ClockMonitor() {
+    private ClockMonitor() {
     }
+    
+    /**
+     * SingletonHolder is loaded on the first execution of
+     * Singleton.getInstance() or the first access to SingletonHolder.INSTANCE,
+     * not before.
+     */
+    private static class SingletonHolder {
+
+        private static final ClockMonitor INSTANCE = new ClockMonitor();
+    }
+
+    /**
+     * This creates a new singleton instance of the clock monitor.
+     *
+     * @return A singleton instance of a clock monitor.
+     */
+    public static ClockMonitor getInstance() {
+        return SingletonHolder.INSTANCE;
+    }    
 
     @Override
     public void setEventAssessor(EventAssessor assessor) {
         if (assessor != null) {
             eventAssessor = assessor;
         } else {
-            Logger.getLogger(SLALimits.class.getName()).log(Level.INFO, "The event assessor cannot be null.");
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "The event assessor cannot be null.");
         }
     }
 
