@@ -84,8 +84,8 @@ public class SelfAdaptationManager {
         listeners.add(listener);
         //Add the clock monitor
         listener = new ClockMonitor();
-        listeners.add(listener);
         listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);
         //Add the actuator
         actuator = new AldeAndSlurmActuator();
         eventAssessor.setActuator(actuator);

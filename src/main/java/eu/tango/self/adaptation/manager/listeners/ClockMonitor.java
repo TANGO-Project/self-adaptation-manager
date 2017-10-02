@@ -47,7 +47,11 @@ import org.quartz.SimpleScheduleBuilder;
  */
 public class ClockMonitor implements EventListener, Runnable, Job {
 
-    private EventAssessor eventAssessor;
+    /**
+     * All clock monitors must share the same event assessor, to that when
+     * the job executes they know where to send the job processing request to.
+     */
+    private static EventAssessor eventAssessor;
     private Scheduler scheduler;
     private static final String CONFIG_FILE = "CronEvents.csv";
 
@@ -56,7 +60,11 @@ public class ClockMonitor implements EventListener, Runnable, Job {
 
     @Override
     public void setEventAssessor(EventAssessor assessor) {
-        eventAssessor = assessor;
+        if (assessor != null) {
+            eventAssessor = assessor;
+        } else {
+            Logger.getLogger(SLALimits.class.getName()).log(Level.INFO, "The event assessor cannot be null.");
+        }
     }
 
     @Override
@@ -69,17 +77,24 @@ public class ClockMonitor implements EventListener, Runnable, Job {
      */
     @Override
     public void startListening() {
-        Thread clockMonThread = new Thread(this);
-        clockMonThread.setDaemon(true);
-        clockMonThread.start();
+        if (eventAssessor != null) {
+            Thread clockMonThread = new Thread(this);
+            clockMonThread.setDaemon(true);
+            clockMonThread.start();
+        } else {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "The clock monitor's event assessor should be set.");
+        }
     }
 
     @Override
     public final void stopListening() {
         if (scheduler != null) {
             try {
-                scheduler.shutdown();
-                scheduler = null;
+                scheduler.clear();
+                scheduler.shutdown(false); //don't wait for jobs to complete
+                if (scheduler.isShutdown()) {
+                    scheduler = null;
+                }
             } catch (SchedulerException ex) {
                 Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "Scheduler failed to shutdown correctly", ex);
             }
@@ -98,15 +113,20 @@ public class ClockMonitor implements EventListener, Runnable, Job {
             loadFromDisk(CONFIG_FILE);
             scheduler.start();
         } catch (SchedulerException ex) {
-            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
             stopListening();
         } catch (Exception ex) {
-            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
     public void execute(JobExecutionContext jec) throws JobExecutionException {
+        if (eventAssessor == null) {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "No Event Assessor was set, now quitting.");
+            stopListening();
+            return;
+        }
         for (EventData event : detectEvent(jec)) {
             eventAssessor.assessEvent(event);
         }
@@ -119,6 +139,7 @@ public class ClockMonitor implements EventListener, Runnable, Job {
      */
     private ArrayList<EventData> detectEvent(JobExecutionContext jec) {
         ArrayList<EventData> answer = new ArrayList<>();
+        Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Sending clock trigger event.");
         EventData event = new ClockEventData(TimeUnit.MILLISECONDS.toSeconds(jec.getFireTime().getTime()),
                 0.0,
                 0.0,
@@ -141,6 +162,7 @@ public class ClockMonitor implements EventListener, Runnable, Job {
         boolean answer = false;
         //Agreement Term, Guarantee Direction and Response Type
         if (!cronFile.getResultsFile().exists()) {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Writing out defaults to disk.");
             cronFile.add("Unique Id"); //0
             cronFile.append("Agreement Term"); //1 Trigger name
             cronFile.append("Cron Statement"); //2 Cron trigger statement
@@ -167,19 +189,28 @@ public class ClockMonitor implements EventListener, Runnable, Job {
         ResultsStore cronFile = new ResultsStore(file);
         writeOutDefaults(cronFile);
         cronFile.load();
-        Logger.getLogger(SLALimits.class.getName()).log(Level.INFO, "There are {0} cron rules to load.", cronFile.size() -1); //Ignores header row
+        Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "There are {0} cron rules to load.", cronFile.size() - 1); //Ignores header row
+        if (cronFile.size() <= 1) {
+            /**
+             * If the file containing the triggers has only its header, then
+             * there is no work to do, so the clock monitor will stop.
+             */
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Terminating the clock monitor due to no cron rules.", cronFile.size() - 1);
+            stopListening();
+        }
         //ignore the header of the file
         for (int i = 1; i < cronFile.size(); i++) {
             ArrayList<String> current = cronFile.getRow(i);
             String logString = "Unique Id: " + current.get(0) + " Term: " + current.get(1) + " Cron Statement: " + current.get(2);
             addEvent(current.get(1), current.get(2));
-            Logger.getLogger(ClockMonitor.class.getName()).log(Level.WARNING, "Adding Clock rule from disk: {0}", logString);
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Adding Clock rule from disk: {0}", logString);
         }
     }
 
     /**
-     * This adds a cron job into the clock monitor A cron scheduler string can 
+     * This adds a cron job into the clock monitor A cron scheduler string can
      * be made at: http://www.cronmaker.com
+     *
      * @param eventName The event/metric name to trigger the event
      * @param cronSchedule The cron schedule, such as: "0/5 * * * * ?".
      */
@@ -202,9 +233,10 @@ public class ClockMonitor implements EventListener, Runnable, Job {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-     /**
+
+    /**
      * This adds a simple event that runs X seconds from now
+     *
      * @param eventName The event/metric name to trigger the event
      * @param secondsFromNow The time in seconds from now before it triggers.
      */
@@ -213,17 +245,17 @@ public class ClockMonitor implements EventListener, Runnable, Job {
                 .withIdentity("Clock-Monitor-Event")
                 .build();
 
-            Trigger trigger = TriggerBuilder.newTrigger()
-	        .withIdentity(eventName)
-	        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(secondsFromNow))     
-	        .build();        
-        
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(eventName)
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(secondsFromNow))
+                .build();
+
         try {
             //Schedule the job, the clock monitor will then wait for a response.
             scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException ex) {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }   
+    }
 
 }
