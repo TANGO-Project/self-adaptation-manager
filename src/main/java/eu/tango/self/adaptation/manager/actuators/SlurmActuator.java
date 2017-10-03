@@ -25,6 +25,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
+import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import java.util.ArrayList;
@@ -297,6 +298,7 @@ public class SlurmActuator extends AbstractActuator {
     public void shutdownHost(Host host) {
         //Consider: https://slurm.schedmd.com/power_save.html
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //TODO Once available consider writing a time wake procedure. i.e. shutdown for X hours etc
     }
 
     public void startupHost(Host host) {
@@ -367,6 +369,14 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case PAUSE_APP:
                 pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
+                if (response.hasAdaptationDetail("UNPAUSE")) {
+                    /**
+                     * This requires to have a matching rule to negate the effect of the first.
+                     * The matching rule starts with an exclamation! instead.
+                     */
+                    int unpauseInNseconds = Integer.parseInt(response.getAdaptationDetail("UNPAUSE"));
+                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "application=" + response.getApplicationId() + ";deploymentid=" + getTaskDeploymentId(response), unpauseInNseconds);
+                }
                 break;
             case UNPAUSE_APP:
                 resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
@@ -415,8 +425,17 @@ public class SlurmActuator extends AbstractActuator {
         if (response.getTaskId()!= null && !response.getTaskId().isEmpty()) {
             return response.getTaskId();
         }
+        /**
+         * Information below gained from application based events, it is a backup
+         * and uses the originating application as the item to actuate against
+         * 
+         */
         if (response.getDeploymentId() != null && !response.getDeploymentId().isEmpty()) {
             return response.getDeploymentId();
+        }
+        //This source of deployment information is caused by clock events passing information back
+        if (response.hasAdaptationDetail("deploymentid")) {
+            return response.getAdaptationDetail("deploymentid");
         }
         return "";
     }

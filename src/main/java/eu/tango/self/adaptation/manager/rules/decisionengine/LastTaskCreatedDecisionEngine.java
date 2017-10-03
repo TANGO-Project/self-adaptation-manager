@@ -85,18 +85,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
             return response;
         }
-        if (response.getCause() instanceof ClockEventData) {
-            if (response.getAdaptationDetail("host") != null && !response.getAdaptationDetail("host").isEmpty()) {
-                ClockEventData cause = (ClockEventData) response.getCause();
-                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
-            }
-            if (response.getAdaptationDetail("application") != null && !response.getAdaptationDetail("application").isEmpty()) {
-                ClockEventData cause = (ClockEventData) response.getCause();
-                response = selectLastTask(response, response.getAdaptationDetail("application"));
-                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
-                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
-            }            
-        }
+        response = handleClockEvent(response);
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
             response = selectTaskOnHost(response, eventData.getHost());
@@ -116,6 +105,40 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         //Note: if the event data was from an application the task id would already be set        
         return response;
     }
+    
+    /**
+     * This modifies the response object's cause in the case that it is a clock event
+     * into either an application or a host based event.
+     * @param response The response object to modify
+     * @return The altered response object, no changes are made if the cause is 
+     * not a clock event
+     */
+    private Response handleClockEvent(Response response) {
+        if (response.getCause() instanceof ClockEventData) {
+            ClockEventData cause = (ClockEventData) response.getCause(); 
+            //The next two if statements deal with call backs, where the original event has settings data attached.
+            if (cause.hasSetting("application")) {
+                response.setCause(cause.castToApplicationEventData());
+                return response;
+            }
+            if (cause.hasSetting("host")) {
+                response.setCause(cause.castToHostEventData());
+                return response;
+            }       
+            //The next two if statements deal with cases where the decision rules have information attached.
+            if (response.hasAdaptationDetail("host")) {
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
+                return response;
+            } 
+            if (response.hasAdaptationDetail("application")) {
+                response = selectLastTask(response, response.getAdaptationDetail("application"));
+                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
+                return response;
+            }
+        }
+        return response;
+    }     
 
     /**
      * Selects a task on the host to perform the actuation against.

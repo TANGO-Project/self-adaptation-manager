@@ -23,32 +23,33 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
-import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quartz.JobDetail;
 import org.quartz.CronScheduleBuilder;
+import org.quartz.DateBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.quartz.Job;
 import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
 import org.quartz.SimpleScheduleBuilder;
+import org.quartz.SimpleTrigger;
+import org.quartz.TriggerKey;
+import org.quartz.impl.matchers.GroupMatcher;
 
 /**
  * This class produces events based upon the system clock
  *
  * @author Richard Kavanagh
  */
-public class ClockMonitor implements EventListener, Runnable, Job {
+public class ClockMonitor implements EventListener, Runnable {
 
     /**
-     * All clock monitors must share the same event assessor, to that when
-     * the job executes they know where to send the job processing request to.
+     * All clock monitors must share the same event assessor, to that when the
+     * job executes they know where to send the job processing request to.
      */
     private static EventAssessor eventAssessor;
     private Scheduler scheduler;
@@ -56,7 +57,7 @@ public class ClockMonitor implements EventListener, Runnable, Job {
 
     private ClockMonitor() {
     }
-    
+
     /**
      * SingletonHolder is loaded on the first execution of
      * Singleton.getInstance() or the first access to SingletonHolder.INSTANCE,
@@ -74,7 +75,7 @@ public class ClockMonitor implements EventListener, Runnable, Job {
      */
     public static ClockMonitor getInstance() {
         return SingletonHolder.INSTANCE;
-    }    
+    }
 
     @Override
     public void setEventAssessor(EventAssessor assessor) {
@@ -96,9 +97,9 @@ public class ClockMonitor implements EventListener, Runnable, Job {
     @Override
     public void startListening() {
         if (eventAssessor != null) {
-            Thread clockMonThread = new Thread(this);
-            clockMonThread.setDaemon(true);
-            clockMonThread.start();
+        Thread clockMonThread = new Thread(this);
+        clockMonThread.setDaemon(true);
+        clockMonThread.start();
         } else {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "The clock monitor's event assessor should be set.");
         }
@@ -138,37 +139,6 @@ public class ClockMonitor implements EventListener, Runnable, Job {
         }
     }
 
-    @Override
-    public void execute(JobExecutionContext jec) throws JobExecutionException {
-        if (eventAssessor == null) {
-            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "No Event Assessor was set, now quitting.");
-            stopListening();
-            return;
-        }
-        for (EventData event : detectEvent(jec)) {
-            eventAssessor.assessEvent(event);
-        }
-    }
-
-    /**
-     * This indicates when the clock has met a given time interval.
-     *
-     * @return A fully constructed event data for the clock based event.
-     */
-    private ArrayList<EventData> detectEvent(JobExecutionContext jec) {
-        ArrayList<EventData> answer = new ArrayList<>();
-        Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Sending clock trigger event.");
-        EventData event = new ClockEventData(TimeUnit.MILLISECONDS.toSeconds(jec.getFireTime().getTime()),
-                0.0,
-                0.0,
-                EventData.Type.WARNING,
-                EventData.Operator.EQ,
-                "CLOCK_TRIGGER",
-                jec.getTrigger().getKey().getName());
-        answer.add(event);
-        return answer;
-    }
-
     /**
      * This performs a check to see if the settings file is empty or not. It
      * will write out a blank file if the file is not present.
@@ -188,6 +158,20 @@ public class ClockMonitor implements EventListener, Runnable, Job {
             answer = true;
         }
         return answer;
+    }
+    
+    /**
+     * This allows the clock event jobs to call back to the Clock monitor, so
+     * that they can invoke the adaptation.
+     * @param event The event to perform an action for
+     */
+    public void assessEvent(EventData event) {
+        if (eventAssessor == null) {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "No Event Assessor was set, now quitting.");
+            ClockMonitor.getInstance().stopListening();
+            return;
+        }        
+        eventAssessor.assessEvent(event);
     }
 
     /**
@@ -213,8 +197,12 @@ public class ClockMonitor implements EventListener, Runnable, Job {
              * If the file containing the triggers has only its header, then
              * there is no work to do, so the clock monitor will stop.
              */
-            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Terminating the clock monitor due to no cron rules.", cronFile.size() - 1);
-            stopListening();
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "Pausing the clock monitor due to no cron rules.", cronFile.size() - 1);
+            try {
+                scheduler.pauseAll();
+            } catch (SchedulerException ex) {
+                Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         //ignore the header of the file
         for (int i = 1; i < cronFile.size(); i++) {
@@ -233,20 +221,36 @@ public class ClockMonitor implements EventListener, Runnable, Job {
      * @param cronSchedule The cron schedule, such as: "0/5 * * * * ?".
      */
     public void addEvent(String eventName, String cronSchedule) {
-        // define the job and tie it to the clock monitor class        
-        JobDetail job = JobBuilder.newJob(ClockMonitor.class)
-                .withIdentity("Clock-Monitor-Event")
-                .build();
-        // example cron string "0/5 * * * * ?" i.e .every 5 minutes
-        Trigger trigger = TriggerBuilder
-                .newTrigger()
-                .withIdentity(eventName)
-                .withSchedule(
-                        CronScheduleBuilder.cronSchedule(cronSchedule))
-                .build();
+        JobDetail job;
+        boolean newJob;
         try {
+            if (scheduler.isInStandbyMode()) {
+                scheduler.resumeAll();
+            }            
+            if (scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event")) != null) {
+                job = scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event"));
+                newJob = false;
+            } else {
+                // define the job and tie it to the clock monitor class        
+                job = JobBuilder.newJob(ClockEventJob.class)
+                        .withIdentity("Clock-Monitor-Event")
+                        .build();
+                newJob = true;
+            }
+            // example cron string "0/5 * * * * ?" i.e .every 5 minutes
+            Trigger trigger = TriggerBuilder
+                    .newTrigger()
+                    .withIdentity(eventName)
+                    .forJob(job)
+                    .withSchedule(
+                            CronScheduleBuilder.cronSchedule(cronSchedule))
+                    .build();
             //Schedule the job, the clock monitor will then wait for a response.
-            scheduler.scheduleJob(job, trigger);
+            if (newJob) {
+                scheduler.scheduleJob(job, trigger);
+            } else {
+                scheduler.scheduleJob(trigger);
+            }
         } catch (SchedulerException ex) {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -256,21 +260,75 @@ public class ClockMonitor implements EventListener, Runnable, Job {
      * This adds a simple event that runs X seconds from now
      *
      * @param eventName The event/metric name to trigger the event
+     * @param description The events description
      * @param secondsFromNow The time in seconds from now before it triggers.
      */
-    public void addEvent(String eventName, int secondsFromNow) {
-        JobDetail job = JobBuilder.newJob(ClockMonitor.class)
-                .withIdentity("Clock-Monitor-Event")
-                .build();
-
-        Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(eventName)
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(secondsFromNow))
-                .build();
-
+    public void addEvent(String eventName, String description, int secondsFromNow) {
+        JobDetail job;
+        boolean newJob;
         try {
+            if (scheduler.isInStandbyMode()) {
+                scheduler.resumeAll();
+            }    
+            if (scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event")) != null) {
+                job = scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event"));
+                newJob = false;
+            } else {
+                job = JobBuilder.newJob(ClockEventJob.class)
+                        .withIdentity("Clock-Monitor-Event")
+                        .build();
+                newJob = true;
+            }
+            Trigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
+                    .withIdentity(eventName, "Clock-Monitor-Event") //"Trigger-" + triggerCount
+                    .withDescription(description)
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
+                    .startAt(DateBuilder.futureDate(secondsFromNow, DateBuilder.IntervalUnit.SECOND)).forJob(job) // use DateBuilder to create a date in the future
+                    .build();
+
             //Schedule the job, the clock monitor will then wait for a response.
-            scheduler.scheduleJob(job, trigger);
+            Date nextEvent;
+            if (newJob) {
+                nextEvent = scheduler.scheduleJob(job, trigger);
+            } else {
+                nextEvent = scheduler.scheduleJob(trigger);
+            }
+            Date now = new Date();
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.INFO, "{3} : Added Timed Event: {0} : {1} seconds from now at {2}", new Object[]{eventName, secondsFromNow, nextEvent, now});
+        } catch (SchedulerException ex) {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * This echos out the list of jobs to console.
+     */
+    public void echoJobs() {
+        try {
+            // enumerate each job group
+            for (String group : scheduler.getJobGroupNames()) {
+                // enumerate each job in group
+                for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(group))) {
+                    System.out.println("Found job identified by: " + jobKey);
+                }
+            }
+        } catch (SchedulerException ex) {
+            Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * This echos out the list of triggers to console.
+     */
+    public void echoTriggers() {
+        try {
+            // enumerate each trigger group
+            for (String group : scheduler.getTriggerGroupNames()) {
+                // enumerate each trigger in group
+                for (TriggerKey triggerKey : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(group))) {
+                    System.out.println("Found trigger identified by: " + triggerKey);
+                }
+            }
         } catch (SchedulerException ex) {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }

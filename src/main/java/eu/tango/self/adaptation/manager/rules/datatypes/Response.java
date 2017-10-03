@@ -195,6 +195,15 @@ public class Response implements Comparable<Response> {
         }
         return null;
     }
+    
+    /**
+     * Indicates if an adaptation detail with a given key value exists or not
+     * @param key The key name for the actuation parameter
+     * @return If the adaptation detail is present or not
+     */
+    public boolean hasAdaptationDetail(String key) {
+        return getAdaptationDetail(key) != null && !getAdaptationDetail(key).isEmpty();
+    }    
 
     /**
      * This sets additional information about the adaptation, that might be
