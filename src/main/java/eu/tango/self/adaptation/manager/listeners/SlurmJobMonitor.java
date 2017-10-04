@@ -141,8 +141,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         if (containsTerm(limits, "IDLE_HOST")) {
             answer.addAll(detectRecentIdleHost());
         }
-        if (containsTerm(limits, "APP_FINISHED")) {
-            answer.addAll(detectRecentCompletedApps());
+        if (containsTerm(limits, "APP_STARTED") || containsTerm(limits, "APP_FINISHED")) {
+            List<ApplicationOnHost> appList = datasource.getHostApplicationList();
+            if (containsTerm(limits, "APP_STARTED")) {
+                answer.addAll(detectRecentCompletedApps(appList));
+            }        
+            if (containsTerm(limits, "APP_FINISHED")) {
+                answer.addAll(detectRecentCompletedApps(appList));
+            }
         }
         if (containsTerm(limits, "IDLE_HOST+SUSPENDED_JOB")) {
             answer.addAll(detectIdleHostsWithSuspendedJobs());
@@ -203,11 +209,38 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      *
      * @return The list of events indicating which jobs had finished.
      */
-    private ArrayList<EventData> detectRecentCompletedApps() {
+    private ArrayList<EventData> detectRecentStartedApps(List<ApplicationOnHost> currentRunning) {
         ArrayList<EventData> answer = new ArrayList<>();
-        HashSet<ApplicationOnHost> currentRunning = new HashSet<>(datasource.getHostApplicationList());
         HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);
-        recentFinished.removeAll(currentRunning);
+        HashSet<ApplicationOnHost> recentStarted = new HashSet<>(currentRunning);
+        recentStarted.removeAll(recentFinished);
+        recentStarted.removeAll(runningJobs);
+        for (ApplicationOnHost started : recentStarted) {
+            //return the recently finished applications.
+            EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                0.0,
+                0.0,
+                EventData.Type.WARNING,
+                EventData.Operator.EQ,
+                started.getName(),
+                started.getId() + "",
+                "APP_STARTED",
+                "APP_STARTED");
+                answer.add(event);
+            event.setSignificantOnOwn(true);
+        }        
+        return answer;
+    }    
+    
+    /**
+     * This detects recently finished jobs
+     *
+     * @return The list of events indicating which jobs had finished.
+     */
+    private ArrayList<EventData> detectRecentCompletedApps(List<ApplicationOnHost> apps) {
+        ArrayList<EventData> answer = new ArrayList<>();
+        HashSet<ApplicationOnHost> currentRunning = new HashSet<>(apps);
+        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);  
         for (ApplicationOnHost finished : recentFinished) {
             //return the recently finished applications.
             EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
@@ -226,6 +259,10 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         return answer;
     }
     
+//    private SLALimits getNearBoundaryLimit(String applicaitonName) {
+//        limits.getSlaLimits("App", null); //filter by specific limit name
+//    }
+
     /**
      * This detects hosts that have jobs stuck on them with pending resource
      * requirements.
