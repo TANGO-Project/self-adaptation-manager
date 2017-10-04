@@ -22,6 +22,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,43 @@ import org.json.JSONObject;
 public class AldeActuator extends AbstractActuator {
 
     AldeClient client = new AldeClient();
+    ActuatorInvoker parent = null;
 
+    /**
+     * No-args constructor for the alde actuator
+     */
+    public AldeActuator() {
+    }
+
+    /**
+     * This sets up a parent actuator for the ALDE. This allows in the case that
+     * the ALDE actuator can't perform a particular action to be able to refer 
+     * the action to its parent. Thus allowing for a hierarchy of actuators to 
+     * be constructed.
+     * @param parent The parent actuator of the ALDE actuator.
+     */
+    public AldeActuator(ActuatorInvoker parent) {
+        this.parent = parent;
+    }
+
+    /**
+     * This gets the parent actuator of the ALDE if the ALDE actuator is on its 
+     * own then this value is null.
+     * @return The parent of the ALDE actuator.
+     */
+    public ActuatorInvoker getParent() {
+        return parent;
+    }    
+    
+    /**
+     * This sets the parent actuator of the ALDE if the ALDE actuator is on its 
+     * own then this value is null.
+     * @param parent The parent of the ALDE actuator.
+     */
+    public void setParent(ActuatorInvoker parent) {
+        this.parent = parent;
+    } 
+    
     /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.
@@ -78,17 +115,47 @@ public class AldeActuator extends AbstractActuator {
         response.setPerformed(true);
     }
     
+    /**
+     * This takes the accelerators 
+     * @param name The name of the application to redeploy
+     * @param deploymentId The deployment id of the current application that will be redeployed
+     * @return The Application definition of the application
+     */
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
+        Map<String,Object> selectedConfiguration;
+        Map<String,Object> currentConfiguration = null;
+        //TODO complete reselection of actuators
         ApplicationDefinition appDef = client.getApplicationDefintion(name);
         ArrayList<JSONObject> currentlyDeployed = client.getDeployments();
-        //Need to find a valid configuration
+        //Find a the list of valid configurations
         ArrayList<Map<String,Object>> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
-        //TODO Launch one of the valid configurations
-        //Needs to also delete the current application once the new selection has been made
-        //or does it as a proof of completing quickly enough??
+        selectedConfiguration = selectConfiguration(validConfigurations);
+        Integer executionId = (Integer) selectedConfiguration.get("execution_configuration");
+        //Ensure the configuration selected is a change/improvement
+        if (selectedConfiguration != null && currentConfiguration != null && currentConfiguration != selectedConfiguration) {
+            try {
+                //Delete the current configuration of the application
+                hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
+                //Launch one the best configuration that can be found (fastest/least energy)
+
+                client.executeApplication(executionId);
+            } catch (IOException ex) {
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         return appDef;
+    }
+    
+    /**
+     * This selects from the list of configurations available one that is valid.
+     * @param validConfigurations The list of valid configurations to select from
+     * @return The configuration that should be launched, else it returns null
+     */
+    private Map<String,Object> selectConfiguration(ArrayList<Map<String,Object>> validConfigurations) {
+        //TODO select the best configuration available to run
+        return null;
     }
     
     /**
@@ -99,6 +166,7 @@ public class AldeActuator extends AbstractActuator {
      * @return 
      */
     private ArrayList<Map<String,Object>> removeAlreadyRunningConfigurations(ArrayList<Map<String,Object>> validConfigurations, ArrayList<JSONObject> currentlyDeployed) {
+        //TODO filter out already running configurations
         return validConfigurations;
     }
 
@@ -152,56 +220,89 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public List<ApplicationOnHost> getTasksOnHost(String host) {
+        if (parent != null) {
+            return parent.getTasksOnHost(host);
+        }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public List<ApplicationOnHost> getTasks() {
+        if (parent != null) {
+            return parent.getTasks();
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public ApplicationOnHost getTask(String name, String deployment, int taskId) {
+        if (parent != null) {
+            return parent.getTask(name, deployment, taskId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
+        if (parent != null) {
+            return parent.getTotalPowerUsage(applicationName, deploymentId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
+        if (parent != null) {
+            return parent.getPowerUsageTask(applicationName, deploymentId, taskId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
+        if (parent != null) {
+            return parent.getAveragePowerUsage(applicationName, deploymentId, taskType);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
+        if (parent != null) {
+            return parent.getTaskTypesAvailableToAdd(applicationName, deploymentId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
+        if (parent != null) {
+            return parent.getTaskIdsAvailableToRemove(applicationName, deploymentId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
+        if (parent != null) {
+            parent.hardKillApp(applicationName, deploymentId);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
+        if (parent != null) {
+            parent.addTask(applicationName, deploymentId, taskType);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
+        if (parent != null) {
+            parent.deleteTask(applicationName, deployment, taskID);
+        }        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

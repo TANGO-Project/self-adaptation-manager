@@ -37,6 +37,12 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     private final AldeActuator alde = new AldeActuator();
     private final SlurmActuator slurm = new SlurmActuator();
 
+    /**
+     * No-args constructor
+     */
+    public AldeAndSlurmActuator() {
+    }
+    
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
         return slurm.getApplication(name, deploymentId);
@@ -107,6 +113,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
                 slurm.actuate(response);
                 break;
             case RESELECT_ACCELERATORS:
+                alde.setParent(this);
                 alde.actuate(response);
                 break;
             default:
