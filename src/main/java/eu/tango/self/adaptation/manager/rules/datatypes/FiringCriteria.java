@@ -20,7 +20,10 @@ package eu.tango.self.adaptation.manager.rules.datatypes;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This is the firing criteria for a threshold based event assessor. It contains
@@ -315,10 +318,14 @@ public class FiringCriteria {
      * @return The start time of this firing criteria
      */
     public LocalTime getStartTime() {
-        if (hasParameter("START_TIME")) {
-            return LocalTime.parse(getParameter("START_TIME"));
-        } else 
-            return null;
+        try {
+            if (hasParameter("START_TIME")) {
+                return LocalTime.parse(getParameter("START_TIME"));
+            }
+        } catch (DateTimeParseException ex) {
+            Logger.getLogger(FiringCriteria.class.getName()).log(Level.SEVERE, "The start time did not parse correctly");
+        }
+        return null;
     }
     
     /**
@@ -326,10 +333,14 @@ public class FiringCriteria {
      * @return The end time of this firing criteria
      */
     public LocalTime getEndTime() {
+        try {
         if (hasParameter("END_TIME")) {
             return LocalTime.parse(getParameter("END_TIME"));
-        } else
-            return null;
+            }
+        } catch (DateTimeParseException ex) {
+            Logger.getLogger(FiringCriteria.class.getName()).log(Level.SEVERE, "The end time did not parse correctly");
+        }
+        return null;
     }    
     
     @Override
