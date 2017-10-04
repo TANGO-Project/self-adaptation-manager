@@ -161,9 +161,10 @@ public class AldeActuator extends AbstractActuator {
     /**
      * This filters out applications that are already deployed and running, assuming 
      * they can't be caught up with by another instance of the same deployment.
-     * @param validConfigurations
-     * @param currentlyDeployed
-     * @return 
+     * @param validConfigurations The list of configurations that are possible to run
+     * @param currentlyDeployed The configuration/s that are currently deployed
+     * @return The list of configurations that are deployable and have not as yet
+     * been deployed.
      */
     private ArrayList<Map<String,Object>> removeAlreadyRunningConfigurations(ArrayList<Map<String,Object>> validConfigurations, ArrayList<JSONObject> currentlyDeployed) {
         //TODO filter out already running configurations
@@ -178,6 +179,7 @@ public class AldeActuator extends AbstractActuator {
      * @return The list of configurations that can be launched
      */
     private ArrayList<Map<String,Object>> getValidConfigurations(ApplicationDefinition appDef, boolean toRunNow) {
+        //TODO complete the getValidConfigurations method
         ArrayList<Map<String,Object>> answer = new ArrayList();
         for (int i = 0; i < appDef.getConfigurationsCount(); i++) {
             //Check to see if the configuration is compiled, if not ignore it
