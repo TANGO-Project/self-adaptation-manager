@@ -19,7 +19,10 @@
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import org.encog.util.time.TimeUnit;
 
 /**
  * This is the firing criteria for a threshold based event assessor. It contains
@@ -90,7 +93,7 @@ public class FiringCriteria {
              */
             ApplicationEventData appEvent = (ApplicationEventData) event;
             String appName = appEvent.getApplicationId();
-            if (getParameter("application") != null) {
+            if (hasParameter("application")) {
                 if (!getParameter("application").equals(appName)) {
                     return false;
                 }
@@ -278,6 +281,15 @@ public class FiringCriteria {
             }
         }
         return null;
+    }
+    
+    /**
+     * Indicates if this firing criteria has a particular parameter or not
+     * @param key The parameter to check to see if it is there or not
+     * @return If there are settings attached to this clock event data or not
+     */
+    public boolean hasParameter(String key) {
+        return getParameter(key) != null && !getParameter(key).isEmpty();
     }
 
     /**

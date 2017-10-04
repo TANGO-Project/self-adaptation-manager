@@ -147,7 +147,7 @@ public class ClockEventData extends EventData {
     /**
      * Indicates if this clock event data has a particular setting
      * @param setting The setting to check to see if it is there or not
-     * @return If there are settings attached to this clock event data or not
+     * @return If there is a particular setting attached to this clock event data or not
      */
     public boolean hasSetting(String setting) {
         return getSettingsDetail(setting) != null && !getSettingsDetail(setting).isEmpty();
