@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 /**
@@ -82,6 +83,13 @@ public class FiringCriteria {
             return false;
         }
         if (type != null && !event.getType().equals(type)) {
+            return false;
+        }
+        //Apply tests for start and end times for rules, should the parameter exist
+        if (getStartTime() != null && LocalTime.now().isBefore(getStartTime())) {
+            return false;
+        }
+        if (getEndTime() != null && LocalTime.now().isAfter(getEndTime())) {
             return false;
         }
         if (event instanceof ApplicationEventData) {
@@ -301,7 +309,29 @@ public class FiringCriteria {
     public void setParameters(String parameters) {
         this.parameters = parameters;
     }
-
+    
+    /**
+     * This returns the firing criteria's start time, in a format such as: "12:30:18"
+     * @return The start time of this firing criteria
+     */
+    public LocalTime getStartTime() {
+        if (hasParameter("START_TIME")) {
+            return LocalTime.parse(getParameter("START_TIME"));
+        } else 
+            return null;
+    }
+    
+    /**
+     * This returns the firing criteria's end time, in a format such as: "14:30:00"
+     * @return The end time of this firing criteria
+     */
+    public LocalTime getEndTime() {
+        if (hasParameter("END_TIME")) {
+            return LocalTime.parse(getParameter("END_TIME"));
+        } else
+            return null;
+    }    
+    
     @Override
     public String toString() {
         return "Rule: "
