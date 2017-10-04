@@ -19,10 +19,7 @@
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import org.encog.util.time.TimeUnit;
 
 /**
  * This is the firing criteria for a threshold based event assessor. It contains
