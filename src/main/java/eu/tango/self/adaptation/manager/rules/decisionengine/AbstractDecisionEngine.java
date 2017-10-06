@@ -182,7 +182,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The response object with indication of if the adaptation action is 
      * possible or not.
      */
-    public Response killSimilarApps(Response response) {
+    public Response actOnAlllSimilarApps(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
@@ -198,7 +198,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         List<ApplicationOnHost> tasks = getActuator().getTasks();
         tasks = ApplicationOnHost.filter(tasks, cause.getApplicationId(), -1);
         if (tasks == null || tasks.isEmpty()) {
-            response.setAdaptationDetails("There were no other tasks possible to delete.");
+            response.setAdaptationDetails("There were no other instances of the application to act upon.");
             response.setPossibleToAdapt(false);
             return response;
         }

@@ -51,6 +51,8 @@ public class Response implements Comparable<Response> {
         ADAPTATION_TYPE_MAPPING.put("REMOVE_CPU", Response.AdaptationType.REMOVE_CPU);
         ADAPTATION_TYPE_MAPPING.put("PAUSE_APP", Response.AdaptationType.PAUSE_APP);
         ADAPTATION_TYPE_MAPPING.put("UNPAUSE_APP", Response.AdaptationType.UNPAUSE_APP);
+        ADAPTATION_TYPE_MAPPING.put("PAUSE_SIMILAR_APPS", Response.AdaptationType.PAUSE_SIMILAR_APPS);
+        ADAPTATION_TYPE_MAPPING.put("UNPAUSE_SIMILAR_APPS", Response.AdaptationType.UNPAUSE_SIMILAR_APPS);
         ADAPTATION_TYPE_MAPPING.put("OVERSUBSCRIBE_APP", Response.AdaptationType.OVERSUBSCRIBE_APP);
         ADAPTATION_TYPE_MAPPING.put("EXCLUSIVE_APP", Response.AdaptationType.EXCLUSIVE_APP);
         ADAPTATION_TYPE_MAPPING.put("KILL_APP", Response.AdaptationType.KILL_APP);
@@ -73,7 +75,7 @@ public class Response implements Comparable<Response> {
         INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
         ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS, 
         ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY,
-        PAUSE_APP, UNPAUSE_APP,
+        PAUSE_APP, UNPAUSE_APP, PAUSE_SIMILAR_APPS, UNPAUSE_SIMILAR_APPS,
         OVERSUBSCRIBE_APP, EXCLUSIVE_APP,        
         KILL_APP, HARD_KILL_APP, KILL_SIMILAR_APPS,
         RESELECT_ACCELERATORS,

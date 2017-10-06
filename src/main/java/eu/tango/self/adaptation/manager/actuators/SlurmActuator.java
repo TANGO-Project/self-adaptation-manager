@@ -133,6 +133,7 @@ public class SlurmActuator extends AbstractActuator {
     public void hardKillApp(String applicationName, String deploymentId) {
         execCmd("scancel " + deploymentId);
     }
+    
     /**
      * This takes a named application and kills all instances of it.
      * @param applicationName The name of the application to kill
@@ -143,7 +144,31 @@ public class SlurmActuator extends AbstractActuator {
         for (ApplicationOnHost app : apps) {
             execCmd("scancel " + app.getId());            
         }
-    }    
+    }
+    
+    /**
+     * Pauses all jobs with a given name, so that they can be executed later.
+     * @param applicationName The name of the application to pause
+     */
+    public void pauseSimilarJob(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            pauseJob(applicationName, app.getId() + "");            
+        }
+    }     
+    
+    /**
+     * Un-pauses all jobs with a given name, so that they can be executed later.
+     * @param applicationName The name of the application to pause
+     */
+    public void resumeSimilarJob(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            resumeJob(applicationName, app.getId() + "");            
+        }
+    }        
 
     /**
      * Pauses a job, so that it can be executed later.
@@ -158,7 +183,6 @@ public class SlurmActuator extends AbstractActuator {
          * yet to start running or requires elevated privileges. 
          */
         execCmd("scancel --signal=STOP " + deploymentId);
-        //TODO consider unpausing after a set period of time.
     }
 
     /**
@@ -381,6 +405,12 @@ public class SlurmActuator extends AbstractActuator {
             case UNPAUSE_APP:
                 resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
+            case PAUSE_SIMILAR_APPS:
+                pauseSimilarJob(response.getApplicationId());
+            break;
+            case UNPAUSE_SIMILAR_APPS:
+                resumeSimilarJob(response.getApplicationId());                
+            break;
             case OVERSUBSCRIBE_APP:
                 makeTaskOverSubscribed(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
