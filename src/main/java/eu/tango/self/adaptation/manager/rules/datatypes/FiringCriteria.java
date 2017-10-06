@@ -19,9 +19,12 @@
 package eu.tango.self.adaptation.manager.rules.datatypes;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -95,6 +98,9 @@ public class FiringCriteria {
         if (getEndTime() != null && LocalTime.now().isAfter(getEndTime())) {
             return false;
         }
+        if (getDoWString()!= null && !isTodayInDayOfWeekString(getDoWString())) {
+            return false;
+        }        
         if (event instanceof ApplicationEventData) {
             /**
              * This ensures rules can be targeted at specific applications only.
@@ -269,7 +275,8 @@ public class FiringCriteria {
      * This provides a means in the rule sets to provide this extra parameter
      * information.
      *
-     * @return the parameters
+     * @return the parameters The list of all parameters, unparsed in the format
+     * "X=test;Y=testing"
      */
     public String getParameters() {
         return parameters;
@@ -341,7 +348,49 @@ public class FiringCriteria {
             Logger.getLogger(FiringCriteria.class.getName()).log(Level.SEVERE, "The end time did not parse correctly");
         }
         return null;
+    }
+    
+    /**
+     * This compares a day of the week string, such as "1000000", meaning Monday, 
+     * or "1010000" meaning Monday and Wednesday etc.
+     * @param dowString The day of the week string, representing a bit mask for the day's
+     * of the week a rule should fire.
+     * @return If the rule should fire or not based upon the day of the week.
+     */
+    private boolean isTodayInDayOfWeekString(String dowString) {
+        byte[] array = dowString.getBytes(StandardCharsets.UTF_8);
+        byte[] today = {0,0,0,0,0,0,0};
+        //Note: -2 ensures it fits in the array's range of 0..6 and that monday is the start of the week
+        today[new GregorianCalendar().get(Calendar.DAY_OF_WEEK) - 2] = 1;
+        for (int i = 0; i < 7; i++) {
+            array[i] = (byte) (array[i] - 48);
+        }
+        for (int i = 0; i < 7; i++) {
+            array[i] = (byte) (array[i] & today[i]);             
+        }
+        for (byte u : array) {
+            if (u >= 1) {
+                return true;
+            }
+        }
+        return false;
     }    
+    
+    /**
+     * This returns the firing criteria's day of the week string, such as "1111100"
+     * indicating it should fire from Monday through to Friday. 
+     * @return The day of the week string for this rule.
+     */
+    public String getDoWString() {
+        try {
+        if (hasParameter("DAY_OF_WEEK")) {
+            return getParameter("DAY_OF_WEEK");
+            }
+        } catch (DateTimeParseException ex) {
+            Logger.getLogger(FiringCriteria.class.getName()).log(Level.SEVERE, "The end time did not parse correctly");
+        }
+        return null;
+    }     
     
     @Override
     public String toString() {
