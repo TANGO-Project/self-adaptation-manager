@@ -196,7 +196,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         ApplicationEventData cause = (ApplicationEventData)response.getCause();
         response.setTaskId(cause.getDeploymentId());
         List<ApplicationOnHost> tasks = getActuator().getTasks();
-        ApplicationOnHost.filter(tasks, cause.getApplicationId(), -1);
+        tasks = ApplicationOnHost.filter(tasks, cause.getApplicationId(), -1);
         if (tasks == null || tasks.isEmpty()) {
             response.setAdaptationDetails("There were no other tasks possible to delete.");
             response.setPossibleToAdapt(false);
