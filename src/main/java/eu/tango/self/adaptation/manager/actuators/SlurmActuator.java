@@ -349,8 +349,9 @@ public class SlurmActuator extends AbstractActuator {
     public void checkpointAndRequeue() {
         //Checkpoint is not possible: i.e. as per the command: scontrol checkpoint able 3100
         //scontrol_checkpoint error: Requested operation not supported on this system
-
-        //Uses the slurm command: scontrol checkpoint requue jobid  
+        //Requeing is also not possible as in: scontrol requeue 3100
+        //It says "Requested operation is presently disabled for job 3567"
+        //Uses the slurm command: scontrol checkpoint requeue jobid  
         //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
     }
