@@ -132,9 +132,9 @@ public class AldeActuator extends AbstractActuator {
         //and ensure that they haven't been executed as yet
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
         selectedConfiguration = selectConfiguration(validConfigurations);
-        Integer executionId = (Integer) selectedConfiguration.get("execution_configuration");
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != null && currentConfiguration != selectedConfiguration) {
+            Integer executionId = (Integer) selectedConfiguration.get("execution_configuration");
             try {
                 //Delete the current configuration of the application
                 hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
