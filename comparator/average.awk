@@ -1,20 +1,21 @@
 {
 sum[$5]+=$2
     cnt[$5]++
+    time[$5]+=$3
 }
 
 
 END {
     if ("cpu" in sum) {
-       print "Name" "\t" "Total Energy" "\t" "Count" "\t" "Average Energy" "\t" "Energy Used vs CPU"
+       print "Name" "\t" "Count" "\t" "Total Energy" "\t" "Average Energy" "\t" "Total Time" "\t" "Average Time" "\t" "Energy Used vs CPU" "\t" "Duration vs CPU"
     } else {
-       print "Name" "\t" "Total Energy" "\t" "Count" "\t" "Average Energy" 
+       print "Name" "\t" "Count" "\t" "Total Energy" "\t" "Average Energy" "\t" "Total Time" "\t" "Average Time"
     }   
     for (i in sum) {
         if ("cpu" in sum) {
-          print i "\t" sum[i] "\t" cnt[i] "\t" sum[i]/cnt[i] "\t" ((sum[i]/cnt[i])/(sum["cpu"]/cnt["cpu"]))
+          print i "\t" cnt[i] "\t" sum[i] "\t" sum[i]/cnt[i] "\t" time[i] "\t" time[i]/cnt[i] "\t" ((sum[i]/cnt[i])/(sum["cpu"]/cnt["cpu"])) "\t" ((time[i]/cnt[i])/(time["cpu"]/cnt["cpu"]))
         } else {
-          print i "\t" sum[i] "\t" cnt[i] "\t" sum[i]/cnt[i]
+          print i "\t" cnt[i] "\t" sum[i] "\t" sum[i]/cnt[i] "\t" time[i] "\t" time[i]/cnt[i]
         }
     }  
 
