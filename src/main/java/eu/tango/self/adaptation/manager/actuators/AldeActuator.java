@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONObject;
@@ -155,7 +157,16 @@ public class AldeActuator extends AbstractActuator {
      */
     private Map<String,Object> selectConfiguration(ArrayList<Map<String,Object>> validConfigurations) {
         //TODO select the best configuration available to run
-        return null;
+        if (validConfigurations.isEmpty()) {
+            return null;
+        }
+        Map<String,Object> answer = new HashMap<>();
+        for (Iterator<Map<String, Object>> iterator = validConfigurations.iterator(); iterator.hasNext();) {
+            Map<String, Object> next = iterator.next();
+            //TODO add test for selection here
+            answer = next;
+        }
+        return answer;
     }
     
     /**
