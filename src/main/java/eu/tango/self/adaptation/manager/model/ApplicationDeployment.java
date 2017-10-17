@@ -135,6 +135,15 @@ public class ApplicationDeployment {
     }
     
     /**
+     * This indicates if a key exists within the deployment information
+     * @param key The key to check for its existence.
+     * @return True only if the key exists, otherwise false.
+     */
+    public boolean containsKey(String key) {
+        return deploymentInfo.has(key);
+    }    
+    
+    /**
      * This gets this deployment as a map.
      * @return The deployment as a map of settings.
      */

@@ -232,7 +232,7 @@ public class AldeClient {
         }
     }
 
-    public void executeApplication(int executionId) throws IOException {
+    public void executeApplication(double executionId) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'

@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -26,9 +27,6 @@ import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -124,19 +122,19 @@ public class AldeActuator extends AbstractActuator {
      * @return The Application definition of the application
      */
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
-        Map<String,Object> selectedConfiguration;
-        Map<String,Object> currentConfiguration = null;
+        ApplicationConfiguration selectedConfiguration;
+        ApplicationConfiguration currentConfiguration = null;
         //TODO complete reselection of actuators
         ApplicationDefinition appDef = client.getApplicationDefintion(name);
         ArrayList<ApplicationDeployment> currentlyDeployed = client.getDeployments();
         //Find a the list of valid configurations
-        ArrayList<Map<String,Object>> validConfigurations = getValidConfigurations(appDef, true);
+        ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
         selectedConfiguration = selectConfiguration(validConfigurations);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != null && currentConfiguration != selectedConfiguration) {
-            Integer executionId = (Integer) selectedConfiguration.get("execution_configuration");
+            Double executionId = (Double) selectedConfiguration.getConfigurationsExecutableId();
             try {
                 //Delete the current configuration of the application
                 hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
@@ -155,14 +153,13 @@ public class AldeActuator extends AbstractActuator {
      * @param validConfigurations The list of valid configurations to select from
      * @return The configuration that should be launched, else it returns null
      */
-    private Map<String,Object> selectConfiguration(ArrayList<Map<String,Object>> validConfigurations) {
+    private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations) {
         //TODO select the best configuration available to run
         if (validConfigurations.isEmpty()) {
             return null;
         }
-        Map<String,Object> answer = new HashMap<>();
-        for (Iterator<Map<String, Object>> iterator = validConfigurations.iterator(); iterator.hasNext();) {
-            Map<String, Object> next = iterator.next();
+        ApplicationConfiguration answer = null;
+        for (ApplicationConfiguration next : validConfigurations) {
             //TODO add test for selection here
             answer = next;
         }
@@ -177,7 +174,7 @@ public class AldeActuator extends AbstractActuator {
      * @return The list of configurations that are deployable and have not as yet
      * been deployed.
      */
-    private ArrayList<Map<String,Object>> removeAlreadyRunningConfigurations(ArrayList<Map<String,Object>> validConfigurations, ArrayList<ApplicationDeployment> currentlyDeployed) {
+    private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations, ArrayList<ApplicationDeployment> currentlyDeployed) {
         //TODO filter out already running configurations
         return validConfigurations;
     }
@@ -189,31 +186,32 @@ public class AldeActuator extends AbstractActuator {
      * to see if the current environment is suitable
      * @return The list of configurations that can be launched
      */
-    private ArrayList<Map<String,Object>> getValidConfigurations(ApplicationDefinition appDef, boolean toRunNow) {
+    private ArrayList<ApplicationConfiguration> getValidConfigurations(ApplicationDefinition appDef, boolean toRunNow) {
         //TODO complete the getValidConfigurations method
-        ArrayList<Map<String,Object>> answer = new ArrayList();
+        ArrayList<ApplicationConfiguration> answer = new ArrayList();
         for (int i = 0; i < appDef.getConfigurationsCount(); i++) {
+            ApplicationConfiguration current = appDef.getConfiguration(i);
             //Check to see if the configuration is compiled, if not ignore it
             if (appDef.isConfigurationReady(i)) {
                 continue;
             }
             if (!toRunNow) { //check if further tests for current environment are valid to run
-                answer.add(appDef.getConfiguration(i));
+                answer.add(current);
                 continue;
             }
-            if (appDef.getNodesNeededByConfiguration(i) > 0) {
+            if (current.getNodesNeededByConfiguration() > 0) {
             //Test to see if we have enough nodes available
             }
             //Test to see if it needs GPU acceleration
-            if (appDef.getCpusNeededPerNodeByConfiguration(i) > 0) {
+            if (current.getCpusNeededPerNodeByConfiguration() > 0) {
                 //Test to see if nodes have enough cpus for the instance
             }            
             //Test to see if it needs GPU acceleration
-            if (appDef.getCpusNeededPerNodeByConfiguration(i) > 0) {
+            if (current.getCpusNeededPerNodeByConfiguration() > 0) {
                 //Test candidate has GPUs available to run
                 //Retest these nodes to see if they have enough cpus as well
             }
-            answer.add(appDef.getConfiguration(i));
+            answer.add(current);
         }
         return answer;
     }

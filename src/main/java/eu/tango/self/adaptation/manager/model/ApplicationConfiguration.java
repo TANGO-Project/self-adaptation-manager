@@ -86,9 +86,9 @@ public class ApplicationConfiguration {
      * may be compiled to use different accelerators.
      * @return The id of the executable to be used in the configuration
      */
-    public int getConfigurationsExecutableId() {
+    public double getConfigurationsExecutableId() {
         if (configurationInformation.has("executable_id")) {
-            return (int) configurationInformation.getInt("executable_id");
+            return (double) configurationInformation.getInt("executable_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -147,6 +147,15 @@ public class ApplicationConfiguration {
     public String toString() {
         return configurationInformation.toString();
     }    
+    
+    /**
+     * This indicates if a key exists within the configuration
+     * @param key The key to check for its existence.
+     * @return True only if the key exists, otherwise false.
+     */
+    public boolean containsKey(String key) {
+        return configurationInformation.has(key);
+    }
     
     /**
      * This gets this configuration as a map.
