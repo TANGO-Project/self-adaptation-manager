@@ -70,7 +70,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-    
+
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -97,9 +97,10 @@ public class AldeClient {
         }
         return answer;
     }
-    
+
     /**
      * This gets the application definition of a single application
+     *
      * @param name The name of the application to get
      * @return The definition of the named application
      */
@@ -112,10 +113,12 @@ public class AldeClient {
         }
         return null;
     }
-    
+
     /**
      * This gets the application definition of a single application
-     * @param deployment The application deployment to get the definition object for
+     *
+     * @param deployment The application deployment to get the definition object
+     * for
      * @return The definition of the named application
      */
     public ApplicationDefinition getApplicationDefintion(ApplicationDeployment deployment) {
@@ -126,7 +129,7 @@ public class AldeClient {
             }
         }
         return null;
-    }    
+    }
 
     /**
      * This lists all applications that are deployable by the ALDE
@@ -149,8 +152,23 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
+    } 
+
+    /**
+     * This gets a testbed from its given id value
+     * @param testbedId The testbeds id value
+     * @return The json object containing properties of the testbed
+     */
+    public JSONObject getTestbed(int testbedId) {
+        ArrayList<JSONObject> testbeds = getTestbeds();
+        for (JSONObject testbed : testbeds) {
+            if (testbed.getInt("id") == testbedId) {
+                return testbed;
+            }
+        }
+        return null;
     }
-    
+
     /**
      * This lists all deployments of an applications by the ALDE
      *
@@ -161,7 +179,7 @@ public class AldeClient {
         try {
             /**
              * A deployment holds information such as:
-             * 
+             *
              * {"executable_id":1,
              *  "path":"/home_nfs/home_ejarquej/2022-0203-lddk-d4dco.img",
              *  "testbed_id":1,
@@ -180,7 +198,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
-    }    
+    }
 
     /**
      * This reads the entire contents from a reader and generates a String
@@ -216,8 +234,10 @@ public class AldeClient {
 
     public void executeApplication(int executionId) throws IOException {
         /**
-         * The command that this code replicates:
-         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/execution_configurations/1 -d'{"launch_execution": true}'
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/execution_configurations/1
+         * -d'{"launch_execution": true}'
          */
         JSONObject json = new JSONObject();
         json.put("launch_execution", "true");
