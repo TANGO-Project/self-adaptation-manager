@@ -199,15 +199,15 @@ public class AldeActuator extends AbstractActuator {
                 answer.add(current);
                 continue;
             }
-            if (current.getNodesNeededByConfiguration() > 0) {
+            if (current.getNodesNeeded() > 0) {
             //Test to see if we have enough nodes available
             }
             //Test to see if it needs GPU acceleration
-            if (current.getCpusNeededPerNodeByConfiguration() > 0) {
+            if (current.getCpusNeededPerNode() > 0) {
                 //Test to see if nodes have enough cpus for the instance
             }            
             //Test to see if it needs GPU acceleration
-            if (current.getCpusNeededPerNodeByConfiguration() > 0) {
+            if (current.getGpusNeededPerNode() > 0) {
                 //Test candidate has GPUs available to run
                 //Retest these nodes to see if they have enough cpus as well
             }

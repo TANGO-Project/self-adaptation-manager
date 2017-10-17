@@ -110,7 +110,7 @@ public class ApplicationConfiguration {
      * This gets the count of nodes needed by this configuration
      * @return The number of nodes needed by the configuration
      */
-    public double getNodesNeededByConfiguration() {
+    public double getNodesNeeded() {
         if (configurationInformation.has("num_nodes")) {
             return (double) configurationInformation.getDouble("num_nodes");
         }
@@ -122,7 +122,7 @@ public class ApplicationConfiguration {
      * This gets the count of cpus needed per node by this configuration
      * @return The number of CPUs per node needed by the configuration
      */    
-    public double getCpusNeededPerNodeByConfiguration() {
+    public double getCpusNeededPerNode() {
         if (configurationInformation.has("num_cpus_per_node")) {
             return (double) configurationInformation.getDouble("num_cpus_per_node");
         }
@@ -134,7 +134,7 @@ public class ApplicationConfiguration {
      * This gets the count of GPUs needed per node by this configuration
      * @return The number of GPUs per node needed by the configuration
      */    
-    public double getGpusNeededPerNodeByConfiguration() {
+    public double getGpusNeededPerNode() {
         //Tests to see if the excutable_id belongs to a compiled application
         if (configurationInformation.has("num_gpus_per_node")) {
             return (double) configurationInformation.getDouble("num_gpus_per_node");
