@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -69,7 +70,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -140,16 +141,24 @@ public class AldeClient {
      *
      * @return The list of application deployments known to the ALDE
      */
-    public ArrayList<JSONObject> getDeployments() {
-        ArrayList<JSONObject> answer = new ArrayList<>();
+    public ArrayList<ApplicationDeployment> getDeployments() {
+        ArrayList<ApplicationDeployment> answer = new ArrayList<>();
         try {
+            /**
+             * A deployment holds information such as:
+             * 
+             * {"executable_id":1,
+             *  "path":"/home_nfs/home_ejarquej/2022-0203-lddk-d4dco.img",
+             *  "testbed_id":1,
+             *  "status":"UPLOADED_UPDATED"}
+             */
             JSONObject apps = readJsonFromUrl(baseUri + "deployments");
             JSONArray objects = apps.getJSONArray("objects");
             for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
                 Object next = iterator.next();
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
-                    answer.add(object);
+                    answer.add(new ApplicationDeployment(object));
                 }
             }
         } catch (IOException ex) {

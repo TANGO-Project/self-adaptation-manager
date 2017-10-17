@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
+import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.IOException;
@@ -128,7 +129,7 @@ public class AldeActuator extends AbstractActuator {
         Map<String,Object> currentConfiguration = null;
         //TODO complete reselection of actuators
         ApplicationDefinition appDef = client.getApplicationDefintion(name);
-        ArrayList<JSONObject> currentlyDeployed = client.getDeployments();
+        ArrayList<ApplicationDeployment> currentlyDeployed = client.getDeployments();
         //Find a the list of valid configurations
         ArrayList<Map<String,Object>> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
@@ -177,7 +178,7 @@ public class AldeActuator extends AbstractActuator {
      * @return The list of configurations that are deployable and have not as yet
      * been deployed.
      */
-    private ArrayList<Map<String,Object>> removeAlreadyRunningConfigurations(ArrayList<Map<String,Object>> validConfigurations, ArrayList<JSONObject> currentlyDeployed) {
+    private ArrayList<Map<String,Object>> removeAlreadyRunningConfigurations(ArrayList<Map<String,Object>> validConfigurations, ArrayList<ApplicationDeployment> currentlyDeployed) {
         //TODO filter out already running configurations
         return validConfigurations;
     }
