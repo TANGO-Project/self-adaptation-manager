@@ -18,6 +18,10 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
+import java.util.Map;
 import org.json.JSONObject;
 
 /**
@@ -129,5 +133,19 @@ public class ApplicationDeployment {
     public String toString() {
         return deploymentInfo.toString();
     }
+    
+    /**
+     * This gets this deployment as a map.
+     * @return The deployment as a map of settings.
+     */
+    public Map<String, Object> getDeploymentAsMap() {
+        if (deploymentInfo == null) {
+            return new LinkedTreeMap<>();
+        }
+        Gson gson = new Gson();      
+        String json = deploymentInfo.toString();
+        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+        return map;
+    }     
 
 }
