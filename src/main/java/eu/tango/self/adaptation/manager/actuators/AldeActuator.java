@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 
 /**
  * This actuator interacts with the ALDE, with the aim of querying for
@@ -237,7 +236,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTasksOnHost(host);
         }
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -245,7 +244,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTasks();
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -253,7 +252,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTask(name, deployment, taskId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -261,7 +260,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTotalPowerUsage(applicationName, deploymentId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -269,7 +268,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getPowerUsageTask(applicationName, deploymentId, taskId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -277,7 +276,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getAveragePowerUsage(applicationName, deploymentId, taskType);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -285,7 +284,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTaskTypesAvailableToAdd(applicationName, deploymentId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -293,7 +292,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             return parent.getTaskIdsAvailableToRemove(applicationName, deploymentId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -301,7 +300,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             parent.hardKillApp(applicationName, deploymentId);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -309,7 +308,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             parent.addTask(applicationName, deploymentId, taskType);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -317,7 +316,7 @@ public class AldeActuator extends AbstractActuator {
         if (parent != null) {
             parent.deleteTask(applicationName, deployment, taskID);
         }        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
