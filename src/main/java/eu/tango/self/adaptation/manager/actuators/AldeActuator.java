@@ -123,7 +123,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
         ApplicationConfiguration selectedConfiguration;
-        ApplicationConfiguration currentConfiguration = null;
+        ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
         //TODO complete reselection of actuators
         ApplicationDefinition appDef = client.getApplicationDefintion(name);
         ArrayList<ApplicationDeployment> currentlyDeployed = client.getDeployments();
@@ -139,13 +139,31 @@ public class AldeActuator extends AbstractActuator {
                 //Delete the current configuration of the application
                 hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
                 //Launch one the best configuration that can be found (fastest/least energy)
-
                 client.executeApplication(executionId);
             } catch (IOException ex) {
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return appDef;
+    }
+    
+    /**
+     * This takes a application name and deployment id and determines the 
+     * configuration that was used to launch the application
+     * @param name The application name
+     * @param deploymentId The deployment id of the application
+     * @return The application configuration that was used to launch the application
+     */
+    private ApplicationConfiguration getCurrentConfigurationInUse(String name, String deploymentId) {
+        ApplicationDefinition app = client.getApplicationDefintion(name);
+        //In cases where there is only 1 configuration for the application
+        if (app.getConfigurationsAsMap().size() == 1) {
+            return app.getConfiguration(0);
+        }
+        //In other cases more work has to be done
+        //TODO find mapping from application name and slurm deployment id to get back to ALDE undestood concepts
+        ApplicationConfiguration answer = new ApplicationConfiguration();
+        return answer;
     }
     
     /**
@@ -175,7 +193,17 @@ public class AldeActuator extends AbstractActuator {
      * been deployed.
      */
     private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations, ArrayList<ApplicationDeployment> currentlyDeployed) {
-        //TODO filter out already running configurations
+        ArrayList<ApplicationConfiguration> answer = validConfigurations;
+        for (ApplicationDeployment current : currentlyDeployed) {
+            for(ApplicationConfiguration app : validConfigurations) {
+                //If the configuration is used by a deployment then filter it out
+                //deployments doesn't seem to refer directly to the configuration in use
+                if (app.getConfigurationsExecutableId() == current.getExecutableId() && 
+                        app.getConfigurationsTestbedId() == current.getTestbedId()) {
+                    answer.remove(app);
+                }
+            }
+        }
         return validConfigurations;
     }
 
