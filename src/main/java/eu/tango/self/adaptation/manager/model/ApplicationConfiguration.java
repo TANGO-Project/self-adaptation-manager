@@ -143,6 +143,11 @@ public class ApplicationConfiguration {
         return 0;       
     }
     
+    @Override
+    public String toString() {
+        return configurationInformation.toString();
+    }    
+    
     /**
      * This gets this configuration as a map.
      * @return The configuration as a map of settings.
