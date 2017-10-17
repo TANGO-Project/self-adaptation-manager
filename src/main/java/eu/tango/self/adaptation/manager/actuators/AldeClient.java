@@ -111,6 +111,21 @@ public class AldeClient {
             }
         }
         return null;
+    }
+    
+    /**
+     * This gets the application definition of a single application
+     * @param deployment The application deployment to get the definition object for
+     * @return The definition of the named application
+     */
+    public ApplicationDefinition getApplicationDefintion(ApplicationDeployment deployment) {
+        ArrayList<ApplicationDefinition> allApps = getApplicationDefinitions();
+        for (ApplicationDefinition app : allApps) {
+            if (app.hasExecutable(deployment.getExecutableId())) {
+                return app;
+            }
+        }
+        return null;
     }    
 
     /**

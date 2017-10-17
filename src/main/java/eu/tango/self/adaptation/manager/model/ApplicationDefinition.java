@@ -170,8 +170,8 @@ public class ApplicationDefinition {
      */
     public void setExecutables(JSONArray executables) {
         this.executables = executables;
-    }    
-
+    }
+    
     /**
      * This lists the executables for this application.
      * @return The executables as a json object, the internal representation of the ALDE.
@@ -202,6 +202,21 @@ public class ApplicationDefinition {
         }
         return executables.length();
     }
+    
+    /**
+     * This indicates if this application definition has a given executable id
+     * @return true if and only if the definition object contains an executable
+     * with the named id.
+     */
+    public boolean hasExecutable(double executableId) {
+        ArrayList<Map<String, Object>> executables = getExecutablesAsMap();
+        for (Map<String, Object> executable : executables) {
+            if (executable.get("id").equals(executableId)) {
+                return true;
+            }
+        }
+        return false;
+    }        
     
     /**
      * This gets a specific execution as a map.
