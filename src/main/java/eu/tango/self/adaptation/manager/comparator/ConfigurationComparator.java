@@ -45,8 +45,73 @@ public class ConfigurationComparator {
         ResultsStore answer = compare.averageAndGroup(data, "cpu");
         for (int i = 0; i < answer.size(); i++) {
             System.out.println(answer.getRow(i).toString());
-        }        
+        }
+        System.out.println("-------------------");
+        String energyWinner = compare.getConfigWithLowestEnergy(answer);
+        String timeWinner = compare.getConfigWithLowestTime(answer);
+        System.out.println("Lowest Energy: " + energyWinner);
+        System.out.println("Lowest Time: " + timeWinner);
+        System.out.println("Lowest Energy Ratio: " + compare.getEnergyUsedVsXRatio(answer, energyWinner));
+        System.out.println("Lowest Time Ratio: " + compare.getDurationVsXRatio(answer, timeWinner));
     }
+    
+    /**
+     * This gets the table with the rankings of each configuration
+     * @param applicationName The application name
+     * @param referenceConfig The reference configuration for comparison against
+     * @return The complete set of results.
+     */
+    public ResultsStore compare(String applicationName, String referenceConfig) {
+        ResultsStore data = loadComparisonData();
+        data = filterOnName(data, applicationName);
+        return averageAndGroup(data, referenceConfig);
+    }
+    
+    public String getConfigWithLowestTime(ResultsStore original) {
+        String answer = "";
+        double lowestScore = Double.MAX_VALUE;
+        for (int i = 1; i < original.size(); i++) { //1 skips header
+            double current = Double.parseDouble(original.getElement(i, 5).trim());
+            if (current < lowestScore) {
+                lowestScore = current;
+                answer = original.getElement(i, 0);
+            }
+        }
+        return answer;
+    }
+    
+    public String getConfigWithLowestEnergy(ResultsStore original) {
+        String answer = "";
+        double lowestScore = Double.MAX_VALUE;
+        for (int i = 1; i < original.size(); i++) { //1 skips header
+            double current = Double.parseDouble(original.getElement(i, 3).trim());
+            if (current < lowestScore) {
+                lowestScore = current;
+                answer = original.getElement(i, 0);
+            }
+        }
+        return answer;
+    }
+    
+    public double getEnergyUsedVsXRatio(ResultsStore original, String configId) {
+        for (int i = 1; i < original.size(); i++) { //1 skips header
+            String current = original.getElement(i, 0).trim();
+            if (current.equals(configId)) {
+                return Double.parseDouble(original.getElement(i, 6).trim());
+            }
+        }
+        return Double.NaN;
+    }
+    
+    public double getDurationVsXRatio(ResultsStore original, String configId) {
+        for (int i = 1; i < original.size(); i++) { //1 skips header
+            String current = original.getElement(i, 0).trim();
+            if (current.equals(configId)) {
+                return Double.parseDouble(original.getElement(i, 7).trim());
+            }
+        }
+        return Double.NaN;
+    }    
     
     /**
      * This loads the measurement data by which a decision should be made
@@ -82,7 +147,8 @@ public class ConfigurationComparator {
     
     /**
      * This filters the results data by its name.
-     * @param toAverage
+     * @param toAverage The set of measurements of historic logs.
+     * @param referenceConfig The reference configuration id to compare others against
      * @return 
      */
     public ResultsStore averageAndGroup(ResultsStore toAverage, String referenceConfig) {
