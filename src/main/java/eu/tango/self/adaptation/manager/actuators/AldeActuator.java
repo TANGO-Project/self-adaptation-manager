@@ -138,7 +138,7 @@ public class AldeActuator extends AbstractActuator {
             try {
                 //Delete the current configuration of the application
                 hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
-                //Launch one the best configuration that can be found (fastest/least energy)
+                //Launch the best configuration that can be found (fastest/least energy)
                 client.executeApplication(executionId);
             } catch (IOException ex) {
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
@@ -176,6 +176,11 @@ public class AldeActuator extends AbstractActuator {
         if (validConfigurations.isEmpty()) {
             return null;
         }
+        //It there is only one valid configuration return that option
+        if (validConfigurations.size() == 1) {
+            return validConfigurations.get(0);
+        }
+        //If there is more than one then select one
         ApplicationConfiguration answer = null;
         for (ApplicationConfiguration next : validConfigurations) {
             //TODO add test for selection here

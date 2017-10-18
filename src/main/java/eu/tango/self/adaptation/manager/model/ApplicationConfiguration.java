@@ -156,6 +156,14 @@ public class ApplicationConfiguration {
     public boolean containsKey(String key) {
         return configurationInformation.has(key);
     }
+
+    /**
+     * This returns the application's configuration data's underlying json representation.
+     * @return 
+     */
+    public JSONObject getConfigurationInformation() {
+        return configurationInformation;
+    }
     
     /**
      * This gets this configuration as a map.
@@ -170,6 +178,5 @@ public class ApplicationConfiguration {
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
     }    
-    
-    
+   
 }
