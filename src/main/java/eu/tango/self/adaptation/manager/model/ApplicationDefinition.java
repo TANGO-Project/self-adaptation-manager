@@ -18,12 +18,8 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import java.util.ArrayList;
-import java.util.Map;
 import org.json.JSONArray;
 
 /**
@@ -184,8 +180,8 @@ public class ApplicationDefinition {
      * This lists the executables for this application.
      * @return The executables as a json object, the internal representation of the ALDE.
      */
-    public ArrayList<Map<String, Object>> getExecutablesAsMap() {
-        ArrayList<Map<String, Object>> answer = new ArrayList<>();
+    public ArrayList<ApplicationExecutable> getExecutablesAsMap() {
+        ArrayList<ApplicationExecutable> answer = new ArrayList<>();
         for (int i = 0; i < getExecutablesCount(); i++) {
             answer.add(getExecutable(i));
         }
@@ -210,9 +206,9 @@ public class ApplicationDefinition {
      * with the named id.
      */
     public boolean hasExecutable(double executableId) {
-        ArrayList<Map<String, Object>> executablesMap = getExecutablesAsMap();
-        for (Map<String, Object> executable : executablesMap) {
-            if (executable.get("id").equals(executableId)) {
+        ArrayList<ApplicationExecutable> executablesMap = getExecutablesAsMap();
+        for (ApplicationExecutable executable : executablesMap) {
+            if (executable.getExecutableId() == executableId) {
                 return true;
             }
         }
@@ -224,7 +220,7 @@ public class ApplicationDefinition {
      * @param index The index value of the execution, 0 is the first in the index.
      * @return The executables as a map of settings.
      */
-    public Map<String, Object> getExecutable(double index) {
+    public ApplicationExecutable getExecutable(int index) {
         /**
          * {
          * "executables": [
@@ -244,12 +240,9 @@ public class ApplicationDefinition {
          }
          */
         if (executables == null || index >= executables.length()) {
-            return new LinkedTreeMap<>();
-        }        
-        Gson gson = new Gson();       
-        String json = executables.get((int) index).toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
+            return null;
+        }           
+        return new ApplicationExecutable(executables.getJSONObject(index));
     }
     
     /**
@@ -258,10 +251,10 @@ public class ApplicationDefinition {
      * @return If the executable is in a state that is suitable for running
      */
     public boolean isExecutableReady(double index) {
-        Map<String, Object> properties = getExecutable(index);
+        ApplicationExecutable executable = getExecutable((int) index);
         //If the status is set, then the application must be compiled.
-        if (properties.containsKey("status")) {
-            return properties.get("status").equals("COMPILED");
+        if (executable.containsKey("status")) {
+            return executable.getStatus().equals("COMPILED");
         }
         //the default assumption is that it isn't ready.
         return false;
