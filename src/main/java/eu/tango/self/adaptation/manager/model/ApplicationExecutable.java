@@ -115,8 +115,8 @@ public class ApplicationExecutable {
      * This gets the executable file
      * @return The executable file
      */    
-    public String getExecutableFile() {   
-         return getString("executable_file");
+    public String getExecutableFile() {
+        return getString("executable_file");
     }      
     
     /**
@@ -133,7 +133,7 @@ public class ApplicationExecutable {
      */    
     private String getString(String key) {     
         //Tests to see if the excutable_id belongs to a compiled application
-        if (executableInfo.has(key)) {
+        if (executableInfo.has(key) && !executableInfo.isNull(key)) {
             return executableInfo.getString(key);
         }
         return null;       

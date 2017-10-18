@@ -116,7 +116,7 @@ public class Testbed {
      * @return The string represented by a given key
      */    
     private String getString(String key) {
-        if (testbedInfo.has(key)) {
+        if (testbedInfo.has(key) && !testbedInfo.isNull(key)) {
             return testbedInfo.getString(key);
         }
         return null;       
