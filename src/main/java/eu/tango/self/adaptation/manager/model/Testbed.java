@@ -21,7 +21,9 @@ package eu.tango.self.adaptation.manager.model;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
+import java.util.ArrayList;
 import java.util.Map;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -109,7 +111,22 @@ public class Testbed {
         }
         //the default assumption is true.
         return true;        
-    }    
+    }
+    
+    /**
+     * This lists the nodes that are available in the testbed.
+     * @return The list of nodes available in the testbed.
+     */
+    public ArrayList<String> getNodes() {
+        ArrayList<String> answer = new ArrayList<>();
+        if (testbedInfo.has("nodes")) {
+            JSONArray array = testbedInfo.getJSONArray("nodes");
+            for(int i = 0; i < array.length(); i++) {
+                answer.add(array.getString(i));
+            }
+        }
+        return answer;  
+    }
     
     /**
      * This gets the string representation of a given key value
