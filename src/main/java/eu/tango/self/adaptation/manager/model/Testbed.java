@@ -82,9 +82,9 @@ public class Testbed {
      * This gets the id of the testbed
      * @return The id of the testbed
      */
-    public double getTestbedId() {
+    public int getTestbedId() {
         if (testbedInfo.has("id")) {
-            return (double) testbedInfo.getInt("id");
+            return testbedInfo.getInt("id");
         }
         //the default assumption is zero.
         return 0;        

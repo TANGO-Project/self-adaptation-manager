@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.Testbed;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -136,8 +137,8 @@ public class AldeClient {
      *
      * @return The list of applications known to the ALDE
      */
-    public ArrayList<JSONObject> getTestbeds() {
-        ArrayList<JSONObject> answer = new ArrayList<>();
+    public ArrayList<Testbed> getTestbeds() {
+        ArrayList<Testbed> answer = new ArrayList<>();
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "testbeds");
             JSONArray objects = apps.getJSONArray("objects");
@@ -145,7 +146,7 @@ public class AldeClient {
                 Object next = iterator.next();
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
-                    answer.add(object);
+                    answer.add(new Testbed(object));
                 }
             }
         } catch (IOException ex) {
@@ -159,10 +160,10 @@ public class AldeClient {
      * @param testbedId The testbeds id value
      * @return The json object containing properties of the testbed
      */
-    public JSONObject getTestbed(int testbedId) {
-        ArrayList<JSONObject> testbeds = getTestbeds();
-        for (JSONObject testbed : testbeds) {
-            if (testbed.getInt("id") == testbedId) {
+    public Testbed getTestbed(int testbedId) {
+        ArrayList<Testbed> testbeds = getTestbeds();
+        for (Testbed testbed : testbeds) {
+            if (testbed.getTestbedId() == testbedId) {
                 return testbed;
             }
         }
