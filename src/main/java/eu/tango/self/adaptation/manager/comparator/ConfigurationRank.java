@@ -18,9 +18,6 @@
  */
 package eu.tango.self.adaptation.manager.comparator;
 
-import java.io.Serializable;
-import java.util.Comparator;
-
 /**
  * This records the output of the configuration comparison methods. presenting
  * the data in a consistent fashion.
@@ -107,10 +104,10 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
 
     @Override
     public String toString() {
-        return configName + " : " + recordCount + " : "
-                + totalEnergy + " : " + getAverageEnergy() + " : "
-                + totalTime + " : " + getAverageTime() + " : "
-                + EnergyUsedVsReference + " : " + DurationVsReference;
+        return configName + " : Count: " + ((int) recordCount) + " : Total Energy: "
+                + totalEnergy + " : Avg Energy: " + getAverageEnergy() + " : Total Time: "
+                + totalTime + " : Avg Time: " + getAverageTime() + " : Energy vs Reference: "
+                + EnergyUsedVsReference + " : Duration vs Reference: " + DurationVsReference;
     }
 
     @Override

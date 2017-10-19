@@ -43,11 +43,7 @@ public class ConfigurationComparator {
             System.out.println(data.getRow(i).toString());
         }
         System.out.println("-------------------");
-        ResultsStore answer = compare.averageAndGroup(data, "cpu");
-        for (int i = 0; i < answer.size(); i++) {
-            System.out.println(answer.getRow(i).toString());
-        }
-        System.out.println("-------------------");
+        ArrayList<ConfigurationRank> answer = compare.averageAndGroup(data, "cpu");
         String energyWinner = compare.getConfigWithLowestEnergy(answer);
         String timeWinner = compare.getConfigWithLowestTime(answer);
         System.out.println("Lowest Energy: " + energyWinner);
@@ -55,7 +51,7 @@ public class ConfigurationComparator {
         System.out.println("Lowest Energy Ratio: " + compare.getEnergyUsedVsXRatio(answer, energyWinner));
         System.out.println("Lowest Time Ratio: " + compare.getDurationVsXRatio(answer, timeWinner));
         System.out.println("--------- Energy ----------");
-        ArrayList<ConfigurationRank> rank = compare.toConfigRankArray(compare.compare("Benchmark", "cpu"));
+        ArrayList<ConfigurationRank> rank = compare.compare("Benchmark", "cpu");
         rank.sort(new EnergyComparator());
         for (ConfigurationRank item : rank) {
             System.out.println(item.toString());
@@ -74,7 +70,7 @@ public class ConfigurationComparator {
      * @param referenceConfig The reference configuration for comparison against
      * @return The complete set of results.
      */
-    public ResultsStore compare(String applicationName, String referenceConfig) {
+    public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig) {
         ResultsStore data = loadComparisonData();
         data = filterOnName(data, applicationName);
         return averageAndGroup(data, referenceConfig);
@@ -85,14 +81,14 @@ public class ConfigurationComparator {
      * @param original The set of results from which to select
      * @return The id of the configuration with the lowest completion time
      */
-    public String getConfigWithLowestTime(ResultsStore original) {
+    public String getConfigWithLowestTime(ArrayList<ConfigurationRank> original) {
         String answer = "";
         double lowestScore = Double.MAX_VALUE;
-        for (int i = 1; i < original.size(); i++) { //1 skips header
-            double current = Double.parseDouble(original.getElement(i, 5).trim());
+        for (ConfigurationRank item : original) {
+            double current = item.getAverageTime();
             if (current < lowestScore) {
                 lowestScore = current;
-                answer = original.getElement(i, 0);
+                answer = item.getConfigName();
             }
         }
         return answer;
@@ -104,14 +100,14 @@ public class ConfigurationComparator {
      * @param original The set of results from which to select
      * @return The id of the configuration with the lowest completion time
      */    
-    public String getConfigWithLowestEnergy(ResultsStore original) {
+    public String getConfigWithLowestEnergy(ArrayList<ConfigurationRank> original) {
         String answer = "";
         double lowestScore = Double.MAX_VALUE;
-        for (int i = 1; i < original.size(); i++) { //1 skips header
-            double current = Double.parseDouble(original.getElement(i, 3).trim());
+        for (ConfigurationRank item : original) {
+            double current = item.getAverageEnergy();
             if (current < lowestScore) {
                 lowestScore = current;
-                answer = original.getElement(i, 0);
+                answer = item.getConfigName();
             }
         }
         return answer;
@@ -124,14 +120,25 @@ public class ConfigurationComparator {
      * @param configId The configuration to recover the energy usage ratio for
      * @return The configurations energy usage as compared to a baseline
      */
-    public double getEnergyUsedVsXRatio(ResultsStore original, String configId) {
-        for (int i = 1; i < original.size(); i++) { //1 skips header
-            String current = original.getElement(i, 0).trim();
+    public double getEnergyUsedVsXRatio(ArrayList<ConfigurationRank> original, String configId) {
+        for (ConfigurationRank item : original) {
+            String current = item.getConfigName().trim();
             if (current.equals(configId)) {
-                return Double.parseDouble(original.getElement(i, 6).trim());
+                return item.getEnergyUsedVsReference();
             }
         }
         return Double.NaN;
+    }
+    
+    /**
+     * Indicates if an energy or time reference value is better than the target 
+     * reference. e.g. the reference might be the currently running case, thus
+     * only configurations that are better than the reference should be selected.
+     * @param xVsYRatio
+     * @return 
+     */
+    public boolean isBetterThanReference(double xVsYRatio) {
+        return (xVsYRatio < 1);
     }
 
     /**
@@ -141,11 +148,11 @@ public class ConfigurationComparator {
      * @param configId The configuration to recover the energy usage ratio for
      * @return The configurations energy usage as compared to a baseline
      */    
-    public double getDurationVsXRatio(ResultsStore original, String configId) {
-        for (int i = 1; i < original.size(); i++) { //1 skips header
-            String current = original.getElement(i, 0).trim();
+    public double getDurationVsXRatio(ArrayList<ConfigurationRank> original, String configId) {
+        for (ConfigurationRank item : original) {
+            String current = item.getConfigName().trim();
             if (current.equals(configId)) {
-                return Double.parseDouble(original.getElement(i, 7).trim());
+                return item.getDurationVsReference();
             }
         }
         return Double.NaN;
@@ -182,40 +189,19 @@ public class ConfigurationComparator {
         }        
         return answer;
     }
-    
-    private ArrayList<ConfigurationRank> toConfigRankArray(ResultsStore toConvert) {
-        ArrayList<ConfigurationRank> answer = new ArrayList<>();
-        for (int i = 1; i < toConvert.size(); i++) {    
-            answer.add(new ConfigurationRank(toConvert.getElement(i, 0),
-                    Double.parseDouble(toConvert.getElement(i, 1).trim()), 
-                    Double.parseDouble(toConvert.getElement(i, 2).trim()), 
-                    Double.parseDouble(toConvert.getElement(i, 4)), 
-                    Double.parseDouble(toConvert.getElement(i, 6)),
-                    Double.parseDouble(toConvert.getElement(i, 7))));
-        }
-        return answer;
-    }
-    
+
     /**
      * This filters the results data by its name.
      * @param toAverage The set of measurements of historic logs.
      * @param referenceConfig The reference configuration id to compare others against
      * @return 
      */
-    private ResultsStore averageAndGroup(ResultsStore toAverage, String referenceConfig) {
+    private ArrayList<ConfigurationRank> averageAndGroup(ResultsStore toAverage, String referenceConfig) {
         /**
          * To Average input row = (name, energy used, time used, job id, config id)
          * example: (Benchmark,9844,122,3604,cpu)
          */
-        ResultsStore answer = new ResultsStore();
-        answer.add("Name");
-        answer.append("Count");
-        answer.append("Total Energy");
-        answer.append("Average Energy");
-        answer.append("Total Time");
-        answer.append("Average Time");
-        answer.append("Energy Used vs CPU"); //vs configuration 1?? any one config will do
-        answer.append("Duration vs CPU");
+        ArrayList<ConfigurationRank> answer = new ArrayList<>();
         HashMap<String, Double> count = new HashMap<>(); //count double
         HashMap<String, Double> energy = new HashMap<>(); //J
         HashMap<String, Integer> time = new HashMap<>(); //s
@@ -234,17 +220,12 @@ public class ConfigurationComparator {
             }
         }
         for (Map.Entry<String, Double> item : count.entrySet()) {
-            answer.add(item.getKey());
             double countVal = item.getValue();
             double energyVal = energy.get(item.getKey());
             double timeVal = time.get(item.getKey());
-            answer.append(item.getValue());
-            answer.append(energyVal + "");
-            answer.append(energyVal / countVal + "");
-            answer.append(timeVal + "");
-            answer.append(timeVal / countVal + "");
-            answer.append((energyVal/countVal)/(energy.get(referenceConfig)/count.get(referenceConfig)));
-            answer.append((timeVal/countVal)/(time.get(referenceConfig)/count.get(referenceConfig)));
+            answer.add(new ConfigurationRank(item.getKey(), countVal, energyVal, timeVal, 
+                    (energyVal/countVal)/(energy.get(referenceConfig)/count.get(referenceConfig)),
+                    (timeVal/countVal)/(time.get(referenceConfig)/count.get(referenceConfig))));
         }
         return answer;
     }
