@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.comparator;
 
 import eu.ascetic.ioutils.io.ResultsStore;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +54,18 @@ public class ConfigurationComparator {
         System.out.println("Lowest Time: " + timeWinner);
         System.out.println("Lowest Energy Ratio: " + compare.getEnergyUsedVsXRatio(answer, energyWinner));
         System.out.println("Lowest Time Ratio: " + compare.getDurationVsXRatio(answer, timeWinner));
+        System.out.println("--------- Energy ----------");
+        ArrayList<ConfigurationRank> rank = compare.toConfigRankArray(compare.compare("Benchmark", "cpu"));
+        rank.sort(new EnergyComparator());
+        for (ConfigurationRank item : rank) {
+            System.out.println(item.toString());
+        }
+        //Time
+        System.out.println("--------- Time ----------");
+        rank.sort(new TimeComparator());
+        for (ConfigurationRank item : rank) {
+            System.out.println(item.toString());
+        }        
     }
     
     /**
@@ -67,6 +80,11 @@ public class ConfigurationComparator {
         return averageAndGroup(data, referenceConfig);
     }
     
+    /**
+     * This returns the configuration which completes the fastest
+     * @param original The set of results from which to select
+     * @return The id of the configuration with the lowest completion time
+     */
     public String getConfigWithLowestTime(ResultsStore original) {
         String answer = "";
         double lowestScore = Double.MAX_VALUE;
@@ -80,6 +98,12 @@ public class ConfigurationComparator {
         return answer;
     }
     
+    /**
+     * This returns the configuration which on completion uses the lowest amount
+     * of energy.
+     * @param original The set of results from which to select
+     * @return The id of the configuration with the lowest completion time
+     */    
     public String getConfigWithLowestEnergy(ResultsStore original) {
         String answer = "";
         double lowestScore = Double.MAX_VALUE;
@@ -93,6 +117,13 @@ public class ConfigurationComparator {
         return answer;
     }
     
+    /**
+     * This gets for a given configuration the ratio between energy usage in 
+     * comparison to the baseline configuration
+     * @param original The set of results from which to select
+     * @param configId The configuration to recover the energy usage ratio for
+     * @return The configurations energy usage as compared to a baseline
+     */
     public double getEnergyUsedVsXRatio(ResultsStore original, String configId) {
         for (int i = 1; i < original.size(); i++) { //1 skips header
             String current = original.getElement(i, 0).trim();
@@ -102,7 +133,14 @@ public class ConfigurationComparator {
         }
         return Double.NaN;
     }
-    
+
+    /**
+     * This gets for a given configuration the ratio between completion time in 
+     * comparison to the baseline configuration
+     * @param original The set of results from which to select
+     * @param configId The configuration to recover the energy usage ratio for
+     * @return The configurations energy usage as compared to a baseline
+     */    
     public double getDurationVsXRatio(ResultsStore original, String configId) {
         for (int i = 1; i < original.size(); i++) { //1 skips header
             String current = original.getElement(i, 0).trim();
@@ -117,7 +155,7 @@ public class ConfigurationComparator {
      * This loads the measurement data by which a decision should be made
      * @return 
      */
-    public ResultsStore loadComparisonData() {
+    private ResultsStore loadComparisonData() {
         ResultsStore comparisonData = new ResultsStore("Measurements.csv");
         comparisonData.load();
         for (int i = 0; i < comparisonData.size(); i++) {
@@ -134,7 +172,7 @@ public class ConfigurationComparator {
      * @param applicationName The application name to filter against
      * @return 
      */
-    public ResultsStore filterOnName(ResultsStore toFilter, String applicationName) {
+    private ResultsStore filterOnName(ResultsStore toFilter, String applicationName) {
         ResultsStore answer = new ResultsStore();       
         for (int i = 0; i < toFilter.size(); i++) {
             //First element is name
@@ -145,13 +183,26 @@ public class ConfigurationComparator {
         return answer;
     }
     
+    private ArrayList<ConfigurationRank> toConfigRankArray(ResultsStore toConvert) {
+        ArrayList<ConfigurationRank> answer = new ArrayList<>();
+        for (int i = 1; i < toConvert.size(); i++) {    
+            answer.add(new ConfigurationRank(toConvert.getElement(i, 0),
+                    Double.parseDouble(toConvert.getElement(i, 1).trim()), 
+                    Double.parseDouble(toConvert.getElement(i, 2).trim()), 
+                    Double.parseDouble(toConvert.getElement(i, 4)), 
+                    Double.parseDouble(toConvert.getElement(i, 6)),
+                    Double.parseDouble(toConvert.getElement(i, 7))));
+        }
+        return answer;
+    }
+    
     /**
      * This filters the results data by its name.
      * @param toAverage The set of measurements of historic logs.
      * @param referenceConfig The reference configuration id to compare others against
      * @return 
      */
-    public ResultsStore averageAndGroup(ResultsStore toAverage, String referenceConfig) {
+    private ResultsStore averageAndGroup(ResultsStore toAverage, String referenceConfig) {
         /**
          * To Average input row = (name, energy used, time used, job id, config id)
          * example: (Benchmark,9844,122,3604,cpu)
