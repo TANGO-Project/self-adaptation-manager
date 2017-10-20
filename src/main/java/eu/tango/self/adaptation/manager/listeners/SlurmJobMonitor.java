@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.listeners;
 
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.TangoEnvironmentDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.actuators.SlurmActuator;
@@ -46,13 +47,35 @@ import java.util.logging.Logger;
 public class SlurmJobMonitor implements EventListener, Runnable {
 
     private EventAssessor eventAssessor;
-    private final HostDataSource datasource = new SlurmDataSourceAdaptor();
+    private final HostDataSource datasource;
     private boolean running = false;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
 
+    /**
+     * no-args constructor, uses a Slurm data source to drive the job monitor
+     */
     public SlurmJobMonitor() {
+        datasource = new SlurmDataSourceAdaptor();
+    }
+
+    /**
+     * This creates a slurm job monitor that has a named data source. Thus it allows
+     * the job monitor to share the same instance/connection as other monitoring 
+     * components.
+     * @param datasource Either a slurm data source adaptor or tango based adaptor.
+     */
+    public SlurmJobMonitor(HostDataSource datasource) {
+        if (datasource == null) {
+            this.datasource = new SlurmDataSourceAdaptor();
+            return;
+        }
+        if (datasource instanceof SlurmDataSourceAdaptor || datasource instanceof TangoEnvironmentDataSourceAdaptor) {
+            this.datasource = datasource;
+        } else {
+            this.datasource = new SlurmDataSourceAdaptor();
+        }
     }
 
     @Override

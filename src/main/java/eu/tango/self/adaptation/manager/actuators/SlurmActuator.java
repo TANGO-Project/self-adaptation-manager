@@ -41,9 +41,21 @@ import java.util.logging.Logger;
  */
 public class SlurmActuator extends AbstractActuator {
 
-    private final SlurmDataSourceAdaptor datasource = new SlurmDataSourceAdaptor();
+    private final SlurmDataSourceAdaptor datasource;
     private final EnergyModeller modeller = EnergyModeller.getInstance();
 
+    public SlurmActuator() {
+        datasource = new SlurmDataSourceAdaptor();
+    }
+
+    public SlurmActuator(SlurmDataSourceAdaptor datasource) {  
+            if (datasource == null) {
+            this.datasource = new SlurmDataSourceAdaptor();
+            return;
+        }
+        this.datasource = datasource;
+    }
+    
     @Override
     public ApplicationDefinition getApplication(String applicationName, String deploymentId) {
         /**

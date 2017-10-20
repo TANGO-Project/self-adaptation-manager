@@ -18,6 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.datasourceclient.HostDataSource;
+import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.TangoEnvironmentDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
@@ -43,14 +46,27 @@ import java.util.logging.Logger;
 public class AldeActuator extends AbstractActuator {
 
     AldeClient client = new AldeClient();
+    private final HostDataSource datasource;    
     ActuatorInvoker parent = null;
 
     /**
      * No-args constructor for the alde actuator
      */
     public AldeActuator() {
+        datasource = new TangoEnvironmentDataSourceAdaptor();
     }
 
+    public AldeActuator(HostDataSource datasource) {
+        if (datasource == null) {
+            this.datasource = new TangoEnvironmentDataSourceAdaptor();
+            return;
+        }
+        if (datasource instanceof SlurmDataSourceAdaptor || datasource instanceof TangoEnvironmentDataSourceAdaptor) {
+            this.datasource = datasource;
+        } else {
+            this.datasource = new TangoEnvironmentDataSourceAdaptor();
+        }
+    }
     /**
      * This sets up a parent actuator for the ALDE. This allows in the case that
      * the ALDE actuator can't perform a particular action to be able to refer 
@@ -60,6 +76,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public AldeActuator(ActuatorInvoker parent) {
         this.parent = parent;
+        datasource = new TangoEnvironmentDataSourceAdaptor();        
     }
 
     /**
@@ -242,8 +259,9 @@ public class AldeActuator extends AbstractActuator {
             }
             //TODO consider if the testbed has the dynamic information avaiable, or is it just static
             Testbed testbed = client.getTestbed(current.getConfigurationsTestbedId());
-            if (current.getNodesNeeded() > 0) {
-            //Test to see if we have enough nodes available
+            if (current.getNodesNeeded() > 0 && testbed.getNodes().size() < current.getNodesNeeded()) {
+                //TODO make test for available nodes not nodes at all
+                continue;
             }
             //Test to see if it needs GPU acceleration
             if (current.getCpusNeededPerNode() > 0) {

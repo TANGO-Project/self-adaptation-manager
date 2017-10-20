@@ -18,6 +18,8 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.datasourceclient.HostDataSource;
+import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -29,19 +31,34 @@ import java.util.logging.Logger;
  * An actuator that merges the usage of SLURM and the ALDE. The actuator most
  * appropriate to perform a given type of actuation is used.
  *
- * @TODO Add calls to ALDE when the alde develops further.
  * @author Richard Kavanagh
  */
 public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
 
-    private final AldeActuator alde = new AldeActuator();
-    private final SlurmActuator slurm = new SlurmActuator();
+    private final AldeActuator alde;
+    private final SlurmActuator slurm;
 
     /**
      * No-args constructor
      */
     public AldeAndSlurmActuator() {
+        alde = new AldeActuator();
+        slurm = new SlurmActuator();
     }
+    
+    /**
+     * This constructor can be used to share a datasource among actuators.
+     * @param datasource
+     */
+    public AldeAndSlurmActuator(HostDataSource datasource) {
+        if (datasource instanceof SlurmDataSourceAdaptor) {
+            slurm = new SlurmActuator((SlurmDataSourceAdaptor) datasource);
+        } else {
+            slurm = new SlurmActuator();
+        }
+        alde = new AldeActuator(datasource);
+    }    
+    
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
