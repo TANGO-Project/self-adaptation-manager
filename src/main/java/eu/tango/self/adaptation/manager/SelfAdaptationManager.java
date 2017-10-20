@@ -79,7 +79,7 @@ public class SelfAdaptationManager {
         listener.setEventAssessor(eventAssessor);    
         listeners.add(listener);
         //Add the slurm job monitor
-        listener = new SlurmJobMonitor();
+        listener = new SlurmJobMonitor(datasource);
         listener.setEventAssessor(eventAssessor);
         listeners.add(listener);
         //Add the clock monitor
@@ -87,7 +87,7 @@ public class SelfAdaptationManager {
         listener.setEventAssessor(eventAssessor);
         listeners.add(listener);
         //Add the actuator
-        actuator = new AldeAndSlurmActuator();
+        actuator = new AldeAndSlurmActuator(datasource);
         eventAssessor.setActuator(actuator);
         eventAssessor.setListeners(listeners);
     }
