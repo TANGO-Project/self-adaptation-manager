@@ -144,7 +144,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         if (containsTerm(limits, "APP_STARTED") || containsTerm(limits, "APP_FINISHED")) {
             List<ApplicationOnHost> appList = datasource.getHostApplicationList();
             if (containsTerm(limits, "APP_STARTED")) {
-                answer.addAll(detectRecentCompletedApps(appList));
+                answer.addAll(detectRecentStartedApps(appList));
             }        
             if (containsTerm(limits, "APP_FINISHED")) {
                 answer.addAll(detectRecentCompletedApps(appList));
@@ -240,7 +240,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private ArrayList<EventData> detectRecentCompletedApps(List<ApplicationOnHost> apps) {
         ArrayList<EventData> answer = new ArrayList<>();
         HashSet<ApplicationOnHost> currentRunning = new HashSet<>(apps);
-        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);  
+        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);
+        recentFinished.removeAll(currentRunning);
         for (ApplicationOnHost finished : recentFinished) {
             //return the recently finished applications.
             EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
