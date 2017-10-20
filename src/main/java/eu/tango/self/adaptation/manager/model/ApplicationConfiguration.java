@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.model;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
+import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
 
@@ -177,6 +178,22 @@ public class ApplicationConfiguration {
         String json = configurationInformation.toString();
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
-    }    
+    }
+    
+    /**
+     * This selects from a list of configurations the configuration indicated by its id
+     * @param configurations The list of configurations to search through
+     * @param configId The configuration id to select from the list
+     * @return The first configuration found as indicated by its id, otherwise null.
+     */
+    public static ApplicationConfiguration selectConfigurationById(List<ApplicationConfiguration> configurations, int configId) {
+        for (ApplicationConfiguration current : configurations) {
+            if (current.getConfigurationId() == configId) {
+                return current;
+            }
+        }
+        return null;
+        
+    }
    
 }

@@ -19,9 +19,13 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
+import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
+import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.IOException;
@@ -131,7 +135,7 @@ public class AldeActuator extends AbstractActuator {
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
-        selectedConfiguration = selectConfiguration(validConfigurations);
+        selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != null && currentConfiguration != selectedConfiguration) {
             Double executionId = (Double) selectedConfiguration.getConfigurationsExecutableId();
@@ -169,10 +173,12 @@ public class AldeActuator extends AbstractActuator {
     /**
      * This selects from the list of configurations available one that is valid.
      * @param validConfigurations The list of valid configurations to select from
+     * @param currentConfiguration The current configuration in use, this acts
+     * as a base line to compare all other cases against.
      * @return The configuration that should be launched, else it returns null
      */
-    private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations) {
-        //TODO select the best configuration available to run
+    private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations, ApplicationDefinition appDefintion, ApplicationConfiguration currentConfiguration) {
+        ConfigurationComparator comparator = new ConfigurationComparator();
         if (validConfigurations.isEmpty()) {
             return null;
         }
@@ -182,10 +188,12 @@ public class AldeActuator extends AbstractActuator {
         }
         //If there is more than one then select one
         ApplicationConfiguration answer = null;
-        for (ApplicationConfiguration next : validConfigurations) {
-            //TODO add test for selection here
-            answer = next;
+        ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "");
+        ranked.sort(new EnergyComparator());
+        if (comparator.isBetterThanReference(ranked.get(0).getEnergyUsedVsReference())) {
+            return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
         }
+        //If there is no better solution then return null
         return answer;
     }
     
@@ -232,6 +240,8 @@ public class AldeActuator extends AbstractActuator {
                 answer.add(current);
                 continue;
             }
+            //TODO consider if the testbed has the dynamic information avaiable, or is it just static
+            Testbed testbed = client.getTestbed(current.getConfigurationsTestbedId());
             if (current.getNodesNeeded() > 0) {
             //Test to see if we have enough nodes available
             }
