@@ -81,7 +81,7 @@ public class SlurmActuator extends AbstractActuator {
     @Override
     public double getTotalPowerUsage(String applicationName, String deploymentId) {
         double answer = 0.0;
-        List<ApplicationOnHost> tasks = modeller.getApplication(deploymentId, Integer.parseInt(deploymentId));
+        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
         for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(tasks)) {
             answer = answer + record.getPower();
         }
@@ -110,7 +110,7 @@ public class SlurmActuator extends AbstractActuator {
     @Override
     public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
         List<Integer> answer = new ArrayList<>();
-        List<ApplicationOnHost> tasks = modeller.getApplication(deploymentId, Integer.parseInt(deploymentId));
+        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
         for (ApplicationOnHost task : tasks) {
             //Treat host id as unique id of task/application on a host
             answer.add(task.getAllocatedTo().getId());
