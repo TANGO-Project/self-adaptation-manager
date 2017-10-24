@@ -115,6 +115,27 @@ It can also be values such as: IDLE_HOST, IDLE_HOST+PENDING_JOB, APP_FINISHED or
 APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
 ```
 
+#### CronEvents.csv - This is used to specify a source of Events that are based upon the time. This allows for adaptation to occur to a schedule.
+
+This table has three fields, the Unique Id,Agreement Term and the Cron Statement. An example of this file is shown below.
+
+```
+Unique Id,Agreement Term,Cron Statement
+1,cron_test,0 0/1 * 1/1 * ? *
+```
+
+This fires an event that has the agreement term cron_test, with the cron schedule of triggering every minute. All events triggered by this event can be selected by a rule using the parameters (see rules.csv):
+
+```
+Agreement Term: <as_specified>	
+Direction: EQ
+Event Type: WARNING
+Lower bound: 0
+Upper bound: 0
+```
+
+A cron statement can be written by using guidance from: http://www.cronmaker.com/.
+
 #### rules.csv – Used for the Threshold Event Assessor and Stacked Threshold Event Assessor
 
 This file works in conjunction with the self-adaptation-manager-threshold.properties file. It specifies some basic rules, for adaptation to occur. There are three fields that must exist and are common to both StackedThresholdEventAssessor and the ThresholdEventAssessor. These are: the agreement term, the direction and the response type.
