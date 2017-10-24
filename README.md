@@ -48,7 +48,8 @@ The SAM is highly configurable and can be configured using configuration files t
 
 *self-adaptation-manager.properties* Holds properties such as which event assessor and decision engine to use.  
 *self-adaptation-manager-threshold.properties* -	This holds settings regarding thresholds before a response occurs.  
-*QoSEventCriteria.csv* - This specify the QoS rules that are required to create events
+*QoSEventCriteria.csv* - This specify the QoS rules that are required to create events.  
+*CronEvents.csv* - This specifies events based upon cron rules.  
 *rules.csv* -	This holds the listing of rules used for the StackedThresholdEventAssessor and ThresholdEventAssessor, which indicate how to perform the adaptation, based upon the events that are created.  
 
 These settings must be tailored to the specific infrastructure. The settings are described below and an example of the settings is provided for reference.
@@ -161,7 +162,7 @@ The first is the agreement term. This can either be any value that is monitored 
 
 These special agreement terms such as APP_FINISHED, in the event of a notification being created, generate Warnings with a comparitor of EQ	and guranteed value and actual value of 0.
 
-The next field is the direction, this indicates if the breach value is higher or lower than the metric value specified. The possible values are LT, LTE, EQ, GT, and GTE. I.e. less than, less than or equal, equals, greater than and greater than or equal to. 
+The next field is the direction, this indicates if the breach value is higher or lower than the metric value specified. The possible values are LT, LTE, EQ, GT, and GTE. i.e. less than, less than or equal, equals, greater than and greater than or equal to. 
 
 The final field indicates the response type. The possible values are:  
 
@@ -202,11 +203,15 @@ In this case the “SCALE_TO_N_TASKS” response type is used and count of tasks
 
 Application based events, such as APP_FINISHED, may have in the rules file the parameter specified "application=MY_APP", so that rules only fire when the named application finishes. A valid example of such a rule is:
 
+```
 APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench
+```
 
 All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to monday to friday, 9am to 5pm:
 
-START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100.
+```
+START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100
+```
 
 ## Usage Guide
 
@@ -220,7 +225,7 @@ java -jar self-adaptation-manager.jar
 
 The self-adaptation manager works with: 
 
-* **ALDE** -  The ALDE will provide interfaces for the Self-Adaptation Manager to change the configuration of an application to optimize its execution in a TANGO compatible testbed.
+* **ALDE** - The ALDE will provide interfaces for the Self-Adaptation Manager to change the configuration of an application to optimize its execution in a TANGO compatible testbed.
 * **Device Supervisor** - The SAM can directly interface with the device supervisor as a means of using it as both a datasource for monitoring the environment and for invoking adaptation.
 * **Energy Modeller** - The energy modeller provides guidance to the self-adaptation manager on how much power is being consumed by an application. It also allows for it to determine the effect on power consumption of proposed changes to the applications configuration.
 * **Monitoring Infrastructure** - The SAM can interface with the monitoring infrastructure as a means of using it as a datasource for monitoring the environment.
