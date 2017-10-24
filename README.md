@@ -98,7 +98,7 @@ The file has the following parameters that should be added per each line:
 * Event Type - Indicating on the QoS rule firing if it generates an SLA_BREACH or a WARNING
 * Guarantee Value - The threshold for the guarantee
 
-The agreement term can be more complex than most. It can simply be a term that the monitoring infrastructure reports to the self-adaptation manager. The list of these recongnised terms is printed out in the file when the application first runs: RecognisedTerms.csv.
+The agreement term can be more complex than most. It can simply be a term that the monitoring infrastructure reports to the self-adaptation manager. The list of these recognised terms is printed out in the file when the application first runs: RecognisedTerms.csv.
 
 It is possible to limit these QoS metrics to work against only a single host, following the format:
 
@@ -120,7 +120,7 @@ APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
 
 #### CronEvents.csv - This is used to specify a source of Events that are based upon the time. This allows for adaptation to occur to a schedule.
 
-This table has three fields, the Unique Id,Agreement Term and the Cron Statement. An example of this file is shown below.
+This table has three fields, the Unique Id, Agreement Term and the Cron Statement. An example of this file is shown below.
 
 ```
 Unique Id,Agreement Term,Cron Statement
@@ -162,7 +162,7 @@ The first is the agreement term. This can either be any value that is monitored 
 * APP_FINISHED - This event indicates that a job has finished
 * CLOSE_TO_DEADLINE - This event indicates a job is close to its deadline, (where it will be ejected from the infrastructure).
 
-These special agreement terms such as APP_FINISHED, in the event of a notification being created, generate Warnings with a comparitor of EQ	and guranteed value and actual value of 0.
+These special agreement terms such as APP_FINISHED, in the event of a notification being created, generate Warnings with a comparator of EQ and guaranteed value and actual value of 0.
 
 The next field is the direction, this indicates if the breach value is higher or lower than the metric value specified. The possible values are LT, LTE, EQ, GT, and GTE. i.e. less than, less than or equal, equals, greater than and greater than or equal to. 
 
@@ -209,7 +209,7 @@ Application based events, such as APP_FINISHED, may have in the rules file the p
 APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench
 ```
 
-All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to monday to friday, 9am to 5pm:
+All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to Monday to Friday, 9am to 5pm:
 
 ```
 START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100
