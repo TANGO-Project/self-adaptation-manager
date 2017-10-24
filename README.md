@@ -82,7 +82,9 @@ The field self.adaptation.manager.logging indicates if the EventLog.csv and Resp
 
 This file specifies the threshold of how many similar events must be seen before the SAM reacts. An example is provided below:
 
+```
 self.adaptation.manager.threshold = 0
+```
 
 #### QoSEventCriteria.csv - Used to specify the QoS rules that are required to create Events
 
