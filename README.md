@@ -204,6 +204,9 @@ Application based events, such as APP_FINISHED, may have in the rules file the p
 
 APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench
 
+All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to monday to friday, 9am to 5pm:
+
+START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100.
 
 ## Usage Guide
 
