@@ -22,6 +22,7 @@ import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.TangoEnvironmentDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
@@ -257,26 +258,116 @@ public class AldeActuator extends AbstractActuator {
                 answer.add(current);
                 continue;
             }
-            //TODO consider if the testbed has the dynamic information avaiable, or is it just static
+            //check the testbed is online
             Testbed testbed = client.getTestbed(current.getConfigurationsTestbedId());
-            if (current.getNodesNeeded() > 0 && testbed.getNodes().size() < current.getNodesNeeded()) {
-                //TODO make test for available nodes not nodes at all
+            if (!testbed.isOnline()) {
                 continue;
             }
+            //Test to see if the nodes are available
+            if (current.getNodesNeeded() > 0 && getNodeCount() < current.getNodesNeeded()) {
+                continue;
+            }
+            //Test to see if it a particular amount of cpus is needed.
+//            if (current.getCpusNeededPerNode() > 0 && getCpuNodeCount((int) current.getCpusNeededPerNode()) < current.getCpusNeededPerNode()) {
+//                continue;
+//            }            
             //Test to see if it needs GPU acceleration
-            if (current.getCpusNeededPerNode() > 0) {
-                //Test to see if nodes have enough cpus for the instance
-            }            
-            //Test to see if it needs GPU acceleration
-            if (current.getGpusNeededPerNode() > 0) {
-                //Test candidate has GPUs available to run
+            if (current.getGpusNeededPerNode() > 0 && getGpuNodeCount((int) current.getGpusNeededPerNode()) < current.getNodesNeeded()) {
+                continue;
                 //Retest these nodes to see if they have enough cpus as well
             }
             answer.add(current);
         }
         return answer;
     }
+    
+    /**
+     * This gets the count of GPUs that are currently available.
+     * @return 
+     */
+    protected int getAvailableGpuCount() {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable()) {
+                answer = answer + host.getGpuCount();
+            }
+        }
+        return answer;
+    }
 
+    /**
+     * This gets the count of GPUs that are currently available.
+     * @param minGpus the minimum amount of gpus that are available
+     * @return 
+     */
+    protected int getGpuNodeCount(int minGpus) {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable() && host.getGpuCount() > minGpus) {
+                answer = answer + host.getGpuCount();
+            }
+        }
+        return answer;
+    }    
+    
+    /**
+     * This gets the count of Intel Mics that are currently available.
+     * @return 
+     */
+    protected int getAvailableMicCount() {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable()) {
+                answer = answer + host.getMicCount();
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * This gets the count of Mics that are currently available.
+     * @param minMics the minimum amount of mics that are available
+     * @return 
+     */
+    protected int getMicNodeCount(int minMics) {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable() && host.getMicCount() > minMics) {
+                answer = answer + host.getMicCount();
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * This gets the count of nodes that are currently available.
+     * @return 
+     */
+    protected int getNodeCount() {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable()) {
+                answer = answer + 1;
+            }
+        }
+        return answer;
+    }    
+
+//    TODO - Check to ensure the minimum amount of cpus are available
+//    /**
+//     * This gets the count of Nodes that are currently available, with a given cpu count.
+//     * @return 
+//     */
+//    protected int getNodeCount(int minCpus) {
+//        int answer = 0;
+//        for (Host host : datasource.getHostList()) {
+//            if (host.isAvailable() && host.getCpuCount() > minCpus) {
+//                answer = answer + host.getCpuCount();
+//            }
+//        }
+//        return answer;
+//    }       
+    
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
         ArrayList<ApplicationDefinition> allApps = client.getApplicationDefinitions();
