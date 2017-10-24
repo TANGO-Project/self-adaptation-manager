@@ -268,9 +268,9 @@ public class AldeActuator extends AbstractActuator {
                 continue;
             }
             //Test to see if it a particular amount of cpus is needed.
-//            if (current.getCpusNeededPerNode() > 0 && getCpuNodeCount((int) current.getCpusNeededPerNode()) < current.getCpusNeededPerNode()) {
-//                continue;
-//            }            
+            if (current.getCpusNeededPerNode() > 0 && getCoreNodeCount((int) current.getCpusNeededPerNode()) < current.getCpusNeededPerNode()) {
+                continue;
+            }            
             //Test to see if it needs GPU acceleration
             if (current.getGpusNeededPerNode() > 0 && getGpuNodeCount((int) current.getGpusNeededPerNode()) < current.getNodesNeeded()) {
                 continue;
@@ -353,20 +353,20 @@ public class AldeActuator extends AbstractActuator {
         return answer;
     }    
 
-//    TODO - Check to ensure the minimum amount of cpus are available
-//    /**
-//     * This gets the count of Nodes that are currently available, with a given cpu count.
-//     * @return 
-//     */
-//    protected int getNodeCount(int minCpus) {
-//        int answer = 0;
-//        for (Host host : datasource.getHostList()) {
-//            if (host.isAvailable() && host.getCpuCount() > minCpus) {
-//                answer = answer + host.getCpuCount();
-//            }
-//        }
-//        return answer;
-//    }       
+    /**
+     * This gets the count of Nodes that are currently available, with a given cpu count.
+     * @param minCpus the amount of cpus needed
+     * @return 
+     */
+    protected int getCoreNodeCount(int minCpus) {
+        int answer = 0;
+        for (Host host : datasource.getHostList()) {
+            if (host.isAvailable() && host.getCoreCount() > minCpus) {
+                answer = answer + host.getCoreCount();
+            }
+        }
+        return answer;
+    }       
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
