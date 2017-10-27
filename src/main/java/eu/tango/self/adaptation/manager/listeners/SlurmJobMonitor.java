@@ -220,13 +220,12 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
-                idleHosts = currentIdle;
             }
-
+            idleHosts = currentIdle;
         }
         return answer;
-    }
-
+    }   
+    
     /**
      * This detects recently finished jobs
      *
@@ -402,6 +401,22 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         return answer;
     }    
 
+    /**
+     * This lists the hosts that are in a specified state.
+     *
+     * @return The list of hosts that are in the specified state
+     */
+    private HashSet<Host> getHostInState(String state) {
+        HashSet<Host> answer = new HashSet();
+        List<Host> hosts = datasource.getHostList();
+        for (Host host : hosts) {
+            if (host.getState().equals(state)) {
+                answer.add(host);
+            }
+        }
+        return answer;
+    }    
+    
     /**
      * This lists the hosts that are idle
      *
