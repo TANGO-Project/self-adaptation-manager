@@ -50,7 +50,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private final HostDataSource datasource;
     private boolean running = false;
     private HashSet<Host> idleHosts = new HashSet<>();
-    private HashSet<ApplicationOnHost> runningJobs = new HashSet<>();
+    private HashSet<ApplicationOnHost> runningJobs = null;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
 
     /**
@@ -165,13 +165,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             answer.addAll(detectRecentIdleHost());
         }
         if (containsTerm(limits, "APP_STARTED") || containsTerm(limits, "APP_FINISHED")) {
-            List<ApplicationOnHost> appList = datasource.getHostApplicationList();
-            if (containsTerm(limits, "APP_STARTED")) {
-                answer.addAll(detectRecentStartedApps(appList));
-            }        
-            if (containsTerm(limits, "APP_FINISHED")) {
-                answer.addAll(detectRecentCompletedApps(appList));
-            }
+            answer.addAll(detectAppStartAndEnd(containsTerm(limits, "APP_STARTED"), containsTerm(limits, "APP_FINISHED")));
         }
         if (containsTerm(limits, "IDLE_HOST+SUSPENDED_JOB")) {
             answer.addAll(detectIdleHostsWithSuspendedJobs());
@@ -224,62 +218,68 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             idleHosts = currentIdle;
         }
         return answer;
-    }   
+    }
     
     /**
      * This detects recently finished jobs
      *
      * @return The list of events indicating which jobs had finished.
      */
-    private ArrayList<EventData> detectRecentStartedApps(List<ApplicationOnHost> currentRunning) {
-        ArrayList<EventData> answer = new ArrayList<>();
-        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);
-        HashSet<ApplicationOnHost> recentStarted = new HashSet<>(currentRunning);
-        recentStarted.removeAll(recentFinished);
-        recentStarted.removeAll(runningJobs);
-        for (ApplicationOnHost started : recentStarted) {
-            //return the recently finished applications.
-            EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
-                0.0,
-                0.0,
-                EventData.Type.WARNING,
-                EventData.Operator.EQ,
-                started.getName(),
-                started.getId() + "",
-                "APP_STARTED",
-                "APP_STARTED");
-                answer.add(event);
-            event.setSignificantOnOwn(true);
+    private ArrayList<EventData> detectAppStartAndEnd(boolean startedJobs, boolean finishedJobs) {
+        ArrayList<EventData> eventsList = new ArrayList<>();
+        if (runningJobs == null) {
+        /**
+         * This checks the startup case, where detection doesn't want to 
+         * act just because the SAM started.
+        */                
+            runningJobs = new HashSet<>(datasource.getHostApplicationList());
+            return eventsList;
         }        
-        return answer;
-    }    
-    
-    /**
-     * This detects recently finished jobs
-     *
-     * @return The list of events indicating which jobs had finished.
-     */
-    private ArrayList<EventData> detectRecentCompletedApps(List<ApplicationOnHost> apps) {
-        ArrayList<EventData> answer = new ArrayList<>();
-        HashSet<ApplicationOnHost> currentRunning = new HashSet<>(apps);
-        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(runningJobs);
-        recentFinished.removeAll(currentRunning);
-        for (ApplicationOnHost finished : recentFinished) {
-            //return the recently finished applications.
-            EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
-                0.0,
-                0.0,
-                EventData.Type.WARNING,
-                EventData.Operator.EQ,
-                finished.getName(),
-                finished.getId() + "",
-                "APP_FINISHED",
-                "APP_FINISHED");
-                answer.add(event);
-            event.setSignificantOnOwn(true);
+        List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList();
+        System.out.println("Job Count: " + currentRoundAppList.size());
+        System.out.println("Job Count (Last Round): " + runningJobs.size());
+        HashSet<ApplicationOnHost> firstRound = new HashSet<>(runningJobs);
+        HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);     
+        HashSet<ApplicationOnHost> recentStarted = new HashSet<>(secondRound);
+        recentStarted.removeAll(firstRound); //Remove all jobs that are already running
+        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(firstRound);
+        recentFinished.removeAll(secondRound); //Remove all jobs that are still running
+        if (finishedJobs) {
+            for (ApplicationOnHost finished : recentFinished) {
+                //return the recently finished applications.
+                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                    0.0,
+                    0.0,
+                    EventData.Type.WARNING,
+                    EventData.Operator.EQ,
+                    finished.getName(),
+                    finished.getId() + "",
+                    "APP_FINISHED",
+                    "APP_FINISHED");
+                    eventsList.add(event);
+                event.setSignificantOnOwn(true);
+            }
         }
-        runningJobs = currentRunning;
-        return answer;
+        if (startedJobs) {
+            for (ApplicationOnHost started : recentStarted) {
+                //return the recently finished applications.
+                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                    0.0,
+                    0.0,
+                    EventData.Type.WARNING,
+                    EventData.Operator.EQ,
+                    started.getName(),
+                    started.getId() + "",
+                    "APP_STARTED",
+                    "APP_STARTED");
+                event.setSignificantOnOwn(true);
+                eventsList.add(event);
+            }
+                    
+        }
+        //Ensures the list of currently running jobs is updated.
+        runningJobs = new HashSet<>(currentRoundAppList);        
+        return eventsList;
     }
     
 //    private SLALimits getNearBoundaryLimit(String applicaitonName) {
