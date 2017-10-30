@@ -50,6 +50,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private final HostDataSource datasource;
     private boolean running = false;
     private HashSet<Host> idleHosts = new HashSet<>();
+    private HashSet<Host> failingHosts = new HashSet<>();
+    private HashSet<Host> drainingHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = null;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
 
@@ -176,6 +178,12 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         if (containsTerm(limits, "CLOSE_TO_DEADLINE")) {
             answer.addAll(detectCloseToDeadlineJobs());
         }
+        if (containsTerm(limits, "HOST_FAILURE")) {
+            answer.addAll(detectHostFailure(true));
+        }
+        if (containsTerm(limits, "HOST_DRAIN")) {
+            answer.addAll(detectHostDrain());
+        }                
         //Add next test here
 
         //TODO Consider duration host is idle.
@@ -219,6 +227,70 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
+    
+    /**
+     * This takes the list of hosts and detects if one has recently been set to 
+     * a failure state
+     *
+     * @return An event indicating that a physical host has just become free.
+     */
+    private ArrayList<EventData> detectHostFailure(boolean includeAboutToFail) {
+        ArrayList<EventData> answer = new ArrayList<>();
+        HashSet<Host> failed = getHostInState("failed");
+        if (includeAboutToFail) {
+            HashSet<Host> failing = getHostInState("failing");
+            failed.addAll(failing);
+        }
+        HashSet<Host> recentFailed = new HashSet<>(failed);
+        recentFailed.removeAll(this.failingHosts);
+        if (!recentFailed.isEmpty()) {
+            for (Host idleHost : recentFailed) {
+                //return the list of recently idle hosts.
+                EventData event;
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        "HOST_FAILURE" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
+                        "HOST_FAILURE" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                event.setSignificantOnOwn(true);
+                answer.add(event);
+                this.failingHosts = failed;
+            }
+
+        }
+        return answer;
+    }    
+    
+    /**
+     * This takes the list of hosts and detects if one has recently been set to 
+     * drain.
+     *
+     * @return An event indicating that a physical host has just started to drain.
+     */
+    private ArrayList<EventData> detectHostDrain() {
+        ArrayList<EventData> answer = new ArrayList<>();
+        HashSet<Host> draining = getHostInState("draining");
+        draining.removeAll(this.drainingHosts);
+        if (!draining.isEmpty()) {
+            for (Host idleHost : draining) {
+                //return the list of recently draining hosts.
+                EventData event;
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        "HOST_DRAIN" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
+                        "HOST_DRAIN" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                event.setSignificantOnOwn(true);
+                answer.add(event);
+            }
+            this.drainingHosts = draining;
+        }
+        return answer;
+    } 
     
     /**
      * This detects recently finished jobs
