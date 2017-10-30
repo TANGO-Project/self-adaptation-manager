@@ -63,10 +63,12 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     }
 
     /**
-     * This creates a slurm job monitor that has a named data source. Thus it allows
-     * the job monitor to share the same instance/connection as other monitoring 
-     * components.
-     * @param datasource Either a slurm data source adaptor or tango based adaptor.
+     * This creates a slurm job monitor that has a named data source. Thus it
+     * allows the job monitor to share the same instance/connection as other
+     * monitoring components.
+     *
+     * @param datasource Either a slurm data source adaptor or tango based
+     * adaptor.
      */
     public SlurmJobMonitor(HostDataSource datasource) {
         if (datasource == null) {
@@ -104,18 +106,18 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     public void stopListening() {
         running = false;
     }
-    
+
     @Override
     public boolean isListening() {
         return running;
     }
-    
+
     /**
      * This reloads the SLA criteria held in the slurm job monitor.
      */
     public void reloadLimits() {
         limits.reloadLimits();
-    }    
+    }
 
     @Override
     public void run() {
@@ -171,7 +173,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         if (containsTerm(limits, "IDLE_HOST+SUSPENDED_JOB")) {
             answer.addAll(detectIdleHostsWithSuspendedJobs());
-        }            
+        }
         if (containsTerm(limits, "IDLE_HOST+PENDING_JOB")) {
             answer.addAll(detectIdleHostsWithPendingJobs());
         }
@@ -183,7 +185,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         if (containsTerm(limits, "HOST_DRAIN")) {
             answer.addAll(detectHostDrain());
-        }                
+        }
         //Add next test here
 
         //TODO Consider duration host is idle.
@@ -227,9 +229,9 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
-    
+
     /**
-     * This takes the list of hosts and detects if one has recently been set to 
+     * This takes the list of hosts and detects if one has recently been set to
      * a failure state
      *
      * @return An event indicating that a physical host has just become free.
@@ -261,13 +263,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
 
         }
         return answer;
-    }    
-    
+    }
+
     /**
-     * This takes the list of hosts and detects if one has recently been set to 
+     * This takes the list of hosts and detects if one has recently been set to
      * drain.
      *
-     * @return An event indicating that a physical host has just started to drain.
+     * @return An event indicating that a physical host has just started to
+     * drain.
      */
     private ArrayList<EventData> detectHostDrain() {
         ArrayList<EventData> answer = new ArrayList<>();
@@ -290,8 +293,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             this.drainingHosts = draining;
         }
         return answer;
-    } 
-    
+    }
+
     /**
      * This detects recently finished jobs
      *
@@ -300,18 +303,16 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private ArrayList<EventData> detectAppStartAndEnd(boolean startedJobs, boolean finishedJobs) {
         ArrayList<EventData> eventsList = new ArrayList<>();
         if (runningJobs == null) {
-        /**
-         * This checks the startup case, where detection doesn't want to 
-         * act just because the SAM started.
-        */                
+            /**
+             * This checks the startup case, where detection doesn't want to act
+             * just because the SAM started.
+             */
             runningJobs = new HashSet<>(datasource.getHostApplicationList());
             return eventsList;
-        }        
+        }
         List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList();
-        System.out.println("Job Count: " + currentRoundAppList.size());
-        System.out.println("Job Count (Last Round): " + runningJobs.size());
         HashSet<ApplicationOnHost> firstRound = new HashSet<>(runningJobs);
-        HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);     
+        HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);
         HashSet<ApplicationOnHost> recentStarted = new HashSet<>(secondRound);
         recentStarted.removeAll(firstRound); //Remove all jobs that are already running
         HashSet<ApplicationOnHost> recentFinished = new HashSet<>(firstRound);
@@ -320,15 +321,15 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             for (ApplicationOnHost finished : recentFinished) {
                 //return the recently finished applications.
                 EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
-                    0.0,
-                    0.0,
-                    EventData.Type.WARNING,
-                    EventData.Operator.EQ,
-                    finished.getName(),
-                    finished.getId() + "",
-                    "APP_FINISHED",
-                    "APP_FINISHED");
-                    eventsList.add(event);
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        finished.getName(),
+                        finished.getId() + "",
+                        "APP_FINISHED",
+                        "APP_FINISHED");
+                eventsList.add(event);
                 event.setSignificantOnOwn(true);
             }
         }
@@ -336,28 +337,27 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             for (ApplicationOnHost started : recentStarted) {
                 //return the recently finished applications.
                 EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
-                    0.0,
-                    0.0,
-                    EventData.Type.WARNING,
-                    EventData.Operator.EQ,
-                    started.getName(),
-                    started.getId() + "",
-                    "APP_STARTED",
-                    "APP_STARTED");
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        started.getName(),
+                        started.getId() + "",
+                        "APP_STARTED",
+                        "APP_STARTED");
                 event.setSignificantOnOwn(true);
                 eventsList.add(event);
             }
-                    
+
         }
         //Ensures the list of currently running jobs is updated.
-        runningJobs = new HashSet<>(currentRoundAppList);        
+        runningJobs = new HashSet<>(currentRoundAppList);
         return eventsList;
     }
-    
+
 //    private SLALimits getNearBoundaryLimit(String applicaitonName) {
 //        limits.getSlaLimits("App", null); //filter by specific limit name
 //    }
-
     /**
      * This detects hosts that have jobs stuck on them with pending resource
      * requirements.
@@ -381,7 +381,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
-    
+
     /**
      * This detects hosts that have jobs stuck on them with pending resource
      * requirements.
@@ -400,17 +400,17 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     EventData.Operator.EQ,
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB",
                     "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB");
-           event.setSignificantOnOwn(true); 
+            event.setSignificantOnOwn(true);
             answer.add(event);
         }
         return answer;
-    }    
+    }
 
-    /**    
+    /**
      * This detects jobs that are nearing their deadline.
      *
-     * @return The list of events indicating which jobs are nearing their deadline,
-     * which would cause them to terminate.
+     * @return The list of events indicating which jobs are nearing their
+     * deadline, which would cause them to terminate.
      */
     private ArrayList<EventData> detectCloseToDeadlineJobs() {
         ArrayList<EventData> answer = new ArrayList<>();
@@ -427,11 +427,11 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         "APP_CLOSE_TO_DEADLINE",
                         "APP_CLOSE_TO_DEADLINE");
                 event.setSignificantOnOwn(true);
-                answer.add(event);   
+                answer.add(event);
             }
         }
         return answer;
-    }  
+    }
 
     /**
      * This lists the pending jobs on an idle host. This means the SAM has the
@@ -452,7 +452,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         return answer;
     }
-    
+
     /**
      * This lists the pending jobs on an idle host. This means the SAM has the
      * possibility of detecting this and therefore responding to it. e.g. it
@@ -471,7 +471,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             }
         }
         return answer;
-    }    
+    }
 
     /**
      * This lists the hosts that are in a specified state.
@@ -487,8 +487,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             }
         }
         return answer;
-    }    
-    
+    }
+
     /**
      * This lists the hosts that are idle
      *
