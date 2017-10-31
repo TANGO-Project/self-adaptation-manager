@@ -329,8 +329,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         finished.getId() + "",
                         "APP_FINISHED",
                         "APP_FINISHED");
-                eventsList.add(event);
                 event.setSignificantOnOwn(true);
+                eventsList.add(event);                
             }
         }
         if (startedJobs) {
