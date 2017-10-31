@@ -307,16 +307,20 @@ public class SlurmJobMonitor implements EventListener, Runnable {
              * This checks the startup case, where detection doesn't want to act
              * just because the SAM started.
              */
-            runningJobs = new HashSet<>(datasource.getHostApplicationList());
+            runningJobs = new HashSet<>(datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.RUNNING));
             return eventsList;
         }
-        List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList();
+        //The job status, prevents jobs that have just started and not been allocated creating a starting event 
+        List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.RUNNING);
         HashSet<ApplicationOnHost> firstRound = new HashSet<>(runningJobs);
         HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);
         HashSet<ApplicationOnHost> recentStarted = new HashSet<>(secondRound);
         recentStarted.removeAll(firstRound); //Remove all jobs that are already running
         HashSet<ApplicationOnHost> recentFinished = new HashSet<>(firstRound);
         recentFinished.removeAll(secondRound); //Remove all jobs that are still running
+        //Ensure the sets are disjoint, this helps protect against any errors
+        recentFinished.removeAll(recentStarted);
+        recentStarted.removeAll(recentFinished);
         if (finishedJobs) {
             for (ApplicationOnHost finished : recentFinished) {
                 //return the recently finished applications.
