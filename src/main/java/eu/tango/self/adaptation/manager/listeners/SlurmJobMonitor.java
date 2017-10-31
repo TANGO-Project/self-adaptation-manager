@@ -225,8 +225,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
-            idleHosts = currentIdle;
         }
+        idleHosts = currentIdle;
         return answer;
     }
 
@@ -258,10 +258,9 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         "HOST_FAILURE" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
-                this.failingHosts = failed;
             }
-
         }
+        this.failingHosts = failed;        
         return answer;
     }
 
@@ -290,8 +289,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
-            this.drainingHosts = draining;
         }
+        this.drainingHosts = draining;        
         return answer;
     }
 
@@ -499,11 +498,11 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      * @return The list of hosts that are currently idle
      */
     private HashSet<Host> getIdleHosts() {
-        HashSet<Host> answer = new HashSet(datasource.getHostList());
-        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        for (ApplicationOnHost app : apps) {
-            if (answer.contains(app.getAllocatedTo())) {
-                answer.remove(app.getAllocatedTo());
+        HashSet<Host> answer = new HashSet();
+        List<Host> hosts = datasource.getHostList();
+        for (Host item : hosts) {
+            if (item.getState().trim().equalsIgnoreCase("IDLE")) {
+                answer.add(item);
             }
         }
         return answer;
