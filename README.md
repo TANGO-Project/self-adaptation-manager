@@ -245,6 +245,12 @@ Application based events, such as APP_FINISHED, may have in the rules file the p
 ```
 APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench
 ```
+It is possible once a pause action has been invoked for a timed unpause to take place. This can be seen in the example below. The second line specifies the final action to take once the 1 hour (3600 second) timer has expired. 
+
+```
+app_power:RK-Bench-Test:*,GT,PAUSE_APP,SLA_BREACH,-10000,10000,application=RK-Bench-Test;UNPAUSE=3600
+!app_power:RK-Bench-Test:*,EQ,UNPAUSE_APP,WARNING
+```
 
 All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to Monday to Friday, 9am to 5pm:
 
