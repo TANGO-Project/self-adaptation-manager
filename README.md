@@ -129,6 +129,23 @@ app_power:RK-Bench-Test:*
 
 ```
 
+An example of a complete QoS event file is:
+
+```
+Unique Id,Agreement Term,Comparator,Event Type (SLA_BREACH or WARNING),Guarantee Value
+1,IDLE_HOST,EQ,WARNING,0
+2,APP_FINISHED,EQ,WARNING,0
+3,CLOSE_TO_DEADLINE,EQ,WARNING,0
+4,CPUTot,EQ,WARNING,0
+5,power,GT,SLA_BREACH,400
+6,cpu-measured,GT,WARNING,50
+7,HOST:ns50:cpu-measured,GT,WARNING,1
+8,app_power:COMPSs:*,GT,SLA_BREACH,300
+9,app_power:RK-Bench-Test:*,GT,SLA_BREACH,50
+10,APP_STARTED,EQ,WARNING,0
+```
+
+
 #### CronEvents.csv - This is used to specify a source of Events that are based upon the time. This allows for adaptation to occur to a schedule.
 
 This table has three fields, the Unique Id, Agreement Term and the Cron Statement. An example of this file is shown below.
@@ -184,29 +201,36 @@ The final field indicates the response type. The possible values are:
 
 ```
 INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
+PAUSE_APP, UNPAUSE_APP, PAUSE_SIMILAR_APPS, UNPAUSE_SIMILAR_APPS,
+OVERSUBSCRIBE_APP, EXCLUSIVE_APP,
+KILL_APP, HARD_KILL_APP, KILL_SIMILAR_APPS
+```
+
+There are additional response types planned of:
+
+```
+RESELECT_ACCELERATORS,
 ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS, 
 ADD_CPU, REMOVE_CPU, 
-ADD_MEMORY, REMOVE_MEMORY, 
-PAUSE_APP, UNPAUSE_APP,
-OVERSUBSCRIBE_APP, EXCLUSIVE_APP,
-KILL_APP, HARD_KILL_APP, 
-RESELECT_ACCELERATORS, 
-REDUCE_POWER_CAP, INCREASE_POWER_CAP, 
-SHUTDOWN_HOST, STARTUP_HOST.
+ADD_MEMORY, REMOVE_MEMORY,
+REDUCE_POWER_CAP, INCREASE_POWER_CAP,
+SHUTDOWN_HOST, STARTUP_HOST
 ```
 
 The Stacked Threshold Event assessor has additional optional arguments, which allow for more complex behaviour.
 
 ```
-Agreement Term	Comparator	Response Type	Event Type (Violation or Warning)	Lower bound	Upper bound	Parameters
-energy_usage_per_app	GT	REMOVE_TASK	 	 	 	 
-power_usage_per_app	GT	REMOVE_TASK	 	 	 	 
-energy_usage_per_app	GTE	REMOVE_TASK	 	 	 	 
-power_usage_per_app	GTE	REMOVE_TASK	 	 	 	 
-lower_load_period	EQ	SCALE_TO_N_TASKS	Other	0	1000	TASK_COUNT=1
-higher_load_period	EQ	SCALE_TO_N_TASKS	Other	0	1000	TASK_COUNT=3
-lower_load_period	EQ	SCALE_TO_N_TASK	violation	0	1000	TASK_COUNT=1
-higher_load_period	EQ	SCALE_TO_N_TASKS	violation	0	1000	TASK_COUNT=3
+Agreement Term,Direction,Response Type,Event Type (Violation or Warning),Lower bound,Upper bound,Parameters
+CPUTot,EQ,PAUSE_APP
+IDLE_HOST+ACCELERATED,EQ,UNPAUSE_APP
+cpu-measured,GT,PAUSE_APP
+HOST:ns50:cpu-measured,GT,PAUSE_APP
+APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=RK-Bench-Test
+APP_FINISHED,EQ,KILL_SIMILAR_APPS,WARNING,0,0,application=COMPSs
+app_power:RK-Bench-Test:*,GT,HARD_KILL_APP
+app_power:RK-Bench-Test:*,GT,PAUSE_APP,SLA_BREACH,-10000,10000,application=RK-Bench-Test;UNPAUSE=10
+!app_power:RK-Bench-Test:*,EQ,UNPAUSE_APP,WARNING
+cron_test,EQ,HARD_KILL_APP,WARNING,0,0,application=RK-Bench-Test,START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100
 ```
 
 The additional parameters are: Event Type (Violation or Warning), Lower bound, Upper bound and Parameters. These additional parameters allow for the prospect of having several rules with similar initial parameters of: agreement term, direction, but dependent upon the scale of the violation may have different adaptation responses. 
