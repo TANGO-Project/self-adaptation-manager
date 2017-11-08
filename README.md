@@ -126,10 +126,9 @@ an example of this is:
 
 ```
 app_power:RK-Bench-Test:*
-
 ```
 
-An example of a complete QoS event file is:
+An example of a complete QoS event criteria file is:
 
 ```
 Unique Id,Agreement Term,Comparator,Event Type (SLA_BREACH or WARNING),Guarantee Value
