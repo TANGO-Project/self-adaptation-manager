@@ -172,15 +172,10 @@ A cron statement can be written by using guidance from: http://www.cronmaker.com
 This file specifies the mapping between events and the adaptation that is to occur. These events having previously been specified in the QoSEventCriteria.csv and CronEvents.csv files. This file works in conjunction with the self-adaptation-manager-threshold.properties file, which sets the boundary condition for how many instances of an event must occur before action is taken. The rules file has three fields that must exist and are common to both StackedThresholdEventAssessor and the ThresholdEventAssessor. These are: the agreement term, the direction and the response type.
 
 ```
-Agreement Term	Direction	Response Type
-energy_usage_per_app	LT	REMOVE_TASK
-power_usage_per_app	LT	REMOVE_TASK
-energy_usage_per_app	LTE	REMOVE_TASK
-power_usage_per_app	LTE	REMOVE_TASK
-energy_usage_per_app	GT	ADD_TASK
-power_usage_per_app	GT	ADD_TASK
-energy_usage_per_app	GTE	ADD_TASK
-power_usage_per_app	GTE	ADD_TASK
+Agreement Term	      Direction	   Response Type
+IDLE_HOST+ACCELERATED     EQ        UNPAUSE_APP
+cpu-measured              GT        PAUSE_APP
+HOST:ns50:cpu-measured    GT        PAUSE_APP
 ```
 
 The first is the agreement term. This can be the name of any metric that is provided by the monitored infrastructure. In addition it can be based upon the following specialised events:
