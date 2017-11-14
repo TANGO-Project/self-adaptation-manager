@@ -182,12 +182,12 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The response object with indication of if the adaptation action is 
      * possible or not.
      */
-    public Response actOnAlllSimilarApps(Response response) {
+    public Response actOnAllSimilarApps(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails("Unable to find actuator.");
             response.setPossibleToAdapt(false);
             return response;
-        }
+        }    
         if (!(response.getCause() instanceof ApplicationEventData)) {
             response.setAdaptationDetails("Wrong type of event cause, not an application.");
             response.setPossibleToAdapt(false);

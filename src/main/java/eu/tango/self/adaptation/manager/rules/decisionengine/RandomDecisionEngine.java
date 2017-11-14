@@ -50,8 +50,9 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
                 break;
             case KILL_SIMILAR_APPS:
             case PAUSE_SIMILAR_APPS:
-            case UNPAUSE_SIMILAR_APPS:             
-                actOnAlllSimilarApps(response);
+            case UNPAUSE_SIMILAR_APPS:
+                handleClockEvent(response);                
+                actOnAllSimilarApps(response);
                 break;
             case KILL_APP:
             case HARD_KILL_APP:
@@ -114,11 +115,11 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
      * @return The altered response object, no changes are made if the cause is 
      * not a clock event
      */
-    private Response handleClockEvent(Response response) {
+    private Response handleClockEvent(Response response) {      
         if (response.getCause() instanceof ClockEventData) {
             ClockEventData cause = (ClockEventData) response.getCause(); 
             //The next two if statements deal with call backs, where the original event has settings data attached.
-            if (cause.hasSetting("application")) {
+            if (cause.hasSetting("application")) {             
                 response.setCause(cause.castToApplicationEventData());
                 return response;
             }

@@ -22,7 +22,6 @@ import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
-import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.self.adaptation.manager.rules.decisionengine.DecisionEngine;
 import eu.tango.self.adaptation.manager.rules.decisionengine.RandomDecisionEngine;

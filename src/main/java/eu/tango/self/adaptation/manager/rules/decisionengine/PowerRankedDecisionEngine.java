@@ -45,7 +45,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             case KILL_SIMILAR_APPS:
             case PAUSE_SIMILAR_APPS:
             case UNPAUSE_SIMILAR_APPS:
-                actOnAlllSimilarApps(response);
+                handleClockEvent(response);                
+                actOnAllSimilarApps(response);
                 break;
             case KILL_APP:
             case HARD_KILL_APP:

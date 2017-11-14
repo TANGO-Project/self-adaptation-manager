@@ -63,7 +63,7 @@ public class ThresholdEventAssessor extends AbstractEventAssessor {
             config.setProperty("self.adaptation.manager.threshold", threshold);
             workingDir = config.getString("self.adaptation.manager.working.directory", ".");
         } catch (ConfigurationException ex) {
-            Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.INFO, "Error loading the configuration of the PaaS Self adaptation manager", ex);
+            Logger.getLogger(ThresholdEventAssessor.class.getName()).log(Level.INFO, "Error loading the configuration of the PaaS Self adaptation manager", ex);
         }
         loadRules();
     }
@@ -80,8 +80,12 @@ public class ThresholdEventAssessor extends AbstractEventAssessor {
         //Agreement Term, Guarantee Direction and Response Type
         if (!rulesFile.getResultsFile().exists()) {
             rulesFile.add("Agreement Term");
-            rulesFile.append("Direction");
+            rulesFile.append("Comparator");
             rulesFile.append("Response Type");
+            rulesFile.append("Event Type (Violation or Warning)");
+            rulesFile.append("Lower bound");
+            rulesFile.append("Upper bound");
+            rulesFile.append("Parameters");
             rulesFile.add("energy_usage_per_app");
             rulesFile.append("GT");
             rulesFile.append("REMOVE_TASK");
@@ -115,6 +119,7 @@ public class ThresholdEventAssessor extends AbstractEventAssessor {
         rulesFile = new ResultsStore(workingDir + RULES_FILE);
         writeOutDefaults(rulesFile);        
         rulesFile.load();
+        Logger.getLogger(StackedThresholdEventAssessor.class.getName()).log(Level.INFO, "There are {0} to load.", rulesFile.size());        
         //ignore the header of the file
         for (int i = 1; i < rulesFile.size(); i++) {
             ArrayList<String> current = rulesFile.getRow(i);
@@ -143,8 +148,8 @@ public class ThresholdEventAssessor extends AbstractEventAssessor {
                 rule.setParameters(current.get(6));
                 logString = logString + " Params: " + current.get(6);
             }
-            Logger.getLogger(ThresholdEventAssessor.class.getName()).log(Level.WARNING, "Adding Rule: {0}", logString);
             rules.add(rule);
+            Logger.getLogger(ThresholdEventAssessor.class.getName()).log(Level.WARNING, "Adding Rule: {0}", logString);            
         }
     }
 
