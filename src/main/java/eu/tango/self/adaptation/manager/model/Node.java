@@ -48,12 +48,6 @@ public class Node {
     JSONObject nodeInfo;    
 
     /**
-     * No-args constructor
-     */      
-    private Node() {
-    }
-
-    /**
      * This wraps the Node object around the json object representation of a 
      * node.
      * @param nodeInfo The node object to wrap around
@@ -159,10 +153,6 @@ public class Node {
      */    
     public JSONObject getNodeInfo() {
         return nodeInfo;
-    }    
-
-    public void setNodeInfo(JSONObject nodeInfo) {
-        this.nodeInfo = nodeInfo;
     }
 
     /**

@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import java.io.IOException;
 import java.io.Reader;
@@ -70,7 +71,7 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }
+    }  
 
     /**
      * This lists all applications that are deployable by the ALDE
@@ -200,7 +201,30 @@ public class AldeClient {
         }
         return answer;
     }
-
+    
+    /**
+     * This lists all gpus that are known by the ALDE
+     *
+     * @return The list of gpus known to the ALDE
+     */
+    public ArrayList<Gpu> getGpus() {
+        ArrayList<Gpu> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "gpus");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(new Gpu(object));
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }
+    
     /**
      * This reads the entire contents from a reader and generates a String
      *
