@@ -220,10 +220,10 @@ public class Gpu {
     }
     
     /**
-     * This filters a list of GPUs by the hostname to which it is attached.
+     * This filters a list of GPUs by if the host is available or not
      * @param gpuList The list of gpus to filter 
-     * @param idleOnly Indicates if the host must be idle hosts to be included in the list
-     * @return The list of GPUS attached to the named host
+     * @param idleOnly Indicates if the host must be idle to be included in the list
+     * @return  The list of GPUs, removing all disabled hosts and optionally all non-idle hosts as well
      */
     public static List<Gpu> filterOutUnavailable(List<Gpu> gpuList, boolean idleOnly) {
         ArrayList<Gpu> answer = new ArrayList<>();

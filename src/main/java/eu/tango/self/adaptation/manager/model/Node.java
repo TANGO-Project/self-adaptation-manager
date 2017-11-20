@@ -21,6 +21,8 @@ package eu.tango.self.adaptation.manager.model;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
 
@@ -167,6 +169,26 @@ public class Node {
         String json = nodeInfo.toString();
         Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
+    }
+    
+    /**
+     * This filters a list of Nodes by if the host is available or not
+     * @param nodeList The list of nodes to filter 
+     * @param idleOnly Indicates if the host must be idle to be included in the list
+     * @return The list of Nodes, removing all disabled hosts and optionally all non-idle hosts as well
+     */
+    public static List<Node> filterOutUnavailable(List<Node> nodeList, boolean idleOnly) {
+        ArrayList<Node> answer = new ArrayList<>();
+        for (Node current : nodeList) {
+            if (current.isDisabled()) {
+                continue;
+            }
+            if (idleOnly && !current.getState().equals("IDLE")) {
+                continue;
+            }
+            answer.add(current);
+        }
+        return answer;
     }     
     
 }
