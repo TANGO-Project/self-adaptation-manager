@@ -222,16 +222,16 @@ public class Gpu {
     /**
      * This filters a list of GPUs by the hostname to which it is attached.
      * @param gpuList The list of gpus to filter 
-     * @param excludeNonIdle Indicates if none idle hosts should be excluded as well
+     * @param idleOnly Indicates if the host must be idle hosts to be included in the list
      * @return The list of GPUS attached to the named host
      */
-    public static List<Gpu> filterOutUnavailable(List<Gpu> gpuList, boolean excludeNonIdle) {
+    public static List<Gpu> filterOutUnavailable(List<Gpu> gpuList, boolean idleOnly) {
         ArrayList<Gpu> answer = new ArrayList<>();
         for (Gpu current : gpuList) {
             if (current.getNode().isDisabled()) {
                 continue;
             }
-            if (excludeNonIdle && !current.getNode().getState().equals("IDLE")) {
+            if (idleOnly && !current.getNode().getState().equals("IDLE")) {
                 continue;
             }
             answer.add(current);
