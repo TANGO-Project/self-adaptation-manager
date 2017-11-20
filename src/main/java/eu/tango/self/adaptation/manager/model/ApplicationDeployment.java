@@ -66,12 +66,6 @@ public class ApplicationDeployment {
     } 
     
     /**
-     * The no-args constructor
-     */
-    public ApplicationDeployment() {
-    }
-
-    /**
      *
      * @param executableId
      * @param testbedId

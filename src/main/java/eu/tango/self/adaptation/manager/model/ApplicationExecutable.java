@@ -54,12 +54,6 @@ public class ApplicationExecutable {
     JSONObject executableInfo;    
 
     /**
-     * No-args constructor
-     */
-    public ApplicationExecutable() {
-    }
-
-    /**
      * This wraps the ApplicationExecutable object around the json object
      * @param executableInfo 
      */
@@ -183,10 +177,10 @@ public class ApplicationExecutable {
     }
     
     /**
-     * This gets this configuration as a map.
-     * @return The configuration as a map of settings.
+     * This gets this executable as a map.
+     * @return The executable as a map of settings.
      */
-    public Map<String, Object> getConfigurationAsMap() {
+    public Map<String, Object> getExecutableAsMap() {
         if (executableInfo == null) {
             return new LinkedTreeMap<>();
         }

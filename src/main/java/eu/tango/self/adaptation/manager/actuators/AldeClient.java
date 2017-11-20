@@ -153,10 +153,11 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
-    } 
+    }
 
     /**
      * This gets a testbed from its given id value
+     *
      * @param testbedId The testbeds id value
      * @return The json object containing properties of the testbed
      */
@@ -182,9 +183,8 @@ public class AldeClient {
              * A deployment holds information such as:
              *
              * {"executable_id":1,
-             *  "path":"/home_nfs/home_ejarquej/2022-0203-lddk-d4dco.img",
-             *  "testbed_id":1,
-             *  "status":"UPLOADED_UPDATED"}
+             * "path":"/home_nfs/home_ejarquej/2022-0203-lddk-d4dco.img",
+             * "testbed_id":1, "status":"UPLOADED_UPDATED"}
              */
             JSONObject apps = readJsonFromUrl(baseUri + "deployments");
             JSONArray objects = apps.getJSONArray("objects");

@@ -66,12 +66,6 @@ public class Testbed {
     JSONObject testbedInfo;
 
     /**
-     * No-args constructor
-     */    
-    public Testbed() {
-    }
-
-    /**
      * This wraps the Testbed object around the json object representation of a 
      * testbed.
      * @param testbedInfo 
@@ -117,12 +111,12 @@ public class Testbed {
      * This lists the nodes that are available in the testbed.
      * @return The list of nodes available in the testbed.
      */
-    public ArrayList<String> getNodes() {
-        ArrayList<String> answer = new ArrayList<>();
+    public ArrayList<Node> getNodes() {
+        ArrayList<Node> answer = new ArrayList<>();
         if (testbedInfo.has("nodes")) {
             JSONArray array = testbedInfo.getJSONArray("nodes");
             for(int i = 0; i < array.length(); i++) {
-                answer.add(array.getString(i));
+                answer.add(new Node(array.getJSONObject(i)));
             }
         }
         return answer;  
@@ -162,8 +156,8 @@ public class Testbed {
     }
     
     /**
-     * This gets this configuration as a map.
-     * @return The configuration as a map of settings.
+     * This gets this testbed as a map.
+     * @return The testbed as a map of properties.
      */
     public Map<String, Object> getTestbedAsMap() {
         if (testbedInfo == null) {
