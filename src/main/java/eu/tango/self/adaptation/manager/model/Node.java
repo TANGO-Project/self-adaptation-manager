@@ -172,6 +172,21 @@ public class Node {
     }
     
     /**
+     * This gets a node from a list of hostnames
+     * @param hostList The list of hosts to filter 
+     * @param hostname The hostname of the host to get from the list
+     * @return The node that represents the host, else null
+     */
+    public static Node getHostFromList(List<Node> hostList, String hostname) {
+        for (Node current : hostList) {
+            if (current.getName().equals(hostname)) {
+                return current;
+            }
+        }
+        return null;
+    } 
+    
+    /**
      * This filters a list of Nodes by if the host is available or not
      * @param nodeList The list of nodes to filter 
      * @param idleOnly Indicates if the host must be idle to be included in the list
