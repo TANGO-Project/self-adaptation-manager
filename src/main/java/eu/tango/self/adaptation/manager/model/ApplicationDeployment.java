@@ -44,9 +44,6 @@ import org.json.JSONObject;
  */
 public class ApplicationDeployment {
 
-    int executableId;
-    int testbedId;
-    String status;
     JSONObject deploymentInfo;
 
     /**
@@ -56,23 +53,6 @@ public class ApplicationDeployment {
      */
     public ApplicationDeployment(JSONObject deploymentInfo) {
         this.deploymentInfo = deploymentInfo;
-        executableId = deploymentInfo.getInt("executable_id");
-        testbedId = deploymentInfo.getInt("testbed_id");
-        if (deploymentInfo.has("status") && !deploymentInfo.isNull("status")) {
-            status = deploymentInfo.getString("status");
-        } else {
-            status = null;
-        }
-    } 
-    
-    /**
-     *
-     * @param executableId
-     * @param testbedId
-     */
-    public ApplicationDeployment(int executableId, int testbedId) {
-        this.executableId = executableId;
-        this.testbedId = testbedId;
     }
 
     /**
@@ -80,15 +60,11 @@ public class ApplicationDeployment {
      * @return
      */
     public int getExecutableId() {
-        return executableId;
-    }
-
-    /**
-     *
-     * @param executableId
-     */
-    public void setExecutableId(int executableId) {
-        this.executableId = executableId;
+        if (deploymentInfo.has("executable_id")) {
+            return (int) deploymentInfo.getInt("executable_id");
+        }
+        //the default assumption is zero.
+        return 0;        
     }
 
     /**
@@ -96,32 +72,32 @@ public class ApplicationDeployment {
      * @return
      */
     public int getTestbedId() {
-        return testbedId;
+        if (deploymentInfo.has("testbed_id")) {
+            return (int) deploymentInfo.getInt("testbed_id");
+        }
+        //the default assumption is zero.
+        return 0;
     }
-
+    
     /**
-     *
-     * @param testbedId
-     */
-    public void setTestbedId(int testbedId) {
-        this.testbedId = testbedId;
-    }
-
-    /**
-     * 
+     * This gets the status of the deployment
      * @return 
      */
     public String getStatus() {
-        return status;
+        return getString("status");
     }
-
+    
     /**
-     * 
-     * @param status 
-     */
-    public void setStatus(String status) {
-        this.status = status;
-    }
+     * This gets the string representation of a given key value
+     * @return The string represented by a given key
+     */    
+    private String getString(String key) {     
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (deploymentInfo.has(key) && !deploymentInfo.isNull(key)) {
+            return deploymentInfo.getString(key);
+        }
+        return null;       
+    }        
 
     @Override
     public String toString() {
