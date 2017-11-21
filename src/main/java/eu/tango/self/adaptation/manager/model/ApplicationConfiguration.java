@@ -21,8 +21,11 @@ package eu.tango.self.adaptation.manager.model;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -143,6 +146,34 @@ public class ApplicationConfiguration {
         //the default assumption is zero.
         return 0;       
     }
+
+    /**
+     * This gets the executions of this configuration running on the testbed
+     * @return The array of executions running on the testbed
+     */    
+    public JSONArray getExecutionsAsJsonArray() {
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (configurationInformation.has("executions")) {
+            return configurationInformation.getJSONArray("executions");
+        }
+        return null;       
+    }
+    
+    /**
+     * This gets the executions of this configuration running on the testbed
+     * @return The array of executions running on the testbed
+     */    
+    public List<ApplicationExecutionInstance> getExecutions() {
+        List<ApplicationExecutionInstance> answer = new ArrayList<>();
+        //Tests to see if the excutable_id belongs to a compiled application
+        if (configurationInformation.has("executions")) {
+            JSONArray objects = configurationInformation.getJSONArray("executions");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                answer.add(new ApplicationExecutionInstance((JSONObject) iterator.next()));
+            }          
+        }
+        return null;       
+    }    
     
     @Override
     public String toString() {

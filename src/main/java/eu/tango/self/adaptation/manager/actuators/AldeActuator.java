@@ -29,6 +29,7 @@ import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -146,8 +147,11 @@ public class AldeActuator extends AbstractActuator {
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
         ApplicationConfiguration selectedConfiguration;
         ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
-        //TODO complete reselection of actuators
         ApplicationDefinition appDef = client.getApplicationDefintion(name);
+        if (currentConfiguration == null) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
+            return appDef; //Return without performing any work
+        }
         ArrayList<ApplicationDeployment> currentlyDeployed = client.getDeployments();
         //Find a the list of valid configurations
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
@@ -155,7 +159,7 @@ public class AldeActuator extends AbstractActuator {
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
         selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration);
         //Ensure the configuration selected is a change/improvement
-        if (selectedConfiguration != null && currentConfiguration != null && currentConfiguration != selectedConfiguration) {
+        if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
             Double executionId = (Double) selectedConfiguration.getConfigurationsExecutableId();
             try {
                 //Delete the current configuration of the application
@@ -182,10 +186,14 @@ public class AldeActuator extends AbstractActuator {
         if (app.getConfigurationsAsMap().size() == 1) {
             return app.getConfiguration(0);
         }
-        //In other cases more work has to be done
-        //TODO find mapping from application name and slurm deployment id to get back to ALDE undestood concepts
-        ApplicationConfiguration answer = new ApplicationConfiguration();
-        return answer;
+        for(ApplicationConfiguration config : app.getConfigurationsAsMap()) {
+            for (ApplicationExecutionInstance instance : config.getExecutions()) {
+                if ((instance.getSlurmId() + "").equals(deploymentId)) {
+                    return config;
+                }
+            }
+        }
+        return null;
     }
     
     /**
