@@ -18,19 +18,15 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.json.JSONObject;
 
 /**
  * This encapsulates a json object representing gpus in the system.
  * @author Richard Kavanagh
  */
-public class Gpu {
+public class Gpu extends AldeJsonObjectWrapper {
 
 /**
  * An example of the output this object encapsulates is:
@@ -99,16 +95,14 @@ public class Gpu {
   "page": 1, 
   "total_pages": 1
 }
- */    
-  
-    JSONObject gpuInfo;    
+ */     
 
     /**
      * This wraps the gpu object around the json object representation of a gpu.
      * @param gpuInfo The gpu object to wrap around
      */
     public Gpu(JSONObject gpuInfo) {
-        this.gpuInfo = gpuInfo;
+        super(gpuInfo);
     }
     
     /**
@@ -124,8 +118,8 @@ public class Gpu {
      * @return The id of the gpu
      */
     public int getId() {
-        if (gpuInfo.has("id")) {
-            return (int) gpuInfo.getInt("id");
+        if (json.has("id")) {
+            return (int) json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
@@ -136,8 +130,8 @@ public class Gpu {
      * @return The id of the gpu
      */
     public JSONObject getNodeObject() {
-        if (gpuInfo.has("node")) {
-            return gpuInfo.getJSONObject("node");
+        if (json.has("node")) {
+            return json.getJSONObject("node");
         }
         //the default is null.
         return null;        
@@ -148,59 +142,11 @@ public class Gpu {
      * @return The id of the gpu
      */
     public Node getNode() {
-        if (gpuInfo.has("node")) {
-            return new Node(gpuInfo.getJSONObject("node"));
+        if (json.has("node")) {
+            return new Node(json.getJSONObject("node"));
         }
         //the default is null.
         return null;        
-    }    
-        
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {
-        if (gpuInfo.has(key) && !gpuInfo.isNull(key)) {
-            return gpuInfo.getString(key);
-        }
-        return null;       
-    }    
-  
-    @Override
-    public String toString() {
-        return gpuInfo.toString();
-    }    
-    
-    /**
-     * This indicates if a key exists within the gpu
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return gpuInfo.has(key);
-    }
-
-    /**
-     * This returns the gpus's underlying json data.
-     * @return 
-     */    
-    public JSONObject getGpuInfo() {
-        return gpuInfo;
-    }
-
-    /**
-     * This gets this node as a map.
-     * @return The node as a map of properties.
-     */
-    public Map<String, Object> getGpuAsMap() {
-        if (gpuInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = gpuInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
     }
     
     /**

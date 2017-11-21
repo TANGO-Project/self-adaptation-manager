@@ -18,11 +18,7 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
-import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -61,9 +57,7 @@ import org.json.JSONObject;
  * 
  * @author Richard Kavanagh
  */
-public class Testbed {
-
-    JSONObject testbedInfo;
+public class Testbed extends AldeJsonObjectWrapper {
 
     /**
      * This wraps the Testbed object around the json object representation of a 
@@ -71,7 +65,7 @@ public class Testbed {
      * @param testbedInfo 
      */
     public Testbed(JSONObject testbedInfo) {
-        this.testbedInfo = testbedInfo;
+        super(testbedInfo);
     }
     
     /**
@@ -79,8 +73,8 @@ public class Testbed {
      * @return The id of the testbed
      */
     public int getTestbedId() {
-        if (testbedInfo.has("id")) {
-            return testbedInfo.getInt("id");
+        if (json.has("id")) {
+            return json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
@@ -100,8 +94,8 @@ public class Testbed {
      * on_line field indicates false.
      */
     public boolean isOnline() {
-        if (testbedInfo.has("on_line")) {
-            return testbedInfo.getBoolean("on_line");
+        if (json.has("on_line")) {
+            return json.getBoolean("on_line");
         }
         //the default assumption is true.
         return true;        
@@ -113,61 +107,13 @@ public class Testbed {
      */
     public ArrayList<Node> getNodes() {
         ArrayList<Node> answer = new ArrayList<>();
-        if (testbedInfo.has("nodes")) {
-            JSONArray array = testbedInfo.getJSONArray("nodes");
+        if (json.has("nodes")) {
+            JSONArray array = json.getJSONArray("nodes");
             for(int i = 0; i < array.length(); i++) {
                 answer.add(new Node(array.getJSONObject(i)));
             }
         }
         return answer;  
-    }
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {
-        if (testbedInfo.has(key) && !testbedInfo.isNull(key)) {
-            return testbedInfo.getString(key);
-        }
-        return null;       
-    }    
+    }   
   
-    @Override
-    public String toString() {
-        return testbedInfo.toString();
-    }    
-    
-    /**
-     * This indicates if a key exists within the executable
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return testbedInfo.has(key);
-    }
-
-    /**
-     * This returns the testbed's underlying json data.
-     * @return 
-     */
-    public JSONObject getTestbedInfo() {
-        return testbedInfo;
-    }
-    
-    /**
-     * This gets this testbed as a map.
-     * @return The testbed as a map of properties.
-     */
-    public Map<String, Object> getTestbedAsMap() {
-        if (testbedInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = testbedInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
-    }         
-    
-    
 }

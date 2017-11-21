@@ -18,10 +18,6 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
-import java.util.Map;
 import org.json.JSONObject;
 
 /**
@@ -42,9 +38,7 @@ import org.json.JSONObject;
  *
  * @author Richard Kavanagh
  */
-public class ApplicationExecutionInstance {
-
-    JSONObject executionInfo;
+public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
 
     /**
      * This takes a JSONObject representation of a running application and converts it
@@ -52,7 +46,7 @@ public class ApplicationExecutionInstance {
      * @param executionInfo The original json object representing an application running.
      */
     public ApplicationExecutionInstance(JSONObject executionInfo) {
-        this.executionInfo = executionInfo;
+        super(executionInfo);
     }
     
     /**
@@ -60,8 +54,8 @@ public class ApplicationExecutionInstance {
      * @return The id of the execution
      */
     public int getExecutionId() {
-        if (executionInfo.has("id")) {
-            return (int) executionInfo.getInt("id");
+        if (json.has("id")) {
+            return (int) json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
@@ -74,8 +68,8 @@ public class ApplicationExecutionInstance {
      * @return The id of the executable configuration used to launch the execution
      */
     public int getConfigurationsExecutableId() {
-        if (executionInfo.has("execution_configuration_id")) {
-            return (int) executionInfo.getInt("execution_configuration_id");
+        if (json.has("execution_configuration_id")) {
+            return (int) json.getInt("execution_configuration_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -86,8 +80,8 @@ public class ApplicationExecutionInstance {
      * @return The slurm job id of the execution
      */
     public int getSlurmId() {
-        if (executionInfo.has("slurm_sbatch_id")) {
-            return (int) executionInfo.getInt("slurm_sbatch_id");
+        if (json.has("slurm_sbatch_id")) {
+            return (int) json.getInt("slurm_sbatch_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -117,47 +111,6 @@ public class ApplicationExecutionInstance {
      */    
     public String getOutput() {
         return getString("output");
-    }      
-    
-
-    @Override
-    public String toString() {
-        return executionInfo.toString();
-    }
-    
-    /**
-     * This indicates if a key exists within the application's execution instance information
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return executionInfo.has(key);
-    }     
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {     
-        //Tests to see if the excutable_id belongs to a compiled application
-        if (executionInfo.has(key) && !executionInfo.isNull(key)) {
-            return executionInfo.getString(key);
-        }
-        return null;       
     }    
-    
-    /**
-     * This gets this execution instance as a map.
-     * @return The execution as a map of properties.
-     */
-    public Map<String, Object> getExecutionInstanceAsMap() {
-        if (executionInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = executionInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
-    }       
     
 }

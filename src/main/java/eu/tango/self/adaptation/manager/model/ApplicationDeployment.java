@@ -18,10 +18,6 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
-import java.util.Map;
 import org.json.JSONObject;
 
 /**
@@ -42,9 +38,7 @@ import org.json.JSONObject;
  *
  * @author Richard Kavanagh
  */
-public class ApplicationDeployment {
-
-    JSONObject deploymentInfo;
+public class ApplicationDeployment extends AldeJsonObjectWrapper {
 
     /**
      * This takes a JSONObject representation of a deployment and converts it
@@ -52,7 +46,7 @@ public class ApplicationDeployment {
      * @param deploymentInfo The original json object representing a deployment.
      */
     public ApplicationDeployment(JSONObject deploymentInfo) {
-        this.deploymentInfo = deploymentInfo;
+        super(deploymentInfo);
     }
 
     /**
@@ -60,8 +54,8 @@ public class ApplicationDeployment {
      * @return
      */
     public int getExecutableId() {
-        if (deploymentInfo.has("executable_id")) {
-            return (int) deploymentInfo.getInt("executable_id");
+        if (json.has("executable_id")) {
+            return (int) json.getInt("executable_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -72,8 +66,8 @@ public class ApplicationDeployment {
      * @return
      */
     public int getTestbedId() {
-        if (deploymentInfo.has("testbed_id")) {
-            return (int) deploymentInfo.getInt("testbed_id");
+        if (json.has("testbed_id")) {
+            return (int) json.getInt("testbed_id");
         }
         //the default assumption is zero.
         return 0;
@@ -86,45 +80,5 @@ public class ApplicationDeployment {
     public String getStatus() {
         return getString("status");
     }
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {     
-        //Tests to see if the excutable_id belongs to a compiled application
-        if (deploymentInfo.has(key) && !deploymentInfo.isNull(key)) {
-            return deploymentInfo.getString(key);
-        }
-        return null;       
-    }        
-
-    @Override
-    public String toString() {
-        return deploymentInfo.toString();
-    }
-    
-    /**
-     * This indicates if a key exists within the deployment information
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return deploymentInfo.has(key);
-    }    
-    
-    /**
-     * This gets this deployment as a map.
-     * @return The deployment as a map of settings.
-     */
-    public Map<String, Object> getDeploymentAsMap() {
-        if (deploymentInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = deploymentInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
-    }     
 
 }

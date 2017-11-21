@@ -18,19 +18,15 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.json.JSONObject;
 
 /**
  * This encapsulates a json object representing a node.
  * @author Richard Kavanagh
  */
-public class Node {
+public class Node extends AldeJsonObjectWrapper {
 
     /**
      * An example of a node is:
@@ -47,15 +43,13 @@ public class Node {
       ...
     */
 
-    JSONObject nodeInfo;    
-
     /**
      * This wraps the Node object around the json object representation of a 
      * node.
      * @param nodeInfo The node object to wrap around
      */    
     public Node(JSONObject nodeInfo) {
-        this.nodeInfo = nodeInfo;
+        super(nodeInfo);
     }
     
     /**
@@ -71,8 +65,8 @@ public class Node {
      * @return The id of the node
      */
     public int getId() {
-        if (nodeInfo.has("id")) {
-            return (int) nodeInfo.getInt("id");
+        if (json.has("id")) {
+            return (int) json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
@@ -83,8 +77,8 @@ public class Node {
      * @return The id of the testbed
      */
     public int getTestbedId() {
-        if (nodeInfo.has("testbed_id")) {
-            return nodeInfo.getInt("testbed_id");
+        if (json.has("testbed_id")) {
+            return json.getInt("testbed_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -104,8 +98,8 @@ public class Node {
      * information_retrieved field indicates false.
      */
     public boolean isInformationRetrieved() {
-        if (nodeInfo.has("information_retrieved")) {
-            return nodeInfo.getBoolean("information_retrieved");
+        if (json.has("information_retrieved")) {
+            return json.getBoolean("information_retrieved");
         }
         //the default assumption is false.
         return false;        
@@ -117,58 +111,11 @@ public class Node {
      * disabled field indicates false.
      */
     public boolean isDisabled() {
-        if (nodeInfo.has("disabled")) {
-            return nodeInfo.getBoolean("disabled");
+        if (json.has("disabled")) {
+            return json.getBoolean("disabled");
         }
         //the default assumption is true.
         return true;        
-    }    
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {
-        if (nodeInfo.has(key) && !nodeInfo.isNull(key)) {
-            return nodeInfo.getString(key);
-        }
-        return null;       
-    }    
-  
-    @Override
-    public String toString() {
-        return nodeInfo.toString();
-    }    
-    
-    /**
-     * This indicates if a key exists within the node
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return nodeInfo.has(key);
-    }
-
-    /**
-     * This returns the nodes's underlying json data.
-     * @return 
-     */    
-    public JSONObject getNodeInfo() {
-        return nodeInfo;
-    }
-
-    /**
-     * This gets this node as a map.
-     * @return The node as a map of properties.
-     */
-    public Map<String, Object> getNodeAsMap() {
-        if (nodeInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = nodeInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
     }
     
     /**

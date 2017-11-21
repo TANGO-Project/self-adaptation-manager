@@ -18,10 +18,6 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
-import java.util.Map;
 import org.json.JSONObject;
 
 /**
@@ -49,16 +45,14 @@ import org.json.JSONObject;
  *
  * @author Richard Kavanagh
  */
-public class ApplicationExecutable {
-
-    JSONObject executableInfo;    
+public class ApplicationExecutable extends AldeJsonObjectWrapper {
 
     /**
      * This wraps the ApplicationExecutable object around the json object
      * @param executableInfo 
      */
     public ApplicationExecutable(JSONObject executableInfo) {
-        this.executableInfo = executableInfo;
+        super(executableInfo);
     }
     
     /**
@@ -68,8 +62,8 @@ public class ApplicationExecutable {
      * @return The id of the executable to be used in the configuration
      */
     public double getExecutableId() {
-        if (executableInfo.has("executable_id")) {
-            return (double) executableInfo.getInt("executable_id");
+        if (json.has("executable_id")) {
+            return (double) json.getInt("executable_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -82,8 +76,8 @@ public class ApplicationExecutable {
      * @return The id of the application to be used in the configuration
      */
     public int getConfigurationsApplicationId() {
-        if (executableInfo.has("application_id")) {
-            return (int) executableInfo.getInt("application_id");
+        if (json.has("application_id")) {
+            return (int) json.getInt("application_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -119,18 +113,6 @@ public class ApplicationExecutable {
      */    
     public String getSourceCodeFile() {   
          return getString("source_code_file");
-    }         
-    
-    /**
-     * This gets the string representation of a given key value
-     * @return The string represented by a given key
-     */    
-    private String getString(String key) {     
-        //Tests to see if the excutable_id belongs to a compiled application
-        if (executableInfo.has(key) && !executableInfo.isNull(key)) {
-            return executableInfo.getString(key);
-        }
-        return null;       
     }
     
     /**
@@ -149,42 +131,6 @@ public class ApplicationExecutable {
     public String getStatus() {
         //Tests to see if the excutable_id belongs to a compiled application
         return getString("status");     
-    }    
-    
-    @Override
-    public String toString() {
-        return executableInfo.toString();
-    }    
-    
-    /**
-     * This indicates if a key exists within the executable
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return executableInfo.has(key);
     }
-
-    /**
-     * This returns the application's executable underlying json data.
-     * @return 
-     */
-    public JSONObject getExecutableInfo() {
-        return executableInfo;
-    }
-    
-    /**
-     * This gets this executable as a map.
-     * @return The executable as a map of settings.
-     */
-    public Map<String, Object> getExecutableAsMap() {
-        if (executableInfo == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = executableInfo.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
-    }     
     
 }

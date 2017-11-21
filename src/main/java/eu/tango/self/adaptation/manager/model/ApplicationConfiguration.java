@@ -18,13 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -47,15 +43,10 @@ import org.json.JSONObject;
  *
  * @author Richard Kavanagh
  */
-public class ApplicationConfiguration {
- 
-    JSONObject configurationInformation;
-
-    public ApplicationConfiguration() {
-    }
+public class ApplicationConfiguration extends AldeJsonObjectWrapper {
     
     public ApplicationConfiguration(JSONObject configurationInformation) {
-        this.configurationInformation = configurationInformation;
+        super(configurationInformation);
     }
   
     /**
@@ -63,8 +54,8 @@ public class ApplicationConfiguration {
      * @return The id of the configuration
      */
     public int getConfigurationId() {
-        if (configurationInformation.has("id")) {
-            return (int) configurationInformation.getInt("id");
+        if (json.has("id")) {
+            return (int) json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
@@ -77,8 +68,8 @@ public class ApplicationConfiguration {
      * @return The id of the application to be used in the configuration
      */
     public int getConfigurationsApplicationId() {
-        if (configurationInformation.has("application_id")) {
-            return (int) configurationInformation.getInt("application_id");
+        if (json.has("application_id")) {
+            return (int) json.getInt("application_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -91,8 +82,8 @@ public class ApplicationConfiguration {
      * @return The id of the executable to be used in the configuration
      */
     public double getConfigurationsExecutableId() {
-        if (configurationInformation.has("executable_id")) {
-            return (double) configurationInformation.getInt("executable_id");
+        if (json.has("executable_id")) {
+            return (double) json.getInt("executable_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -103,8 +94,8 @@ public class ApplicationConfiguration {
      * @return The id of the testbed to be used by the configuration
      */
     public int getConfigurationsTestbedId() {
-        if (configurationInformation.has("testbed_id")) {
-            return (int) configurationInformation.getInt("testbed_id");
+        if (json.has("testbed_id")) {
+            return (int) json.getInt("testbed_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -115,8 +106,8 @@ public class ApplicationConfiguration {
      * @return The number of nodes needed by the configuration
      */
     public double getNodesNeeded() {
-        if (configurationInformation.has("num_nodes")) {
-            return (double) configurationInformation.getDouble("num_nodes");
+        if (json.has("num_nodes")) {
+            return (double) json.getDouble("num_nodes");
         }
         //the default assumption is zero.
         return 0;   
@@ -127,8 +118,8 @@ public class ApplicationConfiguration {
      * @return The number of CPUs per node needed by the configuration
      */    
     public double getCpusNeededPerNode() {
-        if (configurationInformation.has("num_cpus_per_node")) {
-            return (double) configurationInformation.getDouble("num_cpus_per_node");
+        if (json.has("num_cpus_per_node")) {
+            return (double) json.getDouble("num_cpus_per_node");
         }
         //the default assumption is zero.
         return 0;        
@@ -140,8 +131,8 @@ public class ApplicationConfiguration {
      */    
     public double getGpusNeededPerNode() {
         //Tests to see if the excutable_id belongs to a compiled application
-        if (configurationInformation.has("num_gpus_per_node")) {
-            return (double) configurationInformation.getDouble("num_gpus_per_node");
+        if (json.has("num_gpus_per_node")) {
+            return (double) json.getDouble("num_gpus_per_node");
         }
         //the default assumption is zero.
         return 0;       
@@ -153,8 +144,8 @@ public class ApplicationConfiguration {
      */    
     public JSONArray getExecutionsAsJsonArray() {
         //Tests to see if the excutable_id belongs to a compiled application
-        if (configurationInformation.has("executions")) {
-            return configurationInformation.getJSONArray("executions");
+        if (json.has("executions")) {
+            return json.getJSONArray("executions");
         }
         return null;       
     }
@@ -166,49 +157,13 @@ public class ApplicationConfiguration {
     public List<ApplicationExecutionInstance> getExecutions() {
         List<ApplicationExecutionInstance> answer = new ArrayList<>();
         //Tests to see if the excutable_id belongs to a compiled application
-        if (configurationInformation.has("executions")) {
-            JSONArray objects = configurationInformation.getJSONArray("executions");
+        if (json.has("executions")) {
+            JSONArray objects = json.getJSONArray("executions");
             for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
                 answer.add(new ApplicationExecutionInstance((JSONObject) iterator.next()));
             }          
         }
         return null;       
-    }    
-    
-    @Override
-    public String toString() {
-        return configurationInformation.toString();
-    }    
-    
-    /**
-     * This indicates if a key exists within the configuration
-     * @param key The key to check for its existence.
-     * @return True only if the key exists, otherwise false.
-     */
-    public boolean containsKey(String key) {
-        return configurationInformation.has(key);
-    }
-
-    /**
-     * This returns the application's configuration data's underlying json representation.
-     * @return 
-     */
-    public JSONObject getConfigurationInformation() {
-        return configurationInformation;
-    }
-    
-    /**
-     * This gets this configuration as a map.
-     * @return The configuration as a map of settings.
-     */
-    public Map<String, Object> getConfigurationAsMap() {
-        if (configurationInformation == null) {
-            return new LinkedTreeMap<>();
-        }
-        Gson gson = new Gson();      
-        String json = configurationInformation.toString();
-        Map<String, Object> map = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-        return map;
     }
     
     /**
