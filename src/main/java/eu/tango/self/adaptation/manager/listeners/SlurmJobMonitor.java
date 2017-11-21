@@ -54,6 +54,16 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private HashSet<Host> drainingHosts = new HashSet<>();
     private HashSet<ApplicationOnHost> runningJobs = null;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
+    
+    private static final String APP_STARTED = "APP_STARTED";
+    private static final String APP_FINISHED = "APP_FINISHED";
+    private static final String IDLE_HOST = "IDLE_HOST";
+    private static final String SUSPENDED_JOB = "+SUSPENDED_JOB";
+    private static final String PENDING_JOB = "+PENDING_JOB";
+    private static final String ACCELERATED = "+ACCELERATED";
+    private static final String CLOSE_TO_DEADLINE = "CLOSE_TO_DEADLINE";
+    private static final String HOST_DRAIN = "HOST_DRAIN";
+    private static final String HOST_FAILURE = "HOST_FAILURE";
 
     /**
      * no-args constructor, uses a Slurm data source to drive the job monitor
@@ -165,25 +175,25 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      */
     private ArrayList<EventData> detectEvent(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
-        if (containsTerm(limits, "IDLE_HOST")) {
+        if (containsTerm(limits, IDLE_HOST)) {
             answer.addAll(detectRecentIdleHost());
         }
-        if (containsTerm(limits, "APP_STARTED") || containsTerm(limits, "APP_FINISHED")) {
-            answer.addAll(detectAppStartAndEnd(containsTerm(limits, "APP_STARTED"), containsTerm(limits, "APP_FINISHED")));
+        if (containsTerm(limits, APP_STARTED) || containsTerm(limits, APP_FINISHED)) {
+            answer.addAll(detectAppStartAndEnd(containsTerm(limits, APP_STARTED), containsTerm(limits, APP_FINISHED)));
         }
-        if (containsTerm(limits, "IDLE_HOST+SUSPENDED_JOB")) {
+        if (containsTerm(limits, IDLE_HOST + SUSPENDED_JOB)) {
             answer.addAll(detectIdleHostsWithSuspendedJobs());
         }
-        if (containsTerm(limits, "IDLE_HOST+PENDING_JOB")) {
+        if (containsTerm(limits, IDLE_HOST + PENDING_JOB)) {
             answer.addAll(detectIdleHostsWithPendingJobs());
         }
-        if (containsTerm(limits, "CLOSE_TO_DEADLINE")) {
+        if (containsTerm(limits, CLOSE_TO_DEADLINE)) {
             answer.addAll(detectCloseToDeadlineJobs());
         }
-        if (containsTerm(limits, "HOST_FAILURE")) {
+        if (containsTerm(limits, HOST_FAILURE)) {
             answer.addAll(detectHostFailure(true));
         }
-        if (containsTerm(limits, "HOST_DRAIN")) {
+        if (containsTerm(limits, HOST_DRAIN)) {
             answer.addAll(detectHostDrain());
         }
         //Add next test here
@@ -220,8 +230,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         0.0,
                         EventData.Type.WARNING,
                         EventData.Operator.EQ,
-                        "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
-                        "IDLE_HOST" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                        IDLE_HOST + (idleHost.hasAccelerator() ? ACCELERATED : ""),
+                        IDLE_HOST + (idleHost.hasAccelerator() ? ACCELERATED : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
@@ -254,8 +264,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         0.0,
                         EventData.Type.WARNING,
                         EventData.Operator.EQ,
-                        "HOST_FAILURE" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
-                        "HOST_FAILURE" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                        HOST_FAILURE + (idleHost.hasAccelerator() ? ACCELERATED : ""),
+                        HOST_FAILURE + (idleHost.hasAccelerator() ? ACCELERATED : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
@@ -284,8 +294,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         0.0,
                         EventData.Type.WARNING,
                         EventData.Operator.EQ,
-                        "HOST_DRAIN" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""),
-                        "HOST_DRAIN" + (idleHost.hasAccelerator() ? "+ACCELERATED" : ""));
+                        HOST_DRAIN + (idleHost.hasAccelerator() ? ACCELERATED : ""),
+                        HOST_DRAIN + (idleHost.hasAccelerator() ? ACCELERATED : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
@@ -330,8 +340,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         EventData.Operator.EQ,
                         finished.getName(),
                         finished.getId() + "",
-                        "APP_FINISHED",
-                        "APP_FINISHED");
+                        APP_FINISHED,
+                        APP_FINISHED);
                 event.setSignificantOnOwn(true);
                 eventsList.add(event);                
             }
@@ -346,8 +356,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         EventData.Operator.EQ,
                         started.getName(),
                         started.getId() + "",
-                        "APP_STARTED",
-                        "APP_STARTED");
+                        APP_STARTED,
+                        APP_STARTED);
                 event.setSignificantOnOwn(true);
                 eventsList.add(event);
             }
@@ -377,8 +387,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     0.0,
                     EventData.Type.WARNING,
                     EventData.Operator.EQ,
-                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB",
-                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+PENDING_JOB");
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + PENDING_JOB,
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + PENDING_JOB);
             event.setSignificantOnOwn(true);
             answer.add(event);
         }
@@ -401,8 +411,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     0.0,
                     EventData.Type.WARNING,
                     EventData.Operator.EQ,
-                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB",
-                    "IDLE_HOST" + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + "+SUSPENDED_JOB");
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + SUSPENDED_JOB,
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + SUSPENDED_JOB);
             event.setSignificantOnOwn(true);
             answer.add(event);
         }
@@ -427,8 +437,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                         EventData.Operator.EQ,
                         job.getName(),
                         job.getId() + "",
-                        "APP_CLOSE_TO_DEADLINE",
-                        "APP_CLOSE_TO_DEADLINE");
+                        CLOSE_TO_DEADLINE,
+                        CLOSE_TO_DEADLINE);
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
