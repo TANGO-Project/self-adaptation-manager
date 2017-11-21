@@ -148,10 +148,7 @@ public class ApplicationExecutable {
      */    
     public String getStatus() {
         //Tests to see if the excutable_id belongs to a compiled application
-        if (executableInfo.has("status")) {
-            return executableInfo.getString("status");
-        }
-        return null;       
+        return getString("status");     
     }    
     
     @Override
