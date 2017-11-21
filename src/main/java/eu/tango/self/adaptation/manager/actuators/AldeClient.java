@@ -38,6 +38,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.List;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -71,14 +72,14 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }  
-
+    }
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
      * @return The list of applications known to the ALDE
      */
-    public ArrayList<ApplicationDefinition> getApplicationDefinitions() {
+    public List<ApplicationDefinition> getApplicationDefinitions() {
         ArrayList<ApplicationDefinition> answer = new ArrayList<>();
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "applications");
@@ -107,7 +108,7 @@ public class AldeClient {
      * @return The definition of the named application
      */
     public ApplicationDefinition getApplicationDefintion(String name) {
-        ArrayList<ApplicationDefinition> allApps = getApplicationDefinitions();
+        List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.getName().equals(name)) {
                 return app;
@@ -124,7 +125,7 @@ public class AldeClient {
      * @return The definition of the named application
      */
     public ApplicationDefinition getApplicationDefintion(ApplicationDeployment deployment) {
-        ArrayList<ApplicationDefinition> allApps = getApplicationDefinitions();
+        List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.hasExecutable(deployment.getExecutableId())) {
                 return app;
@@ -138,7 +139,7 @@ public class AldeClient {
      *
      * @return The list of applications known to the ALDE
      */
-    public ArrayList<Testbed> getTestbeds() {
+    public List<Testbed> getTestbeds() {
         ArrayList<Testbed> answer = new ArrayList<>();
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "testbeds");
@@ -163,7 +164,7 @@ public class AldeClient {
      * @return The json object containing properties of the testbed
      */
     public Testbed getTestbed(int testbedId) {
-        ArrayList<Testbed> testbeds = getTestbeds();
+        List<Testbed> testbeds = getTestbeds();
         for (Testbed testbed : testbeds) {
             if (testbed.getTestbedId() == testbedId) {
                 return testbed;
@@ -207,7 +208,7 @@ public class AldeClient {
      *
      * @return The list of gpus known to the ALDE
      */
-    public ArrayList<Gpu> getGpus() {
+    public List<Gpu> getGpus() {
         ArrayList<Gpu> answer = new ArrayList<>();
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "gpus");

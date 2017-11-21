@@ -34,36 +34,7 @@ public class ConfigurationComparator {
 
     public ConfigurationComparator() {
     }
-    
-    public static void main(String[] args) {
-        ConfigurationComparator compare = new ConfigurationComparator();
-        ResultsStore data = compare.loadComparisonData();
-        data = compare.filterOnName(data, "Benchmark");
-        for (int i = 0; i < data.size(); i++) {
-            System.out.println(data.getRow(i).toString());
-        }
-        System.out.println("-------------------");
-        ArrayList<ConfigurationRank> answer = compare.averageAndGroup(data, "cpu");
-        String energyWinner = compare.getConfigWithLowestEnergy(answer);
-        String timeWinner = compare.getConfigWithLowestTime(answer);
-        System.out.println("Lowest Energy: " + energyWinner);
-        System.out.println("Lowest Time: " + timeWinner);
-        System.out.println("Lowest Energy Ratio: " + compare.getEnergyUsedVsXRatio(answer, energyWinner));
-        System.out.println("Lowest Time Ratio: " + compare.getDurationVsXRatio(answer, timeWinner));
-        System.out.println("--------- Energy ----------");
-        ArrayList<ConfigurationRank> rank = compare.compare("Benchmark", "cpu");
-        rank.sort(new EnergyComparator());
-        for (ConfigurationRank item : rank) {
-            System.out.println(item.toString());
-        }
-        //Time
-        System.out.println("--------- Time ----------");
-        rank.sort(new TimeComparator());
-        for (ConfigurationRank item : rank) {
-            System.out.println(item.toString());
-        }        
-    }
-    
+       
     /**
      * This gets the table with the rankings of each configuration
      * @param applicationName The application name

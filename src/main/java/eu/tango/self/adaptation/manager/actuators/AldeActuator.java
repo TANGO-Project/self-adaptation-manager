@@ -370,7 +370,7 @@ public class AldeActuator extends AbstractActuator {
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
-        ArrayList<ApplicationDefinition> allApps = client.getApplicationDefinitions();
+        List<ApplicationDefinition> allApps = client.getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.getName().equals(name)
                     && (app.getDeploymentId().equals(deploymentId)
