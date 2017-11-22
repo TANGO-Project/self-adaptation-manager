@@ -142,7 +142,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * This gets the executions of this configuration running on the testbed
      * @return The array of executions running on the testbed
      */    
-    public JSONArray getExecutionsAsJsonArray() {
+    public JSONArray getExecutionInstancesAsJson() {
         //Tests to see if the excutable_id belongs to a compiled application
         if (json.has("executions")) {
             return json.getJSONArray("executions");
