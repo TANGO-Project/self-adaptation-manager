@@ -288,7 +288,34 @@ public class ApplicationDefinition {
             answer.add(getConfiguration(i));
         }
         return answer;
+    }
+    
+    /**
+     * This gets the list of application executions for this application.
+     * @return The list of executions of this application.
+     */
+    public ArrayList<ApplicationExecutionInstance> getExecutionInstances() {
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        for (int i = 0; i < getConfigurationsCount(); i++) {
+            answer.addAll(getConfiguration(i).getExecutionInstances());
+        }
+        return answer;
     }   
+
+    /**
+     * This gets the configuration information for a given execution, that was
+     * executed using this application definition
+     * @param instance The execution instance to get the configuration for
+     * @return The application configuration for the given application instance.
+     */
+    public ApplicationConfiguration getExecutionInstanceConfig(ApplicationExecutionInstance instance) {
+        for (int i = 0; i < getConfigurationsCount(); i++) {
+            if (getConfiguration(i).hasExecutionInstance(instance)) {
+                return getConfiguration(i);
+            }
+        }
+        return null;
+    }    
     
     /**
      * This returns the count of configurations that are available for this application

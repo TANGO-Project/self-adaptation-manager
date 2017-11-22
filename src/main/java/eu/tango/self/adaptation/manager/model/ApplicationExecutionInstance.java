@@ -18,6 +18,8 @@
  */
 package eu.tango.self.adaptation.manager.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONObject;
 
 /**
@@ -67,7 +69,7 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      * may be compiled to use different accelerators.
      * @return The id of the executable configuration used to launch the execution
      */
-    public int getConfigurationsExecutableId() {
+    public int getExecutionConfigurationsId() {
         if (json.has("execution_configuration_id")) {
             return (int) json.getInt("execution_configuration_id");
         }
@@ -111,6 +113,37 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      */    
     public String getOutput() {
         return getString("output");
-    }    
+    }
+    
+    /**
+     * This filters a list of application execution instances by their status
+     * @param appList The list of application executions to filter 
+     * @param status Indicates the status of the application
+     * @return  The list of execution instances with the given status
+     */
+    public static List<ApplicationExecutionInstance> filterBasedUponStatus(List<ApplicationExecutionInstance> appList, String status) {
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        for (ApplicationExecutionInstance current : appList) {
+            if (current.getStatus().equals(status)) {
+                answer.add(current);
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * This filters a list of application execution instances by their status
+     * @param appList The list of application executions to filter 
+     * @param slurmJobId The slurm job id, to find from the list of executions
+     * @return  The execution instance with the named slurm job id
+     */
+    public static ApplicationExecutionInstance getExecutionInstance(List<ApplicationExecutionInstance> appList, int slurmJobId) {
+        for (ApplicationExecutionInstance current : appList) {
+            if (current.getSlurmId() == slurmJobId) {
+                return current;
+            }
+        }
+        return null;
+    }      
     
 }

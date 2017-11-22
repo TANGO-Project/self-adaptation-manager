@@ -187,7 +187,7 @@ public class AldeActuator extends AbstractActuator {
             return app.getConfiguration(0);
         }
         for(ApplicationConfiguration config : app.getConfigurations()) {
-            for (ApplicationExecutionInstance instance : config.getExecutions()) {
+            for (ApplicationExecutionInstance instance : config.getExecutionInstances()) {
                 if ((instance.getSlurmId() + "").equals(deploymentId)) {
                     return config;
                 }

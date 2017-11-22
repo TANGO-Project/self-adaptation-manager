@@ -154,7 +154,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * This gets the executions of this configuration running on the testbed
      * @return The array of executions running on the testbed
      */    
-    public List<ApplicationExecutionInstance> getExecutions() {
+    public List<ApplicationExecutionInstance> getExecutionInstances() {
         List<ApplicationExecutionInstance> answer = new ArrayList<>();
         //Tests to see if the excutable_id belongs to a compiled application
         if (json.has("executions")) {
@@ -163,7 +163,19 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
                 answer.add(new ApplicationExecutionInstance((JSONObject) iterator.next()));
             }          
         }
-        return null;       
+        return answer;       
+    }
+    
+    /**
+     * This checks to see if an application execution instance exist or not, for this configuration.
+     * @param instance The instance to check to see if it exists or not
+     * @return True only if this configuration of an application has a given execution instance.
+     */
+    public boolean hasExecutionInstance(ApplicationExecutionInstance instance) {
+        if (!json.has("executions")) {
+            return false;
+        }
+        return instance.getExecutionConfigurationsId() == this.getConfigurationId();
     }
     
     /**
