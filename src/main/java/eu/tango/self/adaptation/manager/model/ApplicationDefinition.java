@@ -172,15 +172,15 @@ public class ApplicationDefinition {
      * This lists the executables for this application.
      * @return The executables as a json object, the internal representation of the ALDE.
      */
-    public JSONArray getExecutables() {
+    public JSONArray getExecutablesAsJson() {
         return executables;
     }
     
     /**
      * This lists the executables for this application.
-     * @return The executables as a json object, the internal representation of the ALDE.
+     * @return The executables as a list of objects wrapped around the ALDEs json representation.
      */
-    public ArrayList<ApplicationExecutable> getExecutablesAsMap() {
+    public ArrayList<ApplicationExecutable> getExecutables() {
         ArrayList<ApplicationExecutable> answer = new ArrayList<>();
         for (int i = 0; i < getExecutablesCount(); i++) {
             answer.add(getExecutable(i));
@@ -206,7 +206,7 @@ public class ApplicationDefinition {
      * with the named id.
      */
     public boolean hasExecutable(double executableId) {
-        ArrayList<ApplicationExecutable> executablesMap = getExecutablesAsMap();
+        ArrayList<ApplicationExecutable> executablesMap = getExecutables();
         for (ApplicationExecutable executable : executablesMap) {
             if (executable.getExecutableId() == executableId) {
                 return true;
@@ -274,21 +274,21 @@ public class ApplicationDefinition {
      * @return configurations The application configurations as a json array, 
      * the internal representation of the ALDE.
      */
-    public JSONArray getConfigurations() {
+    public JSONArray getConfigurationsAsJson() {
         return configurations;
     }
     
     /**
      * This gets the application configurations for this application.
-     * @return The list of configurations as a map of settings.
+     * @return The list of configurations.
      */
-    public ArrayList<ApplicationConfiguration> getConfigurationsAsMap() {
+    public ArrayList<ApplicationConfiguration> getConfigurations() {
         ArrayList<ApplicationConfiguration> answer = new ArrayList<>();
         for (int i = 0; i < getConfigurationsCount(); i++) {
             answer.add(getConfiguration(i));
         }
         return answer;
-    }       
+    }   
     
     /**
      * This returns the count of configurations that are available for this application

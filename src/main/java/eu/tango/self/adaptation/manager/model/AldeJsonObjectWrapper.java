@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 /**
  * This class acts as a baseline for all json based representations of information
- from the ALDE.
+ * from the ALDE.
  * @author Richard Kavanagh
  */
 public abstract class AldeJsonObjectWrapper {

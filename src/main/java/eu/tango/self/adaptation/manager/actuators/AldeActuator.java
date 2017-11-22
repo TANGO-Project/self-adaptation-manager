@@ -183,10 +183,10 @@ public class AldeActuator extends AbstractActuator {
     private ApplicationConfiguration getCurrentConfigurationInUse(String name, String deploymentId) {
         ApplicationDefinition app = client.getApplicationDefintion(name);
         //In cases where there is only 1 configuration for the application
-        if (app.getConfigurationsAsMap().size() == 1) {
+        if (app.getConfigurations().size() == 1) {
             return app.getConfiguration(0);
         }
-        for(ApplicationConfiguration config : app.getConfigurationsAsMap()) {
+        for(ApplicationConfiguration config : app.getConfigurations()) {
             for (ApplicationExecutionInstance instance : config.getExecutions()) {
                 if ((instance.getSlurmId() + "").equals(deploymentId)) {
                     return config;
@@ -401,7 +401,7 @@ public class AldeActuator extends AbstractActuator {
     public List<ApplicationOnHost> getTasks() {
         if (parent != null) {
             return parent.getTasks();
-        }        
+        }
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
