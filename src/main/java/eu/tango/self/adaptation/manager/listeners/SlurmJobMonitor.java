@@ -387,8 +387,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     0.0,
                     EventData.Type.WARNING,
                     EventData.Operator.EQ,
-                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + PENDING_JOB,
-                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + PENDING_JOB);
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? ACCELERATED : "") + PENDING_JOB,
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? ACCELERATED : "") + PENDING_JOB);
             event.setSignificantOnOwn(true);
             answer.add(event);
         }
@@ -411,8 +411,8 @@ public class SlurmJobMonitor implements EventListener, Runnable {
                     0.0,
                     EventData.Type.WARNING,
                     EventData.Operator.EQ,
-                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + SUSPENDED_JOB,
-                    IDLE_HOST + (stuckHost.hasAccelerator() ? "+ACCELERATED" : "") + SUSPENDED_JOB);
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? ACCELERATED : "") + SUSPENDED_JOB,
+                    IDLE_HOST + (stuckHost.hasAccelerator() ? ACCELERATED : "") + SUSPENDED_JOB);
             event.setSignificantOnOwn(true);
             answer.add(event);
         }
