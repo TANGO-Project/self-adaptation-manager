@@ -48,12 +48,13 @@ import org.quartz.impl.matchers.GroupMatcher;
 public class ClockMonitor implements EventListener, Runnable {
 
     /**
-     * All clock monitors must share the same event assessor, to that when the
+     * All clock monitors must share the same event assessor, so that when the
      * job executes they know where to send the job processing request to.
      */
     private static EventAssessor eventAssessor;
     private Scheduler scheduler;
     private static final String CONFIG_FILE = "CronEvents.csv";
+    private static final String CRON_EVENT_NAME = "Clock-Monitor-Event";
 
     private ClockMonitor() {
     }
@@ -227,13 +228,13 @@ public class ClockMonitor implements EventListener, Runnable {
             if (scheduler.isInStandbyMode()) {
                 scheduler.resumeAll();
             }            
-            if (scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event")) != null) {
-                job = scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event"));
+            if (scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME)) != null) {
+                job = scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME));
                 newJob = false;
             } else {
                 // define the job and tie it to the clock monitor class        
                 job = JobBuilder.newJob(ClockEventJob.class)
-                        .withIdentity("Clock-Monitor-Event")
+                        .withIdentity(CRON_EVENT_NAME)
                         .build();
                 newJob = true;
             }
@@ -270,17 +271,17 @@ public class ClockMonitor implements EventListener, Runnable {
             if (scheduler.isInStandbyMode()) {
                 scheduler.resumeAll();
             }    
-            if (scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event")) != null) {
-                job = scheduler.getJobDetail(JobKey.jobKey("Clock-Monitor-Event"));
+            if (scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME)) != null) {
+                job = scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME));
                 newJob = false;
             } else {
                 job = JobBuilder.newJob(ClockEventJob.class)
-                        .withIdentity("Clock-Monitor-Event")
+                        .withIdentity(CRON_EVENT_NAME)
                         .build();
                 newJob = true;
             }
             Trigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
-                    .withIdentity(eventName, "Clock-Monitor-Event") //"Trigger-" + triggerCount
+                    .withIdentity(eventName, CRON_EVENT_NAME) //"Trigger-" + triggerCount
                     .withDescription(description)
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
                     .startAt(DateBuilder.futureDate(secondsFromNow, DateBuilder.IntervalUnit.SECOND)).forJob(job) // use DateBuilder to create a date in the future
