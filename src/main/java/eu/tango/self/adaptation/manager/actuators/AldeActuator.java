@@ -107,16 +107,14 @@ public class AldeActuator extends AbstractActuator {
      */
     @Override
     protected void launchAction(Response response) {
-        if (response.getCause() instanceof ApplicationEventData) {
+        if (response.getCause() instanceof ApplicationEventData && !response.hasDeploymentId()) {
             /**
              * This checks to see if application based events have the necessary
              * information to perform the adaptation.
              */
-            if (response.getDeploymentId() == null || response.getDeploymentId().isEmpty()) {
-                response.setPerformed(true);
-                response.setPossibleToAdapt(false);
-                return;
-            }
+            response.setPerformed(true);
+            response.setPossibleToAdapt(false);
+            return;
         }
         switch (response.getActionType()) {
             case ADD_TASK:

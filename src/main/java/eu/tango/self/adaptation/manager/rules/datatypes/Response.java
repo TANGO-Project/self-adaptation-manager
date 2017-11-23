@@ -292,6 +292,14 @@ public class Response implements Comparable<Response> {
         }
         return "";
     }
+    
+    /**
+     * This indicates if the deployment id is set or not
+     * @return true if the deployment id is set, otherwise false
+     */
+    public boolean hasDeploymentId() {
+        return getDeploymentId() != null && !getDeploymentId().isEmpty();
+    }
 
     /**
      * This returns the task id associated with the response. This is the task
