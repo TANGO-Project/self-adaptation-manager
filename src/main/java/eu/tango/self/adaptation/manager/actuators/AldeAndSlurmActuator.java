@@ -62,7 +62,14 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     
     @Override
     public ApplicationDefinition getApplication(String name, String deploymentId) {
-        return slurm.getApplication(name, deploymentId);
+        ApplicationDefinition answer = slurm.getApplication(name, deploymentId);
+        ApplicationDefinition aldeAnswer = alde.getApplication(name, deploymentId);
+        if (answer != null && aldeAnswer != null) {
+            answer.setConfigurations(aldeAnswer.getConfigurationsAsJson());
+            answer.setExecutables(aldeAnswer.getExecutablesAsJson());
+            answer.setAldeAppId(aldeAnswer.getAldeAppId());
+        }
+        return answer;
     }
 
     @Override

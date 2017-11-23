@@ -315,7 +315,22 @@ public class ApplicationDefinition {
             answer.addAll(getConfiguration(i).getExecutionInstances());
         }
         return answer;
-    }   
+    }
+    
+    /**
+     * This gets the list of application executions for this application.
+     * @param slurmId This gets an execution instance from the application
+     * @return The list of executions of this application.
+     */
+    public ApplicationExecutionInstance getExecutionInstance(int slurmId) {
+        for (int i = 0; i < getConfigurationsCount(); i++) {
+            ApplicationExecutionInstance answer = getConfiguration(i).getExecutionInstance(slurmId);
+            if (answer != null) {
+                return answer;
+            }
+        }
+        return null;
+    }     
 
     /**
      * This gets the configuration information for a given execution, that was
