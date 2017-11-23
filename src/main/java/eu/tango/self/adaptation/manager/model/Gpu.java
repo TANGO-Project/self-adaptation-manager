@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.json.JSONObject;
 
 /**
@@ -192,6 +193,14 @@ public class Gpu extends AldeJsonObjectWrapper {
             return this.getId() == other.getId() && this.getModelName().equals(other.getModelName());
         }
         return false;
-    }    
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + this.getId();
+        hash = 13 * hash + Objects.hashCode(this.getModelName());
+        return hash;
+    }       
     
 }

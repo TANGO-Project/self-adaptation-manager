@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.json.JSONObject;
 
 /**
@@ -160,7 +161,15 @@ public class Node extends AldeJsonObjectWrapper implements Comparable<Node> {
             return this.getId() == other.getId() && this.getName().equals(other.getName());
         }
         return false;
-    }   
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + this.getId();
+        hash = 13 * hash + Objects.hashCode(this.getName());
+        return hash;
+    }       
     
     @Override
     public int compareTo(Node o) {

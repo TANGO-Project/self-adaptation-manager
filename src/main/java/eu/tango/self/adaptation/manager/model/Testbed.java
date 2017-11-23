@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.model;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -123,6 +124,14 @@ public class Testbed extends AldeJsonObjectWrapper {
             return this.getTestbedId() == other.getTestbedId() && this.getName().equals(other.getName());
         }
         return false;
-    }       
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + this.getTestbedId();
+        hash = 13 * hash + Objects.hashCode(this.getName());
+        return hash;
+    }   
   
 }
