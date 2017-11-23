@@ -28,7 +28,7 @@ import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -144,16 +144,16 @@ public class AldeActuator extends AbstractActuator {
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
         ApplicationConfiguration selectedConfiguration;
         ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
-        ApplicationDefinition appDef = client.getApplicationDefintion(name);
+        ApplicationDefinition appDef = client.getApplicationDefinition(name);
         if (currentConfiguration == null) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
             return appDef; //Return without performing any work
         }
-        ArrayList<ApplicationDeployment> currentlyDeployed = (ArrayList) client.getDeployments();
+        ArrayList<ApplicationExecutionInstance> currentlyRunning = (ArrayList) client.getExecutionInstances();
         //Find a the list of valid configurations
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
-        validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyDeployed);
+        validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyRunning);
         selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
@@ -178,7 +178,7 @@ public class AldeActuator extends AbstractActuator {
      * @return The application configuration that was used to launch the application
      */
     private ApplicationConfiguration getCurrentConfigurationInUse(String name, String deploymentId) {
-        ApplicationDefinition app = client.getApplicationDefintion(name);
+        ApplicationDefinition app = client.getApplicationDefinition(name);
         //In cases where there is only 1 configuration for the application
         if (app.getConfigurations().size() == 1) {
             return app.getConfiguration(0);
@@ -210,7 +210,7 @@ public class AldeActuator extends AbstractActuator {
         //If there is more than one then select one
         ApplicationConfiguration answer = null;
         ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "");
-        ranked.sort(new EnergyComparator());
+        ranked.sort(new EnergyComparator()); //Todo Consider making it switch out based upon time instead??
         if (comparator.isBetterThanReference(ranked.get(0).getEnergyUsedVsReference())) {
             return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
         }
@@ -222,19 +222,18 @@ public class AldeActuator extends AbstractActuator {
      * This filters out applications that are already deployed and running, assuming 
      * they can't be caught up with by another instance of the same deployment.
      * @param validConfigurations The list of configurations that are possible to run
-     * @param currentlyDeployed The configuration/s that are currently deployed
+     * @param currentlyRunning The configuration/s that are currently running
      * @return The list of configurations that are deployable and have not as yet
      * been deployed.
      */
-    private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations, ArrayList<ApplicationDeployment> currentlyDeployed) {
+    private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations, ArrayList<ApplicationExecutionInstance> currentlyRunning) {
         ArrayList<ApplicationConfiguration> answer = validConfigurations;
-        for (ApplicationDeployment current : currentlyDeployed) {
-            for(ApplicationConfiguration app : validConfigurations) {
+        for (ApplicationExecutionInstance current : currentlyRunning) {
+            for(ApplicationConfiguration config : validConfigurations) {
                 //If the configuration is used by a deployment then filter it out
                 //deployments doesn't seem to refer directly to the configuration in use
-                if (app.getConfigurationsExecutableId() == current.getExecutableId() && 
-                        app.getConfigurationsTestbedId() == current.getTestbedId()) {
-                    answer.remove(app);
+                if (config.getConfigurationsExecutableId() == current.getExecutionConfigurationsId()) {
+                    answer.remove(config);
                 }
             }
         }

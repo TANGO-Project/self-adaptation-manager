@@ -109,7 +109,7 @@ public class AldeClient {
      * @param name The name of the application to get
      * @return The definition of the named application
      */
-    public ApplicationDefinition getApplicationDefintion(String name) {
+    public ApplicationDefinition getApplicationDefinition(String name) {
         List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.getName().equals(name)) {
@@ -126,7 +126,7 @@ public class AldeClient {
      * for
      * @return The definition of the named application
      */
-    public ApplicationDefinition getApplicationDefintion(ApplicationDeployment deployment) {
+    public ApplicationDefinition getApplicationDefinition(ApplicationDeployment deployment) {
         List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.hasExecutable(deployment.getExecutableId())) {
@@ -143,7 +143,7 @@ public class AldeClient {
      * for
      * @return The definition of the named application
      */
-    public ApplicationDefinition getApplicationDefintion(ApplicationConfiguration configuration) {
+    public ApplicationDefinition getApplicationDefinition(ApplicationConfiguration configuration) {
         List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.hasConfiguration(configuration.getConfigurationsExecutableId())) {
@@ -160,7 +160,7 @@ public class AldeClient {
      * for
      * @return The definition of the named application
      */
-    public ApplicationDefinition getApplicationDefintion(ApplicationExecutionInstance instance) {
+    public ApplicationDefinition getApplicationDefinition(ApplicationExecutionInstance instance) {
         List<ApplicationDefinition> allApps = getApplicationDefinitions();
         int configId = instance.getExecutionConfigurationsId();
         for (ApplicationDefinition app : allApps) {
@@ -171,6 +171,33 @@ public class AldeClient {
         }
         return null;
     }
+
+    /**
+     * This gets the list of all running execution instances known to the ALDE.
+     * @return The list of application execution instances from the ALDE.
+     */
+    public List<ApplicationExecutionInstance> getExecutionInstances() {
+        return getExecutionInstances(true);
+    }
+       
+    /**
+     * This gets the list of all running execution instances known to the ALDE.
+     * @param runningOnly Indicates if it should be the currently running instances
+     * only, if false then all instances that ever existed will be reported.
+     * @return The list of application execution instances from the ALDE.
+     */
+    public List<ApplicationExecutionInstance> getExecutionInstances(boolean runningOnly) {
+        List<ApplicationExecutionInstance> answer = new ArrayList<>();
+        List<ApplicationDefinition> apps = getApplicationDefinitions();
+        for (ApplicationDefinition current : apps) {
+            if (runningOnly) {
+                answer.addAll(ApplicationExecutionInstance.filterBasedUponStatus(answer, ApplicationExecutionInstance.status.RUNNING.toString()));
+            } else { 
+                answer.addAll(current.getExecutionInstances());
+            }
+        }
+        return answer;
+    }     
     
     /**
      * This gets the ALDE json definition for a slurm job.
@@ -179,7 +206,7 @@ public class AldeClient {
      * @return The application execution instance of the slurm job.
      */
     public ApplicationExecutionInstance getExecutionInstance(String name, String deploymentId) {
-        ApplicationDefinition app = getApplicationDefintion(name);
+        ApplicationDefinition app = AldeClient.this.getApplicationDefinition(name);
         for (ApplicationConfiguration current : app.getConfigurations()) {
             for (ApplicationExecutionInstance instance : current.getExecutionInstances()) {
                 if ((instance.getSlurmId() + "").equals(deploymentId)) {

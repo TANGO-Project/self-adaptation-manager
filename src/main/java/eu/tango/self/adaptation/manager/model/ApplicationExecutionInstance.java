@@ -41,6 +41,10 @@ import org.json.JSONObject;
  * @author Richard Kavanagh
  */
 public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
+    
+    public enum status {
+        RUNNING,FINISHED;
+    }
 
     /**
      * This takes a JSONObject representation of a running application and converts it
