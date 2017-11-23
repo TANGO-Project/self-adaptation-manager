@@ -29,7 +29,6 @@ import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
-import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -185,10 +184,8 @@ public class AldeActuator extends AbstractActuator {
             return app.getConfiguration(0);
         }
         for(ApplicationConfiguration config : app.getConfigurations()) {
-            for (ApplicationExecutionInstance instance : config.getExecutionInstances()) {
-                if ((instance.getSlurmId() + "").equals(deploymentId)) {
-                    return config;
-                }
+            if(config.hasExecutionInstance(Integer.parseInt(deploymentId.trim()))) {
+                return config;
             }
         }
         return null;
