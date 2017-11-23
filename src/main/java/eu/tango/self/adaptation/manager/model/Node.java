@@ -26,7 +26,7 @@ import org.json.JSONObject;
  * This encapsulates a json object representing a node.
  * @author Richard Kavanagh
  */
-public class Node extends AldeJsonObjectWrapper {
+public class Node extends AldeJsonObjectWrapper implements Comparable<Node> {
 
     /**
      * An example of a node is:
@@ -152,5 +152,19 @@ public class Node extends AldeJsonObjectWrapper {
         }
         return answer;
     }     
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Node) {
+            Node other = (Node) obj;
+            return this.getId() == other.getId() && this.getName().equals(other.getName());
+        }
+        return false;
+    }   
+    
+    @Override
+    public int compareTo(Node o) {
+        return this.getName().compareTo(o.getName());
+    }
     
 }

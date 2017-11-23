@@ -114,6 +114,15 @@ public class Testbed extends AldeJsonObjectWrapper {
             }
         }
         return answer;  
-    }   
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Testbed) {
+            Testbed other = (Testbed) obj;
+            return this.getTestbedId() == other.getTestbedId() && this.getName().equals(other.getName());
+        }
+        return false;
+    }       
   
 }

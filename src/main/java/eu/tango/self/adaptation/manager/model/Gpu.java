@@ -183,6 +183,15 @@ public class Gpu extends AldeJsonObjectWrapper {
             answer.add(current);
         }
         return answer;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Gpu) {
+            Gpu other = (Gpu) obj;
+            return this.getId() == other.getId() && this.getModelName().equals(other.getModelName());
+        }
+        return false;
     }    
     
 }
