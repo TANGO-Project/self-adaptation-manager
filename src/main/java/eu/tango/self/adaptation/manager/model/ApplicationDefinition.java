@@ -108,6 +108,15 @@ public class ApplicationDefinition {
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
+    
+    /**
+     * This indicates if the deployment id of the application is set. 
+     * This id describes a particular instance of the application that was run.
+     * @return if the deployment id was set or not, i.e. must not be null or empty
+     */
+    public boolean hasDeploymentId() {
+        return deploymentId != null && !deploymentId.isEmpty();
+    }    
 
     /**
      * This gets the list of sla limits associated with an application, if one

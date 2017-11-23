@@ -150,7 +150,7 @@ public class AldeActuator extends AbstractActuator {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
             return appDef; //Return without performing any work
         }
-        ArrayList<ApplicationDeployment> currentlyDeployed = client.getDeployments();
+        ArrayList<ApplicationDeployment> currentlyDeployed = (ArrayList) client.getDeployments();
         //Find a the list of valid configurations
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
@@ -379,8 +379,7 @@ public class AldeActuator extends AbstractActuator {
         List<ApplicationDefinition> allApps = client.getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
             if (app.getName().equals(name)
-                    && (app.getDeploymentId().equals(deploymentId)
-                    || deploymentId == null || deploymentId.isEmpty())) {
+                    && (app.getDeploymentId().equals(deploymentId) || !app.hasDeploymentId())) {
                 return app;
             }
         }

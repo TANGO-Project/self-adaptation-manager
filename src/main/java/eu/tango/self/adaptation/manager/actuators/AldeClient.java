@@ -54,7 +54,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 public class AldeClient {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
-    private static String baseUri = "http://localhost:5000/api/v1/";
+    private String baseUri = "http://localhost:5000/api/v1/";
 
     public AldeClient() {
         try {
@@ -74,8 +74,8 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }  
-
+    }
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -90,7 +90,7 @@ public class AldeClient {
                 Object next = iterator.next();
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
-                    ApplicationDefinition app = new ApplicationDefinition(object.getString("name"), "-1");
+                    ApplicationDefinition app = new ApplicationDefinition(object.getString("name"), null);
                     app.setAldeAppId(object.getInt("id"));
                     app.setExecutables(object.getJSONArray("executables"));
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
@@ -234,7 +234,7 @@ public class AldeClient {
      *
      * @return The list of application deployments known to the ALDE
      */
-    public ArrayList<ApplicationDeployment> getDeployments() {
+    public List<ApplicationDeployment> getDeployments() {
         ArrayList<ApplicationDeployment> answer = new ArrayList<>();
         try {
             /**
@@ -309,8 +309,7 @@ public class AldeClient {
         try (InputStream is = new URL(url).openStream()) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
             String jsonText = readAll(rd);
-            JSONObject json = new JSONObject(jsonText);
-            return json;
+            return new JSONObject(jsonText);
         }
     }
 
