@@ -32,18 +32,18 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
     //Average Energy is calculateable
     private double totalTime; //value in seconds
     //Average time is calculateable
-    private double EnergyUsedVsReference;
-    private double DurationVsReference;
+    private double energyUsedVsReference;
+    private double durationVsReference;
 
     public ConfigurationRank(String configName, double recordCount,
             double totalEnergy, double totalTime,
-            double EnergyUsedVsReference, double DurationVsReference) {
+            double energyUsedVsReference, double durationVsReference) {
         this.configName = configName;
         this.recordCount = recordCount;
         this.totalEnergy = totalEnergy;
         this.totalTime = totalTime;
-        this.EnergyUsedVsReference = EnergyUsedVsReference;
-        this.DurationVsReference = DurationVsReference;
+        this.energyUsedVsReference = energyUsedVsReference;
+        this.durationVsReference = durationVsReference;
     }
 
     public String getConfigName() {
@@ -71,11 +71,11 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
     }
 
     public double getDurationVsReference() {
-        return DurationVsReference;
+        return durationVsReference;
     }
 
     public double getEnergyUsedVsReference() {
-        return EnergyUsedVsReference;
+        return energyUsedVsReference;
     }
 
     public void setConfigName(String configName) {
@@ -95,11 +95,11 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
     }
 
     public void setDurationVsReference(double DurationVsReference) {
-        this.DurationVsReference = DurationVsReference;
+        this.durationVsReference = DurationVsReference;
     }
 
     public void setEnergyUsedVsReference(double EnergyUsedVsReference) {
-        this.EnergyUsedVsReference = EnergyUsedVsReference;
+        this.energyUsedVsReference = EnergyUsedVsReference;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
         return configName + " : Count: " + ((int) recordCount) + " : Total Energy: "
                 + totalEnergy + " : Avg Energy: " + getAverageEnergy() + " : Total Time: "
                 + totalTime + " : Avg Time: " + getAverageTime() + " : Energy vs Reference: "
-                + EnergyUsedVsReference + " : Duration vs Reference: " + DurationVsReference;
+                + energyUsedVsReference + " : Duration vs Reference: " + durationVsReference;
     }
 
     @Override
