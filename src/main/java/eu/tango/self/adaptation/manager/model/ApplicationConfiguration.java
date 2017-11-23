@@ -167,6 +167,20 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
     }
     
     /**
+     * This gets a execution instance by its slurm job id
+     * @param slurmId The slurm job id to search for
+     * @return The execution instance for the slurm job id
+     */
+    public ApplicationExecutionInstance getExecutionInstance(int slurmId) {
+        for (ApplicationExecutionInstance current : getExecutionInstances()) {
+            if (current.getSlurmId() == slurmId) {
+                return current;
+            }
+        }
+        return null;
+    }        
+    
+    /**
      * This checks to see if an application execution instance exist or not, for this configuration.
      * @param instance The instance to check to see if it exists or not
      * @return True only if this configuration of an application has a given execution instance.
@@ -177,6 +191,20 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
         }
         return instance.getExecutionConfigurationsId() == this.getConfigurationId();
     }
+    
+    /**
+     * This checks to see if an application execution instance exist or not, for this configuration.
+     * @param slurmId The instance to check to see if it exists or not
+     * @return True only if this configuration of an application has a given execution instance.
+     */
+    public boolean hasExecutionInstance(int slurmId) {
+        for (ApplicationExecutionInstance current : getExecutionInstances()) {
+            if (current.getSlurmId() == slurmId) {
+                return true;
+            }
+        }
+        return false;
+    }    
     
     /**
      * This selects from a list of configurations the configuration indicated by its id

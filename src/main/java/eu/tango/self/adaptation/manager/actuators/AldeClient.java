@@ -18,8 +18,10 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import java.io.IOException;
@@ -72,8 +74,8 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }
-    
+    }  
+
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -129,6 +131,60 @@ public class AldeClient {
         for (ApplicationDefinition app : allApps) {
             if (app.hasExecutable(deployment.getExecutableId())) {
                 return app;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * This gets the application definition from its configuration object
+     *
+     * @param configuration The application deployment to get the definition object
+     * for
+     * @return The definition of the named application
+     */
+    public ApplicationDefinition getApplicationDefintion(ApplicationConfiguration configuration) {
+        List<ApplicationDefinition> allApps = getApplicationDefinitions();
+        for (ApplicationDefinition app : allApps) {
+            if (app.hasConfiguration(configuration.getConfigurationsExecutableId())) {
+                return app;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * This gets the application definition of a running instance of an application
+     *
+     * @param instance The application instance to get the definition object
+     * for
+     * @return The definition of the named application
+     */
+    public ApplicationDefinition getApplicationDefintion(ApplicationExecutionInstance instance) {
+        List<ApplicationDefinition> allApps = getApplicationDefinitions();
+        int configId = instance.getExecutionConfigurationsId();
+        for (ApplicationDefinition app : allApps) {
+            if (app.hasConfiguration(configId)) {
+                return app;
+            }
+            
+        }
+        return null;
+    }
+    
+    /**
+     * This gets the ALDE json definition for a slurm job.
+     * @param name The name of the slurm job
+     * @param deploymentId The deployment id of the slurm job.
+     * @return The application execution instance of the slurm job.
+     */
+    public ApplicationExecutionInstance getExecutionInstance(String name, String deploymentId) {
+        ApplicationDefinition app = getApplicationDefintion(name);
+        for (ApplicationConfiguration current : app.getConfigurations()) {
+            for (ApplicationExecutionInstance instance : current.getExecutionInstances()) {
+                if ((instance.getSlurmId() + "").equals(deploymentId)) {
+                    return instance;
+                }
             }
         }
         return null;

@@ -47,9 +47,9 @@ import java.util.logging.Logger;
  */
 public class AldeActuator extends AbstractActuator {
 
-    AldeClient client = new AldeClient();
+    private AldeClient client = new AldeClient();
     private final HostDataSource datasource;    
-    ActuatorInvoker parent = null;
+    private ActuatorInvoker parent = null;
 
     /**
      * No-args constructor for the alde actuator

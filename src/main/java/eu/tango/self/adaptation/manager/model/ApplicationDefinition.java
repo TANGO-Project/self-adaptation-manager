@@ -291,6 +291,21 @@ public class ApplicationDefinition {
     }
     
     /**
+     * This indicates if this application definition has a given configuration id
+     * @param configurationId Indicates if this application has a particular configuration id present
+     * @return true if and only if the definition object contains a configuration with the named id.
+     */
+    public boolean hasConfiguration(double configurationId) {
+        ArrayList<ApplicationConfiguration> configs = getConfigurations();
+        for (ApplicationConfiguration configuration : configs) {
+            if (configuration.getConfigurationId() == configurationId) {
+                return true;
+            }
+        }
+        return false;
+    }     
+    
+    /**
      * This gets the list of application executions for this application.
      * @return The list of executions of this application.
      */
