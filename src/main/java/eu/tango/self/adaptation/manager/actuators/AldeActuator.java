@@ -129,7 +129,7 @@ public class AldeActuator extends AbstractActuator {
                 reselectAccelerators(response.getApplicationId(), response.getDeploymentId());
                 break;
             default:
-                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
                 break;
         }
         response.setPerformed(true);
@@ -149,11 +149,10 @@ public class AldeActuator extends AbstractActuator {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
             return appDef; //Return without performing any work
         }
-        ArrayList<ApplicationExecutionInstance> currentlyRunning = (ArrayList) client.getExecutionInstances();
         //Find a the list of valid configurations
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
-        validConfigurations = removeAlreadyRunningConfigurations(validConfigurations, currentlyRunning);
+        validConfigurations = removeAlreadyRunningConfigurations(validConfigurations);
         selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
@@ -226,7 +225,8 @@ public class AldeActuator extends AbstractActuator {
      * @return The list of configurations that are deployable and have not as yet
      * been deployed.
      */
-    private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations, ArrayList<ApplicationExecutionInstance> currentlyRunning) {
+    private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations) {
+        ArrayList<ApplicationExecutionInstance> currentlyRunning = (ArrayList) client.getExecutionInstances();
         ArrayList<ApplicationConfiguration> answer = validConfigurations;
         for (ApplicationExecutionInstance current : currentlyRunning) {
             for(ApplicationConfiguration config : validConfigurations) {

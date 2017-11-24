@@ -53,7 +53,7 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
                     ArrayList<Response> actions = new ArrayList<>();
                     actions.add(currentItem);
                     int draincount = queue.drainTo(actions);
-                    Logger.getLogger(SlurmActuator.class.getName()).log(Level.FINEST, "The actuator just processed {0} actions.", draincount);
+                    Logger.getLogger(AbstractActuator.class.getName()).log(Level.FINEST, "The actuator just processed {0} actions.", draincount);
                     for (Response action : actions) {
                         try {
                             launchAction(action);
@@ -63,14 +63,14 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
                              * server from propagating and stopping the thread
                              * from running.
                              */
-                            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(AbstractActuator.class.getName()).log(Level.SEVERE, null, ex);
                             action.setPerformed(true);
                             action.setPossibleToAdapt(false);
                         }
                     }
                 }
             } catch (InterruptedException ex) {
-                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AbstractActuator.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -95,7 +95,7 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
         try {
             return execCmd(wholeCmd);
         } catch (IOException ex) {
-            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AbstractActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
         return new ArrayList<>();
     }
