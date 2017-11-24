@@ -57,7 +57,7 @@ public class ApplicationExecutable extends AldeJsonObjectWrapper {
     
     /**
      * This gets the id of the executable to be used in the configuration
-     * Note: an application may be comprised of several applications, each of which
+     * Note: an application may be comprised of several executables, each of which
      * may be compiled to use different accelerators.
      * @return The id of the executable to be used in the configuration
      */
@@ -71,7 +71,7 @@ public class ApplicationExecutable extends AldeJsonObjectWrapper {
     
     /**
      * This gets the id of the application.
-     * Note: an application may be comprised of several applications, each of which
+     * Note: an application may be comprised of several executables, each of which
      * may be compiled to use different accelerators.
      * @return The id of the application to be used in the configuration
      */

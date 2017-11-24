@@ -69,7 +69,7 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     
     /**
      * This gets the id of the executable configuration used to launch the application
-     * Note: an application may be comprised of several applications, each of which
+     * Note: an application may be comprised of several executables, each of which
      * may be compiled to use different accelerators.
      * @return The id of the executable configuration used to launch the execution
      */
