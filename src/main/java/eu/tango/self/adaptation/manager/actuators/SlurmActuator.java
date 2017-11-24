@@ -375,7 +375,7 @@ public class SlurmActuator extends AbstractActuator {
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
         }        
-        if (currentPowerCap - incremenet >=0 ) {
+        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet >=0) {
             execCmd("scontrol update powercap=" + (currentPowerCap - incremenet));
         }
     }
@@ -392,7 +392,9 @@ public class SlurmActuator extends AbstractActuator {
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
         }
-        execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));    
+        if (Double.isFinite(currentPowerCap)) {
+            execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));
+        }
     }
 
     public void checkpointAndRequeue() {
