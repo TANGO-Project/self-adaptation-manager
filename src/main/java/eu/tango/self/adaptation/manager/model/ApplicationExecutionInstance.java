@@ -42,7 +42,7 @@ import org.json.JSONObject;
  */
 public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     
-    public enum status {
+    public enum Status {
         RUNNING,FINISHED;
     }
 
@@ -94,8 +94,8 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     }
     
     /**
-     * This gets the executions status
-     * @return The status string of the execution
+     * This gets the executions Status
+     * @return The Status string of the execution
      */    
     public String getStatus() {
         return getString("status");
@@ -118,6 +118,16 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     public String getOutput() {
         return getString("output");
     }
+
+    /**
+     * This filters a list of application execution instances by their Status
+     * @param appList The list of application executions to filter 
+     * @param status Indicates the Status of the application
+     * @return  The list of execution instances with the given Status
+     */
+    public static List<ApplicationExecutionInstance> filterBasedUponStatus(List<ApplicationExecutionInstance> appList, Status status) {
+        return filterBasedUponStatus(appList, status.toString());
+    }    
     
     /**
      * This filters a list of application execution instances by their status

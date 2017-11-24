@@ -191,7 +191,7 @@ public class AldeClient {
         List<ApplicationDefinition> apps = getApplicationDefinitions();
         for (ApplicationDefinition current : apps) {
             if (runningOnly) {
-                answer.addAll(ApplicationExecutionInstance.filterBasedUponStatus(answer, ApplicationExecutionInstance.status.RUNNING.toString()));
+                answer.addAll(ApplicationExecutionInstance.filterBasedUponStatus(current.getExecutionInstances(), ApplicationExecutionInstance.Status.RUNNING));
             } else { 
                 answer.addAll(current.getExecutionInstances());
             }

@@ -167,6 +167,20 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
     }
     
     /**
+     * This gets the executions of this configuration running on the testbed
+     * @param onlyRunning only the ones running, filtering out all instances 
+     * that have finished.
+     * @return The array of executions running on the testbed
+     */    
+    public List<ApplicationExecutionInstance> getExecutionInstances(boolean onlyRunning) {
+        List<ApplicationExecutionInstance> answer = getExecutionInstances();
+        if (onlyRunning) {
+            answer = ApplicationExecutionInstance.filterBasedUponStatus(answer, ApplicationExecutionInstance.Status.RUNNING);
+        }
+        return answer;       
+    }   
+    
+    /**
      * This gets a execution instance by its slurm job id
      * @param slurmId The slurm job id to search for
      * @return The execution instance for the slurm job id
@@ -190,7 +204,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
             return false;
         }
         return instance.getExecutionConfigurationsId() == this.getConfigurationId();
-    }
+    }   
     
     /**
      * This checks to see if an application execution instance exist or not, for this configuration.

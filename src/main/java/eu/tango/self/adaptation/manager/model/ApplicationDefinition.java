@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.model;
 
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 
 /**
@@ -320,11 +321,25 @@ public class ApplicationDefinition {
      */
     public ArrayList<ApplicationExecutionInstance> getExecutionInstances() {
         ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
-        for (int i = 0; i < getConfigurationsCount(); i++) {
-            answer.addAll(getConfiguration(i).getExecutionInstances());
+        for (ApplicationConfiguration config : getConfigurations()) {
+            answer.addAll(config.getExecutionInstances());
         }
         return answer;
     }
+    
+    /**
+     * This gets the list of application executions for this application.
+     * @param onlyRunning only the ones running, filtering out all instances 
+     * that have finished.
+     * @return The list of executions of this application.
+     */
+    public List<ApplicationExecutionInstance> getExecutionInstances(boolean onlyRunning) {
+        List<ApplicationExecutionInstance> answer = getExecutionInstances();
+        if (onlyRunning) {
+            answer = ApplicationExecutionInstance.filterBasedUponStatus(answer, ApplicationExecutionInstance.Status.RUNNING);
+        }
+        return answer;
+    }     
     
     /**
      * This gets the list of application executions for this application.
