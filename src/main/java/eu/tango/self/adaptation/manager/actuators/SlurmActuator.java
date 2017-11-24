@@ -48,14 +48,14 @@ public class SlurmActuator extends AbstractActuator {
         datasource = new SlurmDataSourceAdaptor();
     }
 
-    public SlurmActuator(SlurmDataSourceAdaptor datasource) {  
-            if (datasource == null) {
+    public SlurmActuator(SlurmDataSourceAdaptor datasource) {
+        if (datasource == null) {
             this.datasource = new SlurmDataSourceAdaptor();
             return;
         }
         this.datasource = datasource;
     }
-    
+
     @Override
     public ApplicationDefinition getApplication(String applicationName, String deploymentId) {
         /**
@@ -105,7 +105,7 @@ public class SlurmActuator extends AbstractActuator {
         ApplicationOnHost task = getTask(deploymentId, deploymentId, taskId);
         if (task == null) {
             return 0;
-    }
+        }
         return modeller.getCurrentEnergyForApplication(task).getPower();
     }
 
@@ -129,23 +129,23 @@ public class SlurmActuator extends AbstractActuator {
         }
         return answer;
     }
-    
+
     @Override
     public List<ApplicationOnHost> getTasksOnHost(String host) {
-        List<ApplicationOnHost> apps = datasource.getHostApplicationList();  
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         return ApplicationOnHost.filter(apps, datasource.getHostByName(host));
     }
-    
+
     @Override
     public List<ApplicationOnHost> getTasks() {
-        return datasource.getHostApplicationList();  
-    }    
-    
+        return datasource.getHostApplicationList();
+    }
+
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         execCmd("scancel " + deploymentId);
     }
-    
+
     /**
      * This takes a named application and kills all instances of it.
      * @param applicationName The name of the application to kill
@@ -154,10 +154,10 @@ public class SlurmActuator extends AbstractActuator {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         for (ApplicationOnHost app : apps) {
-            execCmd("scancel " + app.getId());            
+            execCmd("scancel " + app.getId());
         }
     }
-    
+
     /**
      * Pauses all jobs with a given name, so that they can be executed later.
      * @param applicationName The name of the application to pause
@@ -166,10 +166,10 @@ public class SlurmActuator extends AbstractActuator {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         for (ApplicationOnHost app : apps) {
-            pauseJob(applicationName, app.getId() + "");            
+            pauseJob(applicationName, app.getId() + "");
         }
-    }     
-    
+    }
+
     /**
      * Un-pauses all jobs with a given name, so that they can be executed later.
      * @param applicationName The name of the application to pause
@@ -178,9 +178,9 @@ public class SlurmActuator extends AbstractActuator {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         for (ApplicationOnHost app : apps) {
-            resumeJob(applicationName, app.getId() + "");            
+            resumeJob(applicationName, app.getId() + "");
         }
-    }        
+    }
 
     /**
      * Pauses a job, so that it can be executed later.
@@ -191,8 +191,8 @@ public class SlurmActuator extends AbstractActuator {
      */
     public void pauseJob(String applicationName, String deploymentId) {
         /**
-         * "hold" and "suspend" are related commands that pauses a job that is 
-         * yet to start running or requires elevated privileges. 
+         * "hold" and "suspend" are related commands that pauses a job that is
+         * yet to start running or requires elevated privileges.
          */
         execCmd("scancel --signal=STOP " + deploymentId);
     }
@@ -238,7 +238,7 @@ public class SlurmActuator extends AbstractActuator {
         //Example: "scontrol update JobID=" + deploymentId + " Timelimit=+30:00"
         execCmd("scontrol update JobID=" + deploymentId + " Timelimit=+" + walltimeIncrement);
     }
-    
+
     /**
      * This prevents a pending task that is to be submitted from running alongside 
      * other applications at the same time.
@@ -247,7 +247,7 @@ public class SlurmActuator extends AbstractActuator {
      */
     public void makeTaskExclusive(String applicationName, String deploymentId) {
         execCmd("scontrol update JobId=" + deploymentId + "OverSubscribe=no");
-    }    
+    }
 
     /**
      * This makes it possible for a pending task to be submitted so that it can
@@ -257,8 +257,8 @@ public class SlurmActuator extends AbstractActuator {
      */
     public void makeTaskOverSubscribed(String applicationName, String deploymentId) {
         execCmd("scontrol update JobId=" + deploymentId + "OverSubscribe=yes");
-    }    
-    
+    }
+
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
         int oldCount = getNodeCount(deploymentId);
@@ -340,11 +340,11 @@ public class SlurmActuator extends AbstractActuator {
     public void startupHost(Host host) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     /**
      * This obtains the current power cap from SLURM. In the event the value isn't
      * read correctly the value Double.NaN is provided instead.
-     * @return 
+     * @return
      */
     private double getCurrentPowerCap() {
         ArrayList<String> powerStr = execCmd("scontrol show power"); //using the command
@@ -352,18 +352,18 @@ public class SlurmActuator extends AbstractActuator {
             return Double.NaN;
         }
         try {
-        String[] values = powerStr.get(0).split(" ");
-        for (String value : values) {
-            if (value.startsWith("PowerCap")) {
-                return Double.parseDouble(value.split("=")[1]);
+            String[] values = powerStr.get(0).split(" ");
+            for (String value : values) {
+                if (value.startsWith("PowerCap")) {
+                    return Double.parseDouble(value.split("=")[1]);
+                }
             }
-        }
         } catch (NumberFormatException ex) {
-            
+
         }
         return Double.NaN;
     }
-    
+
     public void decreasePowerCap(Response response) {
         //scontrol show powercap should be able to read current values       
         //Uses the slurm command: scontrol update powercap=1400000
@@ -374,19 +374,19 @@ public class SlurmActuator extends AbstractActuator {
         double incremenet = 10;
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
-        }        
-        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet >=0) {
+        }
+        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet >= 0) {
             execCmd("scontrol update powercap=" + (currentPowerCap - incremenet));
         }
     }
-    
+
     public void increasePowerCap(Response response) {
         //scontrol show powercap should be able to read current values       
         //Uses the slurm command: scontrol update powercap=1400000
         //See: https://slurm.schedmd.com/SLUG15/Power_Adaptive_final.pdf
         //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
         //See: https://slurm.schedmd.com/power_mgmt.html
-        
+
         double currentPowerCap = getCurrentPowerCap();
         double incremenet = 10;
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
@@ -406,8 +406,7 @@ public class SlurmActuator extends AbstractActuator {
         //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
     }
-    
-    
+
     /**
      * This executes a given action for a response that has been placed in the
      * actuator's queue for deployment.
@@ -418,7 +417,7 @@ public class SlurmActuator extends AbstractActuator {
     protected void launchAction(Response response) {
         if (response.getCause() instanceof ApplicationEventData) {
             /**
-             * This checks to see if application based events have the necessary 
+             * This checks to see if application based events have the necessary
              * information to perform the adaptation.
              */
             if (response.getDeploymentId() == null || response.getDeploymentId().isEmpty()) {
@@ -459,16 +458,16 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case PAUSE_SIMILAR_APPS:
                 pauseSimilarJob(response.getApplicationId());
-            break;
+                break;
             case UNPAUSE_SIMILAR_APPS:
-                resumeSimilarJob(response.getApplicationId());                
-            break;
+                resumeSimilarJob(response.getApplicationId());
+                break;
             case OVERSUBSCRIBE_APP:
                 makeTaskOverSubscribed(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case EXCLUSIVE_APP:
                 makeTaskExclusive(response.getApplicationId(), getTaskDeploymentId(response));
-                break;                
+                break;
             case HARD_KILL_APP:
             case KILL_APP:
                 //Note: no soft implementation exists at this time
@@ -476,7 +475,7 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case KILL_SIMILAR_APPS:
                 killSimilarApps(response.getApplicationId());
-                break;                
+                break;
             case INCREASE_WALL_TIME:
                 increaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
@@ -495,7 +494,7 @@ public class SlurmActuator extends AbstractActuator {
         }
         response.setPerformed(true);
     }
-    
+
     /**
      * The deployment id and application id originate from the event, thus if
      * a response originates from the host these values are not set. Thus the
@@ -504,13 +503,13 @@ public class SlurmActuator extends AbstractActuator {
      * @return The task/deployment id to be used by slurm to act upon the job.
      */
     private String getTaskDeploymentId(Response response) {
-        if (response.getTaskId()!= null && !response.getTaskId().isEmpty()) {
+        if (response.getTaskId() != null && !response.getTaskId().isEmpty()) {
             return response.getTaskId();
         }
         /**
          * Information below gained from application based events, it is a backup
          * and uses the originating application as the item to actuate against
-         * 
+         *
          */
         if (response.getDeploymentId() != null && !response.getDeploymentId().isEmpty()) {
             return response.getDeploymentId();
