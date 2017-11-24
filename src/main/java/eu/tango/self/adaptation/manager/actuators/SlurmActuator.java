@@ -341,21 +341,58 @@ public class SlurmActuator extends AbstractActuator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public void decreasePowerCap() {
-        //scontrol show powercap should be able to read current values        
-        //Usses the slurm command: scontrol update powercap=1400000
-        //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
+    /**
+     * This obtains the current power cap from SLURM. In the event the value isn't
+     * read correctly the value Double.NaN is provided instead.
+     * @return 
+     */
+    private double getCurrentPowerCap() {
+        ArrayList<String> powerStr = execCmd("scontrol show power"); //using the command
+        if (powerStr.isEmpty()) {
+            return Double.NaN;
+        }
+        try {
+        String[] values = powerStr.get(0).split(" ");
+        for (String value : values) {
+            if (value.startsWith("PowerCap")) {
+                return Double.parseDouble(value.split("=")[1]);
+            }
+        }
+        } catch (NumberFormatException ex) {
+            
+        }
+        return Double.NaN;
+    }
+    
+    public void decreasePowerCap(Response response) {
+        //scontrol show powercap should be able to read current values       
+        //Uses the slurm command: scontrol update powercap=1400000
+        //See: https://slurm.schedmd.com/SLUG15/Power_Adaptive_final.pdf
+        //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
+        //See: https://slurm.schedmd.com/power_mgmt.html   
+        double currentPowerCap = getCurrentPowerCap();
+        double incremenet = 10;
+        if (response.hasAdaptationDetail("POWER_INCREMENT")) {
+            incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
+        }        
+        if (currentPowerCap - incremenet >=0 ) {
+            execCmd("scontrol update powercap=" + (currentPowerCap - incremenet));
+        }
+    }
+    
+    public void increasePowerCap(Response response) {
+        //scontrol show powercap should be able to read current values       
+        //Uses the slurm command: scontrol update powercap=1400000
         //See: https://slurm.schedmd.com/SLUG15/Power_Adaptive_final.pdf
         //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
         //See: https://slurm.schedmd.com/power_mgmt.html
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
-    }
-    
-    public void increasePowerCap() {
-        //scontrol show powercap should be able to read current values        
-        //Usses the slurm command: scontrol update powercap=1400000
-        //TODO this feature is disabled on the testbed so cannot be tested/developed as yet
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+        
+        double currentPowerCap = getCurrentPowerCap();
+        double incremenet = 10;
+        if (response.hasAdaptationDetail("POWER_INCREMENT")) {
+            incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
+        }
+        execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));    
     }
 
     public void checkpointAndRequeue() {
@@ -445,10 +482,10 @@ public class SlurmActuator extends AbstractActuator {
                 decreaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
             case INCREASE_POWER_CAP:
-                increasePowerCap();
+                increasePowerCap(response);
                 break;
             case REDUCE_POWER_CAP:
-                decreasePowerCap();
+                decreasePowerCap(response);
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
