@@ -126,7 +126,12 @@ public class AldeActuator extends AbstractActuator {
                 scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
                 break;
             case RESELECT_ACCELERATORS:
-                reselectAccelerators(response.getApplicationId(), response.getDeploymentId());
+                boolean killPrevious = true;
+                if (response.hasAdaptationDetail("KILL_PREVIOUS")) {
+                    String killPreviousStr = response.getAdaptationDetail("KILL_PREVIOUS");
+                    killPrevious = Boolean.parseBoolean(killPreviousStr);
+                }
+                reselectAccelerators(response.getApplicationId(), response.getDeploymentId(), killPrevious);
                 break;
             default:
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
@@ -139,9 +144,10 @@ public class AldeActuator extends AbstractActuator {
      * This takes the accelerators 
      * @param name The name of the application to redeploy
      * @param deploymentId The deployment id of the current application that will be redeployed
+     * @param killPreviousApp Indicates if the previous instance should be killed on starting the new instance.
      * @return The Application definition of the application
      */
-    public ApplicationDefinition reselectAccelerators(String name, String deploymentId) {
+    public ApplicationDefinition reselectAccelerators(String name, String deploymentId, boolean killPreviousApp) {
         ApplicationConfiguration selectedConfiguration;
         ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
         ApplicationDefinition appDef = client.getApplicationDefinition(name);
@@ -159,7 +165,9 @@ public class AldeActuator extends AbstractActuator {
             Double executionId = (Double) selectedConfiguration.getConfigurationsExecutableId();
             try {
                 //Delete the current configuration of the application
-                hardKillApp(name, deploymentId); //or does it as a proof of completing quickly enough?
+                if (killPreviousApp) {
+                    hardKillApp(name, deploymentId);
+                }
                 //Launch the best configuration that can be found (fastest/least energy)
                 client.executeApplication(executionId);
             } catch (IOException ex) {
