@@ -169,7 +169,7 @@ public class AldeActuator extends AbstractActuator {
                     hardKillApp(name, deploymentId);
                 }
                 //Launch the best configuration that can be found (fastest/least energy)
-                client.executeApplication(executionId);
+                client.executeApplication(executionId.intValue());
             } catch (IOException ex) {
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
             }

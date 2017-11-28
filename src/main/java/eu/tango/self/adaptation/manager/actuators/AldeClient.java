@@ -74,8 +74,8 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }
-  
+    }   
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -408,7 +408,7 @@ public class AldeClient {
         }
     }    
 
-    public void executeApplication(double executionId) throws IOException {
+    public void executeApplication(int executionId) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
