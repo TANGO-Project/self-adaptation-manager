@@ -75,7 +75,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-    
+  
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -171,6 +171,29 @@ public class AldeClient {
         }
         return null;
     }
+    
+    /**
+     * This lists the application configurations for a given application
+     *
+     * @return The list of application configurations known to the ALDE
+     */
+    public List<ApplicationConfiguration> getConfigurations(int applicationId) {
+        ArrayList<ApplicationConfiguration> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "applications/" + applicationId + "/execution_configurations");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(new ApplicationConfiguration(object));
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }    
 
     /**
      * This gets the list of all running execution instances known to the ALDE.
@@ -187,32 +210,61 @@ public class AldeClient {
      * @return The list of application execution instances from the ALDE.
      */
     public List<ApplicationExecutionInstance> getExecutionInstances(boolean runningOnly) {
-        List<ApplicationExecutionInstance> answer = new ArrayList<>();
-        List<ApplicationDefinition> apps = getApplicationDefinitions();
-        for (ApplicationDefinition current : apps) {
+        //Example curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: application/json' -d'q={"filters":[{"name":"status","op":"like","val":"RUNNING"}]}'
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        try {
+            JSONObject params = null;
             if (runningOnly) {
-                answer.addAll(ApplicationExecutionInstance.filterBasedUponStatus(current.getExecutionInstances(), ApplicationExecutionInstance.Status.RUNNING));
-            } else { 
-                answer.addAll(current.getExecutionInstances());
+                params = new JSONObject();
+                JSONArray filter = new JSONArray();
+                JSONObject item1 = new JSONObject();
+                item1.put("name","status");
+                item1.put("op","like");
+                item1.put("val","RUNNING");
+                filter.put(item1);
+                params.put("filters", filter);
             }
+            JSONObject apps = readJsonFromUrl(baseUri + "executions", params);
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
+                Object next = iterator.next();
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(new ApplicationExecutionInstance(object));
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
     }     
     
     /**
      * This gets the ALDE json definition for a slurm job.
-     * @param name The name of the slurm job
      * @param deploymentId The deployment id of the slurm job.
      * @return The application execution instance of the slurm job.
      */
-    public ApplicationExecutionInstance getExecutionInstance(String name, String deploymentId) {
-        ApplicationDefinition app = AldeClient.this.getApplicationDefinition(name);
-        for (ApplicationConfiguration current : app.getConfigurations()) {
-            for (ApplicationExecutionInstance instance : current.getExecutionInstances()) {
-                if ((instance.getSlurmId() + "").equals(deploymentId)) {
-                    return instance;
-                }
+    public ApplicationExecutionInstance getExecutionInstance(String deploymentId) {
+        /**
+         * curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: application/json' -d'q=
+         * {"filters":[{"name":"status","op":"like","val":"RUNNING"},
+         * {"name":"execution_configuration_id","op":"like","val":1}]}'
+         */
+        JSONObject params = new JSONObject();
+        JSONArray filter = new JSONArray();
+        JSONObject item1 = new JSONObject();
+        item1.put("name","slurm_sbatch_id");
+        item1.put("op","like");
+        item1.put("val",deploymentId);
+        filter.put(item1);       
+        params.put("filters", filter);
+        try {        
+            JSONObject appInstance = readJsonFromUrl(baseUri + "executions", params);
+            if (appInstance != null && appInstance.getJSONArray("objects").getJSONObject(0) != null) {
+                return new ApplicationExecutionInstance(appInstance.getJSONArray("objects").getJSONObject(0));
             }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -339,6 +391,22 @@ public class AldeClient {
             return new JSONObject(jsonText);
         }
     }
+    
+    /**
+     * This takes a url and parses the json from it into a Json object.
+     *
+     * @param url The url to parse
+     * @param parameters The parameters to add to the query
+     * @return The json object provided by the named url
+     * @throws IOException
+     */
+    public JSONObject readJsonFromUrl(String url, JSONObject parameters) throws IOException {
+        if (parameters == null) {
+            return readJsonFromUrl(url);
+        } else {
+            return readJsonFromUrl(url + "?q=" + parameters.toString());
+        }
+    }    
 
     public void executeApplication(double executionId) throws IOException {
         /**
@@ -357,7 +425,7 @@ public class AldeClient {
             httpClient.execute(request);
             // handle response here...
         } catch (Exception ex) {
-            // handle exception here
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

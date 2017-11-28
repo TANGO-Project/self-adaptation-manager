@@ -190,8 +190,12 @@ public class AldeActuator extends AbstractActuator {
         if (app.getConfigurations().size() == 1) {
             return app.getConfiguration(0);
         }
+        ApplicationExecutionInstance instance = client.getExecutionInstance(deploymentId);
+        if (instance == null) {
+            return null;
+        }
         for(ApplicationConfiguration config : app.getConfigurations()) {
-            if(config.hasExecutionInstance(Integer.parseInt(deploymentId.trim()))) {
+            if(config.getConfigurationId() == instance.getExecutionConfigurationsId()) {
                 return config;
             }
         }
