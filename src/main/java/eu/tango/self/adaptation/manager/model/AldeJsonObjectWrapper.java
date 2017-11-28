@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import java.util.Map;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -47,7 +48,42 @@ public abstract class AldeJsonObjectWrapper {
             return json.getString(key);
         }
         return null;       
-    }    
+    }
+    
+    /**
+     * This gets the double representation of a given key value
+     * @param key The key to obtain from the json object
+     * @return The double represented by a given key
+     */      
+    public double getDouble(String key) {
+        try {
+            if (json.has(key) && !json.isNull(key)) {
+                return (double) json.getDouble(key);
+            }
+        }catch (JSONException ex) {
+            //This happens in cases where the integer doesn't parse correctly
+        }        
+        //the default assumption is zero.
+        return 0;       
+    }
+    
+    /**
+     * This gets the int representation of a given key value
+     * @param key The key to obtain from the json object
+     * @return The double represented by a given key
+     */     
+    public int getInt(String key) {
+        try {
+            //Tests to see if the excutable_id belongs to a compiled application
+            if (json.has(key) && !json.isNull(key)) {
+                return (int) json.getInt(key);
+            }
+        }catch (JSONException ex) {
+            //This happens in cases where the integer doesn't parse correctly
+        }
+        //the default assumption is zero.
+        return 0;       
+    }        
   
     @Override
     public String toString() {

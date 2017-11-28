@@ -60,11 +60,7 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      * @return The id of the execution
      */
     public int getExecutionId() {
-        if (json.has("id")) {
-            return (int) json.getInt("id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("id");    
     }
     
     /**
@@ -74,11 +70,7 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      * @return The id of the executable configuration used to launch the execution
      */
     public int getExecutionConfigurationsId() {
-        if (json.has("execution_configuration_id")) {
-            return (int) json.getInt("execution_configuration_id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("execution_configuration_id");      
     }
     
     /**
@@ -86,11 +78,7 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      * @return The slurm job id of the execution
      */
     public int getSlurmId() {
-        if (json.has("slurm_sbatch_id")) {
-            return (int) json.getInt("slurm_sbatch_id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("slurm_sbatch_id");   
     }
     
     /**

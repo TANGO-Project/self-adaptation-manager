@@ -54,11 +54,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The id of the configuration
      */
     public int getConfigurationId() {
-        if (json.has("id")) {
-            return (int) json.getInt("id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("id"); 
     }    
     
     /**
@@ -68,11 +64,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The id of the application to be used in the configuration
      */
     public int getConfigurationsApplicationId() {
-        if (json.has("application_id")) {
-            return (int) json.getInt("application_id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("application_id");     
     }    
     
     /**
@@ -82,11 +74,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The id of the executable to be used in the configuration
      */
     public double getConfigurationsExecutableId() {
-        if (json.has("executable_id")) {
-            return (double) json.getInt("executable_id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("executable_id");      
     }
     
     /**
@@ -94,11 +82,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The id of the testbed to be used by the configuration
      */
     public int getConfigurationsTestbedId() {
-        if (json.has("testbed_id")) {
-            return (int) json.getInt("testbed_id");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getInt("testbed_id");       
     }       
     
     /**
@@ -106,11 +90,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The number of nodes needed by the configuration
      */
     public double getNodesNeeded() {
-        if (json.has("num_nodes")) {
-            return (double) json.getDouble("num_nodes");
-        }
-        //the default assumption is zero.
-        return 0;   
+        return getDouble("num_nodes");
     }       
     
     /**
@@ -118,11 +98,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The number of CPUs per node needed by the configuration
      */    
     public double getCpusNeededPerNode() {
-        if (json.has("num_cpus_per_node")) {
-            return (double) json.getDouble("num_cpus_per_node");
-        }
-        //the default assumption is zero.
-        return 0;        
+        return getDouble("num_cpus_per_node");      
     }    
 
     /**
@@ -130,12 +106,7 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The number of GPUs per node needed by the configuration
      */    
     public double getGpusNeededPerNode() {
-        //Tests to see if the excutable_id belongs to a compiled application
-        if (json.has("num_gpus_per_node")) {
-            return (double) json.getDouble("num_gpus_per_node");
-        }
-        //the default assumption is zero.
-        return 0;       
+        return getDouble("num_gpus_per_node");     
     }
 
     /**
@@ -143,7 +114,6 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      * @return The array of executions running on the testbed
      */    
     public JSONArray getExecutionInstancesAsJson() {
-        //Tests to see if the excutable_id belongs to a compiled application
         if (json.has("executions")) {
             return json.getJSONArray("executions");
         }
@@ -156,7 +126,6 @@ public class ApplicationConfiguration extends AldeJsonObjectWrapper {
      */    
     public List<ApplicationExecutionInstance> getExecutionInstances() {
         List<ApplicationExecutionInstance> answer = new ArrayList<>();
-        //Tests to see if the excutable_id belongs to a compiled application
         if (json.has("executions")) {
             JSONArray objects = json.getJSONArray("executions");
             for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
