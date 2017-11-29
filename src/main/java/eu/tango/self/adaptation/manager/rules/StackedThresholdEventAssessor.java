@@ -139,11 +139,11 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
                  */
             }
             if (current.size() >= 5) {
-                rule.setMinMagnitude(Double.parseDouble(current.get(4)));
+                rule.setMinMagnitude(current.get(4));
                 logString = logString + " Min: " + current.get(4);
             }
             if (current.size() >= 6) {
-                rule.setMaxMagnitude(Double.parseDouble(current.get(5)));
+                rule.setMaxMagnitude(current.get(5));
                 logString = logString + " Max: " + current.get(5);
             }
             if (current.size() >= 7) {

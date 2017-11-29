@@ -225,7 +225,24 @@ public class FiringCriteria {
     public void setMinMagnitude(double minMagnitude) {
         this.minMagnitude = minMagnitude;
     }
-
+    
+    /**
+     * This sets the minimum magnitude for the rule to fire, for the absolute
+     * difference between the guaranteed value and the measured value. This
+     * value is optional. This method parses the string safely and if the string
+     * can not be interpreted as a double then the value is not set.
+     *
+     * @param minMagnitude the minimum magnitude before this rule fires
+     * (inclusive).
+     */
+    public void setMinMagnitude(String minMagnitude) {
+        try {
+            this.minMagnitude = Double.parseDouble(minMagnitude);
+        } catch (NumberFormatException ex) {
+            //Ignoring parse errors and leaving the original value in place.
+        }
+    }    
+    
     /**
      * This indicates the minimum magnitude for the rule to fire, for the
      * absolute difference between the guaranteed value and the measured value.
@@ -252,6 +269,26 @@ public class FiringCriteria {
         }
     }
 
+    /**
+     * This sets the maximum magnitude for the rule to fire, for the absolute
+     * difference between the guaranteed value and the measured value. This
+     * value is optional. This method parses the string safely and if the string
+     * can not be interpreted as a double then the value is not set.
+     *
+     * @param maxMagnitude the maximum magnitude before this rule fires
+     * (inclusive).
+     */
+    public void setMaxMagnitude(String maxMagnitude) {
+        try {
+            this.maxMagnitude = Double.parseDouble(maxMagnitude);
+            if (minMagnitude == null) {
+                minMagnitude = 0.0;
+            }
+        } catch (NumberFormatException ex) {
+            //Ignoring parse errors and leaving the original value in place.
+        }        
+    }    
+    
     /**
      * This examines the application definition for rules associated with the 
      * application. It extracts the rules and returns them.
