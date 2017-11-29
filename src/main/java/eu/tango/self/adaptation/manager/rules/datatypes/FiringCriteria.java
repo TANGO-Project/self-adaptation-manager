@@ -237,6 +237,9 @@ public class FiringCriteria {
      */
     public void setMinMagnitude(String minMagnitude) {
         try {
+            if (minMagnitude == null) {
+                this.minMagnitude = null;
+            }
             this.minMagnitude = Double.parseDouble(minMagnitude);
         } catch (NumberFormatException ex) {
             //Ignoring parse errors and leaving the original value in place.
@@ -280,6 +283,9 @@ public class FiringCriteria {
      */
     public void setMaxMagnitude(String maxMagnitude) {
         try {
+            if (maxMagnitude == null) {
+                this.maxMagnitude = null;
+            }            
             this.maxMagnitude = Double.parseDouble(maxMagnitude);
             if (minMagnitude == null) {
                 minMagnitude = 0.0;
