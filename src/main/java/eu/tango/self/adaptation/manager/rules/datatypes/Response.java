@@ -38,12 +38,12 @@ public class Response implements Comparable<Response> {
     private boolean performed = false;
     private boolean possibleToAdapt = true;
     //The string to set the adaptation details value to in the event no actuator is found.
-    public static String ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND = "Unable to find actuator.";
+    public static final String ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND = "Unable to find actuator.";
     //The string to set the adaptation details value to in the event no task to actuate against is found.
-    public static String ADAPTATION_DETAIL_NO_ACTUATION_TASK = "Could not find a task to actuate against.";
+    public static final String ADAPTATION_DETAIL_NO_ACTUATION_TASK = "Could not find a task to actuate against.";
     //Property values for applications and hosts i.e. if the response targets a particular host or application
-    public static String ADAPTATION_DETAIL_APPLICATION = "application";
-    public static String ADAPTATION_DETAIL_HOST = "host";
+    public static final String ADAPTATION_DETAIL_APPLICATION = "application";
+    public static final String ADAPTATION_DETAIL_HOST = "host";
     private static final Map<String, Response.AdaptationType> ADAPTATION_TYPE_MAPPING
             = new HashMap<>();
 
