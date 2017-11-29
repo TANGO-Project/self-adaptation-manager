@@ -74,8 +74,8 @@ public class AldeClient {
         } catch (ConfigurationException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
-    }   
-    
+    }
+      
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -175,6 +175,7 @@ public class AldeClient {
     /**
      * This lists the application configurations for a given application
      *
+     * @param applicationId The application id to get the configuration for
      * @return The list of application configurations known to the ALDE
      */
     public List<ApplicationConfiguration> getConfigurations(int applicationId) {
