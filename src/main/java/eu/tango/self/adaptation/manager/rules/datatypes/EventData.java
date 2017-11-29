@@ -36,6 +36,9 @@ public abstract class EventData implements Comparable<EventData> {
     private EventData.Operator guaranteeOperator; // threshold direction
     private String agreementTerm;
     private String guaranteeid; //sla gurantee id
+    public static String SETTING_APPLICATION = "application";
+    public static String SETTING_HOST = "host";
+    public static String SETTING_DEPLOYMENT_ID = "deploymentid";
     /**
      * States that only a single event is needed to cause action, 
      * i.e. without a threshold being reached.

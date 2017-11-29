@@ -25,6 +25,10 @@ import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.Collections;
 import java.util.List;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
 
 /**
  * This ranks the tasks to create destroy etc based upon power consumption.
@@ -77,7 +81,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      */
     public Response getHighestPowerConsumingApp(Response response) {
         if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
             return response;
         }
@@ -92,7 +96,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
                 if (cause.getDeploymentId() != null) {
                     response.setTaskId(cause.getDeploymentId());
                 } else {
-                    response.setAdaptationDetails("Could not find a task to actuate against");
+                    response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
                     response.setPossibleToAdapt(false);
                 }
 
@@ -112,23 +116,23 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         if (response.getCause() instanceof ClockEventData) {
             ClockEventData cause = (ClockEventData) response.getCause(); 
             //The next two if statements deal with call backs, where the original event has settings data attached.
-            if (cause.hasSetting("application")) {
+            if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
                 response.setCause(cause.castToApplicationEventData());
                 return response;
             }
-            if (cause.hasSetting("host")) {
+            if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
                 response.setCause(cause.castToHostEventData());
                 return response;
             }       
             //The next two if statements deal with cases where the decision rules have information attached.
-            if (response.hasAdaptationDetail("host")) {
-                response.setCause(cause.castToHostEventData(response.getAdaptationDetail("host")));
+            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
                 return response;
             } 
-            if (response.hasAdaptationDetail("application")) {
-                response = selectPowerHungryTask(response, response.getAdaptationDetail("application"));
+            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
+                response = selectPowerHungryTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
                 response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
-                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail("application"), "*"));
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION), "*"));
                 return response;
             }
         }
@@ -199,7 +203,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      */
     public Response deleteTask(Response response) {
         if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
             return response;
         }
@@ -229,7 +233,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      */
     public Response addTask(Response response) {
         if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
             return response;
         }

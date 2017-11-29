@@ -41,14 +41,14 @@ public class ClockEventData extends EventData {
      * @return The application based event data equivalent of this event 
      */
     public ApplicationEventData castToApplicationEventData() {  
-        if (!hasSetting("application")) {
+        if (!hasSetting(ClockEventData.SETTING_APPLICATION)) {
             return null;
         }
         String deployment = "*";
-        if (hasSetting("deploymentid")) {
-            deployment = getSettingsDetail("deploymentid");
+        if (hasSetting(ClockEventData.SETTING_DEPLOYMENT_ID)) {
+            deployment = getSettingsDetail(ClockEventData.SETTING_DEPLOYMENT_ID);
         }
-        return castToApplicationEventData(getSettingsDetail("application"), deployment);        
+        return castToApplicationEventData(getSettingsDetail(ClockEventData.SETTING_APPLICATION), deployment);        
              
     }  
     
@@ -67,11 +67,11 @@ public class ClockEventData extends EventData {
                 deploymentId, 
                 this.getGuaranteeid(), 
                 this.getAgreementTerm());
-        if (hasSetting("application")) {
+        if (hasSetting(ClockEventData.SETTING_APPLICATION)) {
             answer.setApplicationId(applicationId);
         }
-        if (hasSetting("deploymentid")) {
-            answer.setDeploymentId(getSettingsDetail("deploymentid"));
+        if (hasSetting(ClockEventData.SETTING_DEPLOYMENT_ID)) {
+            answer.setDeploymentId(getSettingsDetail(ClockEventData.SETTING_DEPLOYMENT_ID));
         }  
         return answer;
     }
@@ -82,10 +82,10 @@ public class ClockEventData extends EventData {
      * @return The host based event data equivalent of this event 
      */
     public HostEventData castToHostEventData() {
-        if (!hasSetting("host")) {
+        if (!hasSetting(ClockEventData.SETTING_HOST)) {
             return null;
         }      
-        return castToHostEventData(getSettingsDetail("host"));
+        return castToHostEventData(getSettingsDetail(ClockEventData.SETTING_HOST));
     }    
     
     /**
@@ -102,8 +102,8 @@ public class ClockEventData extends EventData {
                 this.getGuaranteeOperator(),
                 this.getGuaranteeid(), 
                 this.getAgreementTerm());
-        if (hasSetting("host")) {
-            answer.setHost(getSettingsDetail("host"));
+        if (hasSetting(ClockEventData.SETTING_HOST)) {
+            answer.setHost(getSettingsDetail(ClockEventData.SETTING_HOST));
         }        
         return answer;
     }

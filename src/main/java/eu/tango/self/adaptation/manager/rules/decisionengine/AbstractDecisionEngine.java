@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 
 /**
  * The aim of this class is to decide given an event that has been assessed what
@@ -184,7 +185,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     public Response actOnAllSimilarApps(Response response) {
         if (getActuator() == null) {
-            response.setAdaptationDetails("Unable to find actuator.");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
             return response;
         }    
