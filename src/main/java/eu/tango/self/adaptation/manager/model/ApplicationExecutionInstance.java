@@ -43,7 +43,7 @@ import org.json.JSONObject;
 public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     
     public enum Status {
-        RUNNING,FINISHED;
+        RUNNING,COMPLETED,FAILED,UNKNOWN;
     }
 
     /**
