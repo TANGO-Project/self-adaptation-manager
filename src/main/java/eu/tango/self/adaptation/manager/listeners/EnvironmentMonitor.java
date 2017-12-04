@@ -180,7 +180,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                  */
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length < 3 || termStr.length > 4) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly!", termStr);
                     continue;
                 }
                 String appName = termStr[1];
@@ -199,7 +199,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                  * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
                  */
                 if (termStr.length < 3 || termStr.length > 4) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly!", termStr);
                     continue;
                 }
                 String appName = termStr[1];
