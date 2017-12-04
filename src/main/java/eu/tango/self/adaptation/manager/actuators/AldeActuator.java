@@ -165,6 +165,7 @@ public class AldeActuator extends AbstractActuator {
      * will be redeployed
      * @param killPreviousApp Indicates if the previous instance should be
      * killed on starting the new instance.
+     * @param rankBy This gives a choice of how ranking is performed
      * @return The Application definition of the application
      */
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId, boolean killPreviousApp, RankCriteria rankBy) {
@@ -214,6 +215,7 @@ public class AldeActuator extends AbstractActuator {
         }
         ApplicationExecutionInstance instance = client.getExecutionInstance(deploymentId);
         if (instance == null) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The execution instance with deployment id {0} is not known to the ALDE", deploymentId);
             return null;
         }
         for (ApplicationConfiguration config : app.getConfigurations()) {
@@ -433,8 +435,8 @@ public class AldeActuator extends AbstractActuator {
     public ApplicationDefinition getApplication(String name, String deploymentId) {
         List<ApplicationDefinition> allApps = client.getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
-            if (app.getName().equals(name)
-                    && (app.getDeploymentId().equals(deploymentId) || !app.hasDeploymentId())) {
+            if (app.getName() != null && app.getName().equals(name)
+                    && (!app.hasDeploymentId() || app.getDeploymentId().equals(deploymentId))) {
                 return app;
             }
         }
