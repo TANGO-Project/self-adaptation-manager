@@ -50,6 +50,8 @@ public class Response implements Comparable<Response> {
     static {
         ADAPTATION_TYPE_MAPPING.put("INCREASE_WALL_TIME", Response.AdaptationType.INCREASE_WALL_TIME);
         ADAPTATION_TYPE_MAPPING.put("REDUCE_WALL_TIME", Response.AdaptationType.REDUCE_WALL_TIME);
+        ADAPTATION_TYPE_MAPPING.put("INCREASE_WALL_TIME_SIMILAR_APPS", Response.AdaptationType.INCREASE_WALL_TIME_SIMILAR_APPS);
+        ADAPTATION_TYPE_MAPPING.put("REDUCE_WALL_TIME_SIMILAR_APPS", Response.AdaptationType.REDUCE_WALL_TIME_SIMILAR_APPS);        
         ADAPTATION_TYPE_MAPPING.put("ADD_TASK", Response.AdaptationType.ADD_TASK);
         ADAPTATION_TYPE_MAPPING.put("REMOVE_TASK", Response.AdaptationType.REMOVE_TASK);
         ADAPTATION_TYPE_MAPPING.put("SCALE_TO_N_TASKS", Response.AdaptationType.SCALE_TO_N_TASKS);
@@ -80,6 +82,7 @@ public class Response implements Comparable<Response> {
     public enum AdaptationType {
 
         INCREASE_WALL_TIME, REDUCE_WALL_TIME, 
+        INCREASE_WALL_TIME_SIMILAR_APPS, REDUCE_WALL_TIME_SIMILAR_APPS, 
         ADD_TASK, REMOVE_TASK, SCALE_TO_N_TASKS, 
         ADD_CPU, REMOVE_CPU, ADD_MEMORY, REMOVE_MEMORY,
         PAUSE_APP, UNPAUSE_APP, PAUSE_SIMILAR_APPS, UNPAUSE_SIMILAR_APPS,

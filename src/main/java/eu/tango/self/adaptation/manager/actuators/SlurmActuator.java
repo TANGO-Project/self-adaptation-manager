@@ -181,6 +181,32 @@ public class SlurmActuator extends AbstractActuator {
             resumeJob(applicationName, app.getId() + "");
         }
     }
+    
+    /**
+     * This increases the wall time of all similar applications
+     * @param applicationName The name of the application to change the wall time for
+     * @param response  The response object to perform the action for
+     */
+    public void increaseWallTimeSimilarJob(String applicationName,Response response) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            increaseWallTime(applicationName, app.getId() + "", response);
+        }
+    }
+
+    /**
+     * This decreases the wall time of all similar applications
+     * @param applicationName The name of the application to change the wall time for
+     * @param response  The response object to perform the action for
+     */
+    public void decreaseWallTimeSimilarJob(String applicationName,Response response) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            decreaseWallTime(applicationName, app.getId() + "", response);
+        }
+    }    
 
     /**
      * Pauses a job, so that it can be executed later.
@@ -482,6 +508,12 @@ public class SlurmActuator extends AbstractActuator {
             case REDUCE_WALL_TIME:
                 decreaseWallTime(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
+            case INCREASE_WALL_TIME_SIMILAR_APPS:
+                increaseWallTimeSimilarJob(response.getApplicationId(), response);
+                break;
+            case REDUCE_WALL_TIME_SIMILAR_APPS:
+                decreaseWallTimeSimilarJob(response.getApplicationId(), response);
+                break;                
             case INCREASE_POWER_CAP:
                 increasePowerCap(response);
                 break;

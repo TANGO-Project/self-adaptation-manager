@@ -136,6 +136,8 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
+            case INCREASE_WALL_TIME_SIMILAR_APPS:
+            case REDUCE_WALL_TIME_SIMILAR_APPS:
                 slurm.actuate(response);
                 break;
             case RESELECT_ACCELERATORS:
