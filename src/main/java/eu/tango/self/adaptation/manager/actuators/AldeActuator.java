@@ -208,16 +208,20 @@ public class AldeActuator extends AbstractActuator {
      * application
      */
     private ApplicationConfiguration getCurrentConfigurationInUse(String name, String deploymentId) {
-        ApplicationDefinition app = client.getApplicationDefinition(name);
-        //In cases where there is only 1 configuration for the application
-        if (app.getConfigurations().size() == 1) {
-            return app.getConfiguration(0);
-        }
         ApplicationExecutionInstance instance = client.getExecutionInstance(deploymentId);
         if (instance == null) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The execution instance with deployment id {0} is not known to the ALDE", deploymentId);
             return null;
         }
+        ApplicationDefinition app = client.getApplicationDefinition(instance);
+        if (app == null) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The application name {0} is not known to the ALDE", name);
+            return null;
+        }
+        //In cases where there is only 1 configuration for the application
+        if (app.getConfigurations().size() == 1) {
+            return app.getConfiguration(0);
+        }        
         for (ApplicationConfiguration config : app.getConfigurations()) {
             if (config.getConfigurationId() == instance.getExecutionConfigurationsId()) {
                 return config;

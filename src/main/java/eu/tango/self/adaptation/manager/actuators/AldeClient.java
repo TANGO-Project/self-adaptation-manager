@@ -45,6 +45,7 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONException;
 
 /**
  * This client directly interfaces with the ALDE to query it
@@ -75,7 +76,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-      
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -94,7 +95,7 @@ public class AldeClient {
                     app.setAldeAppId(object.getInt("id"));
                     app.setExecutables(object.getJSONArray("executables"));
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
-                    answer.add(app);
+                        answer.add(app);
                 }
             }
         } catch (IOException ex) {
@@ -234,8 +235,8 @@ public class AldeClient {
                     answer.add(new ApplicationExecutionInstance(object));
                 }
             }
-        } catch (IOException ex) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | JSONException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
         return answer;
     }     
@@ -250,6 +251,11 @@ public class AldeClient {
          * curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: application/json' -d'q=
          * {"filters":[{"name":"status","op":"like","val":"RUNNING"},
          * {"name":"execution_configuration_id","op":"like","val":1}]}'
+         * 
+         * The one below is:
+         * curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: 
+         * application/json' -d'q={"filters":[{"name":"slurm_sbatch_id","op":"like",
+         * "val":"4734"}]}'
          */
         JSONObject params = new JSONObject();
         JSONArray filter = new JSONArray();
@@ -261,12 +267,27 @@ public class AldeClient {
         params.put("filters", filter);
         try {        
             JSONObject appInstance = readJsonFromUrl(baseUri + "executions", params);
-            if (appInstance != null && appInstance.getJSONArray("objects").getJSONObject(0) != null) {
+            JSONArray array = appInstance.getJSONArray("objects");
+            if (array.length() > 0 && array.getJSONObject(0) != null) {
                 return new ApplicationExecutionInstance(appInstance.getJSONArray("objects").getJSONObject(0));
             }
-        } catch (IOException ex) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | JSONException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Parse Error", ex);
         }
+        //A backup exhaustive search in running
+        for (ApplicationExecutionInstance instance : getExecutionInstances()) {
+            if ((instance.getSlurmId()+"").equals(deploymentId)) {
+                Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Found via exhaustive search in running set");
+                return instance;
+            }
+        }
+        //A backup exhaustive search
+        for (ApplicationExecutionInstance instance : getExecutionInstances(false)) {
+            if ((instance.getSlurmId()+"").equals(deploymentId)) {
+                Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Found via exhaustive search");
+                return instance;
+            }
+        }        
         return null;
     }
 
