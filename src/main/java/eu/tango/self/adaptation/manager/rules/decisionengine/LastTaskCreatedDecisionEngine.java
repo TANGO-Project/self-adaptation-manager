@@ -59,6 +59,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case KILL_SIMILAR_APPS:
             case INCREASE_WALL_TIME_SIMILAR_APPS:
             case REDUCE_WALL_TIME_SIMILAR_APPS:
+            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
             case PAUSE_SIMILAR_APPS:
             case UNPAUSE_SIMILAR_APPS:
                 handleClockEvent(response);

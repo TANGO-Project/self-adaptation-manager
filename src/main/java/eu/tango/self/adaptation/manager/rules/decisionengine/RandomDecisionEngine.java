@@ -56,7 +56,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             case PAUSE_SIMILAR_APPS:
             case UNPAUSE_SIMILAR_APPS:
             case INCREASE_WALL_TIME_SIMILAR_APPS:
-            case REDUCE_WALL_TIME_SIMILAR_APPS:                
+            case REDUCE_WALL_TIME_SIMILAR_APPS:
+            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
                 handleClockEvent(response);                
                 actOnAllSimilarApps(response);
                 break;

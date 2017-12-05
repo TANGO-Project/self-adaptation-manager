@@ -28,10 +28,13 @@ import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This actuator interacts with the Device supervisor SLURM, with the aim of
@@ -206,7 +209,72 @@ public class SlurmActuator extends AbstractActuator {
         for (ApplicationOnHost app : apps) {
             decreaseWallTime(applicationName, app.getId() + "", response);
         }
-    }    
+    }
+    
+    /**
+     * This adjusts the wall time of all similar applications, this is based upon the average
+     * wall plus an amount of slack.
+     * @param applicationName The name of the application to change the wall time for
+     * @param response  The response object to perform the action for
+     */
+    public void minimizeWallTime(String applicationName,Response response) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        Double averageWalltime = getAverageWallTime(applicationName);
+        Double slackFactor = 1.10; //10% slack as default
+        if (response.hasAdaptationDetail("SLACK_FACTOR")) {
+            slackFactor = Double.parseDouble(response.getAdaptationDetail("SLACK_FACTOR"));
+        }
+        if (averageWalltime > 0 ) {
+            averageWalltime = averageWalltime * slackFactor;
+            for (ApplicationOnHost app : apps) {
+                execCmd("scontrol update JobID=" + app.getId() + " Timelimit=" + TimeUnit.SECONDS.toMinutes(averageWalltime.intValue()));
+            }
+        } else {
+            response.setAdaptationDetails("Unable to adapt as no recent average job information was available!");
+            response.setPerformed(false);
+        }
+    }
+    
+    /**
+     * This gets the average walltime for a given application.
+     * @param applicationName 
+     */
+    public double getAverageWallTime(String applicationName) {
+        double count = 0;
+        double totalTime = 0;
+        
+        /**
+         * This follows the command: 
+         * sacct -u kavanagr -S 2017-12-01 -n --delimiter="," -p -o "jobid,jobName,state,ConsumedEnergyRaw,QoS,elapsedraw"
+         * 
+         * which provides data in the format:
+         * 
+         * JobID,JobName,State,ConsumedEnergyRaw,QOS,ElapsedRaw,
+         * 4663,GPU-Bench-Test,COMPLETED,,normal,396,
+         */
+        //Get the last day's worth of runs and find the average time for a given application
+        GregorianCalendar date = new GregorianCalendar();
+        date.setTimeInMillis(date.getTimeInMillis() - TimeUnit.DAYS.toMillis(1));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String dateInFormat = formatter.format(date.getTime());
+        ArrayList<String> sacctOutput = execCmd("sacct -S " + dateInFormat + " -n --delimiter=\",\" -p -o \"jobid,jobName,state,elapsedraw\"");
+        for (String line : sacctOutput) {
+            String[] splitLine = line.split(",");
+            String jobName = splitLine[1];
+            String state = splitLine[2];
+            double elapsedraw = Double.parseDouble(splitLine[3]);
+            if (jobName.equals(applicationName) && state.equals("COMPLETED")) {
+                totalTime = totalTime + elapsedraw;
+                count = count + 1;
+            }
+        }
+        if (count == 0) {
+            return 0;
+        } else {
+            return totalTime / count;
+        }
+    }
 
     /**
      * Pauses a job, so that it can be executed later.
@@ -513,6 +581,9 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case REDUCE_WALL_TIME_SIMILAR_APPS:
                 decreaseWallTimeSimilarJob(response.getApplicationId(), response);
+                break;
+            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
+                minimizeWallTime(response.getApplicationId(), response);
                 break;                
             case INCREASE_POWER_CAP:
                 increasePowerCap(response);
