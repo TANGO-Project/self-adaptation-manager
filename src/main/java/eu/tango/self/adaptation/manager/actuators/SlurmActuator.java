@@ -232,7 +232,8 @@ public class SlurmActuator extends AbstractActuator {
             }
         } else {
             response.setAdaptationDetails("Unable to adapt as no recent average job information was available!");
-            response.setPerformed(false);
+            response.setPerformed(true);
+            response.setPossibleToAdapt(false);
         }
     }
     
@@ -511,7 +512,8 @@ public class SlurmActuator extends AbstractActuator {
                 execCmd("scontrol update powercap=" + powerCap);
             }            
         } else {
-            response.setPerformed(false);
+            response.setPerformed(true);
+            response.setPossibleToAdapt(false);
             response.setAdaptationDetails("No POWER_CAP value specified");
         }
     }    
