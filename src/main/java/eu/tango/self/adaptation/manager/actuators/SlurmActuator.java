@@ -458,6 +458,10 @@ public class SlurmActuator extends AbstractActuator {
         return Double.NaN;
     }
 
+    /**
+     * This decreases the cluster level power cap on the infrastructure, by a set amount
+     * @param response The response object that caused the adaptation to be invoked.
+     */
     public void decreasePowerCap(Response response) {
         //scontrol show powercap should be able to read current values       
         //Uses the slurm command: scontrol update powercap=1400000
@@ -469,11 +473,15 @@ public class SlurmActuator extends AbstractActuator {
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
         }
-        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet >= 0) {
+        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet > 0) {
             execCmd("scontrol update powercap=" + (currentPowerCap - incremenet));
         }
     }
 
+    /**
+     * This increases the cluster level power cap on the infrastructure, by a set amount
+     * @param response The response object that caused the adaptation to be invoked.
+     */
     public void increasePowerCap(Response response) {
         //scontrol show powercap should be able to read current values       
         //Uses the slurm command: scontrol update powercap=1400000
@@ -491,6 +499,10 @@ public class SlurmActuator extends AbstractActuator {
         }
     }
     
+    /**
+     * This sets the cluster level power cap on the infrastructure
+     * @param response The response object that caused the adaptation to be invoked.
+     */
     public void setPowerCap(Response response) {
         double powerCap = 0;
         if (response.hasAdaptationDetail("POWER_CAP")) {
