@@ -250,19 +250,18 @@ app_power:RK-Bench-Test:*,GT,PAUSE_APP,SLA_BREACH,-10000,10000,application=RK-Be
 The command MINIMIZE_WALL_TIME_SIMILAR_APPS allows for the ability to shrink the walltime of an application, so that the packing of applications during backfilling is performed better. The default is to shrink the wall time to the average + 10% though the factor of slack may be adjusted using a parameter SLACK_FACTOR. This can be seen below.
 
 ```
-APP_STARTED,EQ,MINIMIZE_WALL_TIME_SIMILAR_APPS,WARNING,0,0,application=RK-Bench-Test; SLACK_FACTOR=1.20
+APP_STARTED,EQ,MINIMIZE_WALL_TIME_SIMILAR_APPS,WARNING,0,0,application=RK-Bench-Test;SLACK_FACTOR=1.20
 ```
 
-The setting of power cap command SET_POWER_CAP requires a parameter to be set called POWER_CAP. An example of this being seen below:
+The response type SET_POWER_CAP requires a parameter to be set called POWER_CAP. An example of this being seen below:
 
 ```
 START_OF_DAY,EQ,SET_POWER_CAP,WARNING,0,0,POWER_CAP=1000
 ```
 
-This command would be tied to an CronEvent such as: 1,START_OF_DAY,0 0 08 ? * MON-FRI *. Triggering a start of day event.
+This command would can be tied to an CronEvent such as: 1,START_OF_DAY,0 0 08 ? * MON-FRI *. Triggering a start of day event, this therefore allows the power cap to be adjusted to schedule during the day.
 
-The REDUCE_POWER_CAP, INCREASE_POWER_CAP increment and decrement power by 10W by default. This can be changed by adding the parameter POWER_INCREMENT, such as POWER_INCREMENT=100. 
-
+The REDUCE_POWER_CAP, INCREASE_POWER_CAP increment and decrement power by 10W by default. This can be changed by adding the parameter POWER_INCREMENT, such as POWER_INCREMENT=100. These commands together therefore allow for greater flexibilty in adjusting the power cap during the day.
 
 All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to Monday to Friday, 9am to 5pm:
 
