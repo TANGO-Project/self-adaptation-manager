@@ -136,6 +136,9 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
+            case SET_POWER_CAP:
+            case INCREASE_POWER_CAP:
+            case REDUCE_POWER_CAP:
             case INCREASE_WALL_TIME_SIMILAR_APPS:
             case REDUCE_WALL_TIME_SIMILAR_APPS:
             case MINIMIZE_WALL_TIME_SIMILAR_APPS:

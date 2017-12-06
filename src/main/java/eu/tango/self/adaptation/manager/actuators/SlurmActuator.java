@@ -490,6 +490,19 @@ public class SlurmActuator extends AbstractActuator {
             execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));
         }
     }
+    
+    public void setPowerCap(Response response) {
+        double powerCap = 0;
+        if (response.hasAdaptationDetail("POWER_CAP")) {
+            powerCap = Double.parseDouble(response.getAdaptationDetail("POWER_CAP"));
+            if (Double.isFinite(powerCap) && powerCap > 0) {
+                execCmd("scontrol update powercap=" + powerCap);
+            }            
+        } else {
+            response.setPerformed(false);
+            response.setAdaptationDetails("No POWER_CAP value specified");
+        }
+    }    
 
     public void checkpointAndRequeue() {
         //Checkpoint is not possible: i.e. as per the command: scontrol checkpoint able 3100
@@ -591,6 +604,9 @@ public class SlurmActuator extends AbstractActuator {
             case REDUCE_POWER_CAP:
                 decreasePowerCap(response);
                 break;
+            case SET_POWER_CAP:
+                setPowerCap(response);
+                break;                
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
                 break;
