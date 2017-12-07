@@ -23,11 +23,11 @@ import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -184,13 +184,13 @@ public class SlurmActuator extends AbstractActuator {
             resumeJob(applicationName, app.getId() + "");
         }
     }
-    
+
     /**
      * This increases the wall time of all similar applications
      * @param applicationName The name of the application to change the wall time for
      * @param response  The response object to perform the action for
      */
-    public void increaseWallTimeSimilarJob(String applicationName,Response response) {
+    public void increaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         for (ApplicationOnHost app : apps) {
@@ -203,21 +203,21 @@ public class SlurmActuator extends AbstractActuator {
      * @param applicationName The name of the application to change the wall time for
      * @param response  The response object to perform the action for
      */
-    public void decreaseWallTimeSimilarJob(String applicationName,Response response) {
+    public void decreaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         for (ApplicationOnHost app : apps) {
             decreaseWallTime(applicationName, app.getId() + "", response);
         }
     }
-    
+
     /**
      * This adjusts the wall time of all similar applications, this is based upon the average
      * wall plus an amount of slack.
      * @param applicationName The name of the application to change the wall time for
      * @param response  The response object to perform the action for
      */
-    public void minimizeWallTime(String applicationName,Response response) {
+    public void minimizeWallTime(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         apps = ApplicationOnHost.filter(apps, applicationName, -1);
         Double averageWalltime = getAverageWallTime(applicationName);
@@ -225,7 +225,7 @@ public class SlurmActuator extends AbstractActuator {
         if (response.hasAdaptationDetail("SLACK_FACTOR")) {
             slackFactor = Double.parseDouble(response.getAdaptationDetail("SLACK_FACTOR"));
         }
-        if (averageWalltime > 0 ) {
+        if (averageWalltime > 0) {
             averageWalltime = averageWalltime * slackFactor;
             for (ApplicationOnHost app : apps) {
                 execCmd("scontrol update JobID=" + app.getId() + " Timelimit=" + TimeUnit.SECONDS.toMinutes(averageWalltime.intValue()));
@@ -236,21 +236,23 @@ public class SlurmActuator extends AbstractActuator {
             response.setPossibleToAdapt(false);
         }
     }
-    
+
     /**
      * This gets the average walltime for a given application.
-     * @param applicationName 
+     * @param applicationName
+     * @return the average wall time of all application instances with a given
+     * name, over a period of the last day.
      */
     public double getAverageWallTime(String applicationName) {
         double count = 0;
         double totalTime = 0;
-        
+
         /**
          * This follows the command: 
          * sacct -u kavanagr -S 2017-12-01 -n --delimiter="," -p -o "jobid,jobName,state,ConsumedEnergyRaw,QoS,elapsedraw"
-         * 
+         *
          * which provides data in the format:
-         * 
+         *
          * JobID,JobName,State,ConsumedEnergyRaw,QOS,ElapsedRaw,
          * 4663,GPU-Bench-Test,COMPLETED,,normal,396,
          */
@@ -426,19 +428,30 @@ public class SlurmActuator extends AbstractActuator {
         }
     }
 
-    public void shutdownHost(Host host) {
+    /**
+     * This powers down a host
+     *
+     * @param hostname The host to power down
+     */
+    public void shutdownHost(String hostname) {
         //Consider: https://slurm.schedmd.com/power_save.html
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        //TODO Once available consider writing a time wake procedure. i.e. shutdown for X hours etc
-    }
-
-    public void startupHost(Host host) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        execCmd("scontrol update NodeName=" + hostname + "State=power_down");
+        //TODO Consider writing a time wake procedure. i.e. shutdown for X hours etc
     }
 
     /**
-     * This obtains the current power cap from SLURM. In the event the value isn't
-     * read correctly the value Double.NaN is provided instead.
+     * This powers up a host
+     *
+     * @param hostname The host to power up
+     */
+    public void startupHost(String hostname) {
+        execCmd("scontrol update NodeName=" + hostname + "State=power_up");
+    }
+
+    /**
+     * This obtains the current power cap from SLURM. In the event the value
+     * isn't read correctly the value Double.NaN is provided instead.
+     *
      * @return
      */
     private double getCurrentPowerCap() {
@@ -499,24 +512,23 @@ public class SlurmActuator extends AbstractActuator {
             execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));
         }
     }
-    
+
     /**
      * This sets the cluster level power cap on the infrastructure
      * @param response The response object that caused the adaptation to be invoked.
      */
     public void setPowerCap(Response response) {
-        double powerCap = 0;
         if (response.hasAdaptationDetail("POWER_CAP")) {
-            powerCap = Double.parseDouble(response.getAdaptationDetail("POWER_CAP"));
+            double powerCap = Double.parseDouble(response.getAdaptationDetail("POWER_CAP"));
             if (Double.isFinite(powerCap) && powerCap > 0) {
                 execCmd("scontrol update powercap=" + powerCap);
-            }            
+            }
         } else {
             response.setPerformed(true);
             response.setPossibleToAdapt(false);
             response.setAdaptationDetails("No POWER_CAP value specified");
         }
-    }    
+    }
 
     public void checkpointAndRequeue() {
         //Checkpoint is not possible: i.e. as per the command: scontrol checkpoint able 3100
@@ -611,7 +623,7 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case MINIMIZE_WALL_TIME_SIMILAR_APPS:
                 minimizeWallTime(response.getApplicationId(), response);
-                break;                
+                break;
             case INCREASE_POWER_CAP:
                 increasePowerCap(response);
                 break;
@@ -620,7 +632,19 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case SET_POWER_CAP:
                 setPowerCap(response);
-                break;                
+                break;
+            case STARTUP_HOST:
+                String host = getHostname(response);
+                if (host != null) {
+                    startupHost(host);
+                }
+                break;
+            case SHUTDOWN_HOST:
+                host = getHostname(response);
+                if (host != null) {
+                    shutdownHost(host);
+                }
+                break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
                 break;
@@ -629,9 +653,26 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     /**
-     * The deployment id and application id originate from the event, thus if
-     * a response originates from the host these values are not set. Thus the
-     * task Id is the only means to specify which task to perform action against.
+     * This gets the hostname associated with a response object. This is either
+     * derived from the originating event or from the adaptation detail "host".
+     * @param response
+     * @return 
+     */
+    private String getHostname(Response response) {
+        if (response.getCause() instanceof HostEventData) {
+            return ((HostEventData) response.getCause()).getHost();
+        }
+        if (response.hasAdaptationDetail("host")) {
+            return response.getAdaptationDetail("host");
+        }
+        return null;
+    }
+
+    /**
+     * The deployment id and application id originate from the event, thus if a
+     * response originates from the host these values are not set. Thus the task
+     * Id is the only means to specify which task to perform action against.
+     *
      * @param response The response object
      * @return The task/deployment id to be used by slurm to act upon the job.
      */
