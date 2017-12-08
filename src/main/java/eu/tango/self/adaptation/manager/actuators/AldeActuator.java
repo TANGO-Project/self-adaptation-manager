@@ -229,7 +229,7 @@ public class AldeActuator extends AbstractActuator {
         }
         return null;
     }
-
+    
     /**
      * This selects from the list of configurations available one that is valid.
      *
@@ -246,11 +246,12 @@ public class AldeActuator extends AbstractActuator {
         }
         //It there is only one valid configuration return that option
         if (validConfigurations.size() == 1) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Only one other configuration was valid, so this was picked.");
             return validConfigurations.get(0);
         }
         //If there is more than one then select one
-        ApplicationConfiguration answer = null;
-        ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "");
+        ApplicationConfiguration answer = null;        
+        ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "", appDefintion.getConfigurations());
         //If there is no ranking data just pick one
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No Ranking data of the configuration options was available so one was just picked.");

@@ -19,8 +19,10 @@
 package eu.tango.self.adaptation.manager.comparator;
 
 import eu.ascetic.ioutils.io.ResultsStore;
+import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,16 +36,33 @@ public class ConfigurationComparator {
 
     public ConfigurationComparator() {
     }
-       
+    
     /**
      * This gets the table with the rankings of each configuration
      * @param applicationName The application name
      * @param referenceConfig The reference configuration for comparison against
+     * @param validConfigs This lists the valid configs, so they are picked up from disk and filtered correctly.
      * @return The complete set of results.
      */
-    public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig) {
+    public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig, List<ApplicationConfiguration> validConfigs) {
+        ArrayList<String> configNames = new ArrayList<>();
+        for (ApplicationConfiguration validConfig : validConfigs) {
+            configNames.add(validConfig.getConfigurationId() + "");
+        }
+        return compare(applicationName, referenceConfig, configNames);
+    }    
+    
+    /**
+     * This gets the table with the rankings of each configuration
+     * @param applicationName The application name
+     * @param referenceConfig The reference configuration for comparison against
+     * @param validConfigNames This lists the valid config names, so they are picked up from disk and filtered correctly.
+     * @return The complete set of results.
+     */
+    public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig, ArrayList<String> validConfigNames) {
         ResultsStore data = loadComparisonData();
-        data = filterOnName(data, applicationName);
+        data = filterOnAppAndConfigNames(data, applicationName, validConfigNames);
+        System.out.println("Filter Name: " + applicationName);
         return averageAndGroup(data, referenceConfig);
     }
     
@@ -150,11 +169,12 @@ public class ConfigurationComparator {
      * @param applicationName The application name to filter against
      * @return 
      */
-    private ResultsStore filterOnName(ResultsStore toFilter, String applicationName) {
+    private ResultsStore filterOnAppAndConfigNames(ResultsStore toFilter, String applicationName, List<String> validConfigNames) {
         ResultsStore answer = new ResultsStore();       
         for (int i = 0; i < toFilter.size(); i++) {
             //First element is name
-            if (toFilter.getElement(i, 0).trim().equals(applicationName)) {
+            if (toFilter.getElement(i, 0).trim().equals(applicationName) &&
+                    validConfigNames.contains(toFilter.getElement(i, 4).trim())) {
                 answer.addRow(toFilter.getRow(i));
             }
         }        
@@ -176,8 +196,11 @@ public class ConfigurationComparator {
         HashMap<String, Double> count = new HashMap<>(); //count double
         HashMap<String, Double> energy = new HashMap<>(); //J
         HashMap<String, Integer> time = new HashMap<>(); //s
+        System.out.println("Row Size: " + toAverage.size());
+        System.out.println("Reference Config: " + referenceConfig);
         for (int i = 0; i < toAverage.size(); i++) {
             String configName = toAverage.getElement(i, 4).trim();
+            System.out.println("Config Name: " + toAverage.getElement(i, 4).trim());
             String energyValue = toAverage.getElement(i, 1).trim();
             String timeValue = toAverage.getElement(i, 2).trim();
             if (count.containsKey(configName)) {
