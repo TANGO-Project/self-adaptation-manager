@@ -164,9 +164,11 @@ public class ConfigurationComparator {
     }
     
     /**
-     * This filters the results data by its name.
+     * This filters the results data to get the data for a given application and
+     * a set of its configurations
      * @param toFilter The result store to filter
      * @param applicationName The application name to filter against
+     * @param validConfigNames The list of valid configuration names to filter
      * @return 
      */
     private ResultsStore filterOnAppAndConfigNames(ResultsStore toFilter, String applicationName, List<String> validConfigNames) {
@@ -185,7 +187,7 @@ public class ConfigurationComparator {
      * This filters the results data by its name.
      * @param toAverage The set of measurements of historic logs.
      * @param referenceConfig The reference configuration id to compare others against
-     * @return 
+     * @return The list of configurations with ranking applied
      */
     private ArrayList<ConfigurationRank> averageAndGroup(ResultsStore toAverage, String referenceConfig) {
         /**
