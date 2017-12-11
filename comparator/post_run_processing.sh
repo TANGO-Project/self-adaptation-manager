@@ -20,8 +20,6 @@ echo "extracting profile data"
 sacct -j $(cat job.pid) --noconvert -n -o "consumedenergy" > energy.out
 sed -i '/^\s*$/d' energy.out
 sed -i 's/[^0-9]*//g' energy.out
-if [ $(cat runtime.out | tr -cd ':' | wc -c) eq 2 ]; then
-  cat runtime.out | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }' | cat >runtime.out
 
 #get total runtime
 sacct -j $(cat job.pid) --noconvert -n -o "elapsed" | head -1 > runtime.out
