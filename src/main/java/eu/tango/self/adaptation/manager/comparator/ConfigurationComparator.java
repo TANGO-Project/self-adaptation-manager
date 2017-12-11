@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The aim of this class is to read in comparison information, so that it can be
@@ -62,7 +64,9 @@ public class ConfigurationComparator {
     public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig, ArrayList<String> validConfigNames) {
         ResultsStore data = loadComparisonData();
         data = filterOnAppAndConfigNames(data, applicationName, validConfigNames);
-        System.out.println("Filter Name: " + applicationName);
+        Logger.getLogger(ConfigurationComparator.class.getName()).log(Level.INFO, 
+                "Comparing configurations for the application: {0}, against the "
+                + "running config instance {1}.", new Object[]{applicationName, referenceConfig});
         return averageAndGroup(data, referenceConfig);
     }
     
@@ -198,11 +202,9 @@ public class ConfigurationComparator {
         HashMap<String, Double> count = new HashMap<>(); //count double
         HashMap<String, Double> energy = new HashMap<>(); //J
         HashMap<String, Integer> time = new HashMap<>(); //s
-        System.out.println("Row Size: " + toAverage.size());
-        System.out.println("Reference Config: " + referenceConfig);
+        Logger.getLogger(ConfigurationComparator.class.getName()).log(Level.INFO, "The averaging and grouping of comparison options is based upon {0} records.", toAverage.size());
         for (int i = 0; i < toAverage.size(); i++) {
             String configName = toAverage.getElement(i, 4).trim();
-            System.out.println("Config Name: " + toAverage.getElement(i, 4).trim());
             String energyValue = toAverage.getElement(i, 1).trim();
             String timeValue = toAverage.getElement(i, 2).trim();
             if (count.containsKey(configName)) {
