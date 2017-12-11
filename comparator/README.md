@@ -2,7 +2,7 @@
 
 &copy; University of Leeds 2017
 
-The Tango Self-Adaptation Manager (SAM) is a component of the European Project TANGO (http://tango-project.eu ).
+The Tango Self-Adaptation Manager (SAM) is a component of the European Project TANGO (http://tango-project.eu).
 
 SAM is distributed under a [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
@@ -16,7 +16,13 @@ The main files are:
 * post_run_processing.sh - This performs the post run analysis. In the event the script had already been run.
 * getRanking.sh - This takes the gathered data and determines average completion time and energy consumption for each different accelerator based implementation.
 
-Usage:
+## Usage with Tango Framework
+
+The SAM integrates with the Application Lifecycle Deployment engine (ALDE) so that it can perform redeployments of applications. In order to guide the SAM in making its decisions in needs to know which deployment is best, with a given configuration. These scripts provide this answer and create a file that can be read which records the results of prior benchmarking test cases.
+
+In the case of integrating with TANGO instead of indicating the <accelerator_info> such as gpu, cpu+gpu, gpu etc, the configuration id as provided by the ALDE should be indicated instead, thus complete configuration setups can be examined and compared against one another.
+
+## Usage
 
 The 3 main scripts usage is as follows:
 
@@ -32,8 +38,7 @@ The third <accelerator_info> indicates what accelerators were in use, such as gp
 post_run_processing.sh <job_id> <script_name> <accelerator_info>
 ```
 
-This script is to be run in cases where the job has already been run previously and the data is to be analysed and added to the existing dataset.
-It therefore works in a similar fashion to the command above. 
+This script is to be run in cases where the job has already been run previously and the data is to be analysed and added to the existing dataset. It therefore works in a similar fashion to the command above. 
 
 ```
 getRanking.sh <script_name>
