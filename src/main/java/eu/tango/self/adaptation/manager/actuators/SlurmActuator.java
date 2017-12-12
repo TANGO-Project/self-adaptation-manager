@@ -644,6 +644,10 @@ public class SlurmActuator extends AbstractActuator {
                 if (host != null) {
                     shutdownHost(host);
                 }
+                if (response.hasAdaptationDetail("REBOOT")) {
+                    int resumeInNseconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
+                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "host=" + host, resumeInNseconds);
+                }
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
@@ -655,8 +659,8 @@ public class SlurmActuator extends AbstractActuator {
     /**
      * This gets the hostname associated with a response object. This is either
      * derived from the originating event or from the adaptation detail "host".
-     * @param response
-     * @return 
+     * @param response The response object to get the host information for
+     * @return The name of the host
      */
     private String getHostname(Response response) {
         if (response.getCause() instanceof HostEventData) {
