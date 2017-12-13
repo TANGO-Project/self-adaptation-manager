@@ -528,10 +528,11 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
-        if (parent != null) {
-            parent.hardKillApp(applicationName, deploymentId);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            client.executeApplication(Integer.parseInt(deploymentId));
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }     
     }
 
     @Override
