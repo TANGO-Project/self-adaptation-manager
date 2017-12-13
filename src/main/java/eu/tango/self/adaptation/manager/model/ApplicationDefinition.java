@@ -21,6 +21,8 @@ package eu.tango.self.adaptation.manager.model;
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.JSONArray;
 
 /**
@@ -226,9 +228,9 @@ public class ApplicationDefinition {
     }        
     
     /**
-     * This gets a specific execution as a map.
+     * This gets a specific execution.
      * @param index The index value of the execution, 0 is the first in the index.
-     * @return The executables as a map of settings.
+     * @return The executable with a given index.
      */
     public ApplicationExecutable getExecutable(int index) {
         /**
@@ -250,10 +252,29 @@ public class ApplicationDefinition {
          }
          */
         if (executables == null || index >= executables.length()) {
+            Logger.getLogger(ApplicationDefinition.class.getName()).log(Level.SEVERE, 
+                    "The executable at index {0} was not found. The count of executables found was: {1}.", 
+                    new Object[]{index, executables == null ? "N/A " : executables.length()});
             return null;
         }           
         return new ApplicationExecutable(executables.getJSONObject(index));
     }
+    
+    /**
+     * This gets a specific execution.
+     * @param id The id value for the executable
+     * @return The executable with a given id.
+     */
+    public ApplicationExecutable getExecutableById(double id) {
+        for (ApplicationExecutable exectuable : getExecutables()) {
+            if (exectuable.getExecutableId() == id) {
+                return exectuable;
+            }
+        }
+        Logger.getLogger(ApplicationDefinition.class.getName()).log(Level.SEVERE, "The executable with id {0} was not found. The count of executables found was: {1}.",
+                new Object[]{id, executables == null ? "N/A " : getExecutables().size()});     
+        return null;
+    }    
     
     /**
      * This indicates if the executable with a given index is ready.
@@ -269,6 +290,23 @@ public class ApplicationDefinition {
         //the default assumption is that it isn't ready.
         return false;
     }
+    
+    /**
+     * This indicates if the executable with a given index is ready.
+     * @param executable The executable to test if it is ready or not
+     * @return If the executable is in a state that is suitable for running
+     */
+    public boolean isExecutableReady(ApplicationExecutable executable) {
+        //If the status is set, then the application must be compiled.
+        if (executable == null) {
+            return false;
+        }
+        if (executable.containsKey("status")) {
+            return executable.getStatus().equals("COMPILED");
+        }
+        //the default assumption is that it isn't ready.
+        return false;
+    }    
 
     /**
      * This sets the application configurations for this application.
@@ -383,14 +421,16 @@ public class ApplicationDefinition {
     }    
     
     /**
-     * This gets a specific configuration as a map.
+     * This gets a specific configuration of an application.
      * @param index The index value of the configuration, 0 is the first in the index.
-     * @return The configuration as a map of settings.
+     * @return The configuration of an application.
      */
     public ApplicationConfiguration getConfiguration(int index) {
         if (configurations == null || index >= configurations.length()) {
+            Logger.getLogger(ApplicationDefinition.class.getName()).log(Level.SEVERE, "The configuration at index {0} was not found. The count of configurations was: {1}.", 
+                new Object[]{index, configurations == null ? "N/A " : configurations.length()});               
             return null;
-        }    
+        }
         return new ApplicationConfiguration(configurations.getJSONObject(index));
     }
     
@@ -403,7 +443,7 @@ public class ApplicationDefinition {
         ApplicationConfiguration configuration = getConfiguration(index);
         //Tests to see if the excutable_id belongs to a compiled application
         if (configuration.containsKey("executable_id")) {
-            return isExecutableReady((double) configuration.getConfigurationsExecutableId());
+            return isExecutableReady(getExecutableById(configuration.getConfigurationsExecutableId()));
         }
         //the default assumption is that it isn't ready.
         return false;
