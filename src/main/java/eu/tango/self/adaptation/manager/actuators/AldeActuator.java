@@ -27,6 +27,7 @@ import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.comparator.TimeComparator;
+import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
@@ -171,7 +172,7 @@ public class AldeActuator extends AbstractActuator {
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId, boolean killPreviousApp, RankCriteria rankBy) {
         ApplicationConfiguration selectedConfiguration;
         ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
-        ApplicationDefinition appDef = client.getApplicationDefinition(name);
+        ApplicationDefinition appDef = client.getApplicationDefinition(currentConfiguration);
         if (currentConfiguration == null) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
             return appDef; //Return without performing any work
@@ -210,12 +211,21 @@ public class AldeActuator extends AbstractActuator {
     private ApplicationConfiguration getCurrentConfigurationInUse(String name, String deploymentId) {
         ApplicationExecutionInstance instance = client.getExecutionInstance(deploymentId);
         if (instance == null) {
-            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The execution instance with deployment id {0} is not known to the ALDE", deploymentId);
-            return null;
+            //Sleep and perform a second attempt
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            }            
+            instance = client.getExecutionInstance(deploymentId);
+            if (instance == null) {
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The execution instance with deployment id {0} is not known to the ALDE", deploymentId);
+                return null;
+            }
         }
         ApplicationDefinition app = client.getApplicationDefinition(instance);
         if (app == null) {
-            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The application name {0} is not known to the ALDE", name);
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The application named {0} is not known to the ALDE", name);
             return null;
         }
         //In cases where there is only 1 configuration for the application
@@ -285,7 +295,7 @@ public class AldeActuator extends AbstractActuator {
      */
     private ArrayList<ApplicationConfiguration> removeAlreadyRunningConfigurations(ArrayList<ApplicationConfiguration> validConfigurations) {
         ArrayList<ApplicationExecutionInstance> currentlyRunning = (ArrayList) client.getExecutionInstances();
-        ArrayList<ApplicationConfiguration> answer = validConfigurations;
+        ArrayList<ApplicationConfiguration> answer = (ArrayList<ApplicationConfiguration>) validConfigurations.clone();
         for (ApplicationExecutionInstance current : currentlyRunning) {
             for (ApplicationConfiguration config : validConfigurations) {
                 //If the configuration is used by a deployment then filter it out
@@ -309,10 +319,14 @@ public class AldeActuator extends AbstractActuator {
     private ArrayList<ApplicationConfiguration> getValidConfigurations(ApplicationDefinition appDef, boolean toRunNow) {
         //TODO complete the getValidConfigurations method
         ArrayList<ApplicationConfiguration> answer = new ArrayList();
+        if (appDef == null) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The application definition was null.");
+            return answer;
+        }
         for (int i = 0; i < appDef.getConfigurationsCount(); i++) {
             ApplicationConfiguration current = appDef.getConfiguration(i);
             //Check to see if the configuration is compiled, if not ignore it
-            if (appDef.isConfigurationReady(i)) {
+            if (!appDef.isConfigurationReady(i)) {
                 continue;
             }
             if (!toRunNow) { //check if further tests for current environment are valid to run
