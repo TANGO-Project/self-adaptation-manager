@@ -184,11 +184,11 @@ public class AldeActuator extends AbstractActuator {
         selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration, rankBy);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
-            Double executionId = (Double) selectedConfiguration.getConfigurationsExecutableId();
+            Double executableId = (Double) selectedConfiguration.getConfigurationsExecutableId();
             try {
                 //Delete the current configuration of the application
                 if (killPreviousApp) {
-                    hardKillApp(name, deploymentId);
+                    hardKillApp(name, client.getExecutionInstance(deploymentId).getExecutionId() + "");
                 }
                 //Launch the best configuration that can be found (fastest/least energy)
                 client.executeApplication(executionId.intValue());
@@ -529,7 +529,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         try {
-            client.executeApplication(Integer.parseInt(deploymentId));
+            client.cancelApplication(Integer.parseInt(deploymentId));
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }     
@@ -546,7 +546,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         try {
-            client.executeApplication(Integer.parseInt(taskID));
+            client.cancelApplication(Integer.parseInt(taskID));
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }            

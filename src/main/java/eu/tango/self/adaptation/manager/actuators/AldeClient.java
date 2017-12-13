@@ -434,6 +434,36 @@ public class AldeClient {
         }
     }    
 
+    /**
+     * This starts an executable running
+     * @param executionId The execution id to start
+     * @throws IOException 
+     */
+    public void cancelApplication(int executionId) throws IOException {
+        /**
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/executions/197 -d'{"status": CANCEL}'
+         */
+        JSONObject json = new JSONObject();
+        json.put("status", "CANCEL");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {        
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }    
+    
+    /**
+     * This starts an executable running
+     * @param executionId The execution id to start
+     * @throws IOException 
+     */
     public void executeApplication(int executionId) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
