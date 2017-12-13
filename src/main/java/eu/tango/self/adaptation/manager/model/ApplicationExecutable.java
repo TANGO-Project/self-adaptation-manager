@@ -62,8 +62,8 @@ public class ApplicationExecutable extends AldeJsonObjectWrapper {
      * @return The id of the executable to be used in the configuration
      */
     public double getExecutableId() {
-        if (json.has("executable_id")) {
-            return (double) json.getInt("executable_id");
+        if (json.has("id")) {
+            return (double) json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
