@@ -544,10 +544,11 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
-        if (parent != null) {
-            parent.deleteTask(applicationName, deployment, taskID);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            client.executeApplication(Integer.parseInt(taskID));
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }            
     }
 
 }
