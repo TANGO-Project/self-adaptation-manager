@@ -117,6 +117,7 @@ public class AldeClient {
                 return app;
             }
         }
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application {0} was not found.", name);
         return null;
     }
 
@@ -134,6 +135,7 @@ public class AldeClient {
                 return app;
             }
         }
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its deployment.");        
         return null;
     }
     
@@ -151,6 +153,7 @@ public class AldeClient {
                 return app;
             }
         }
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its application configuration.");        
         return null;
     }
     
@@ -170,6 +173,7 @@ public class AldeClient {
             }
             
         }
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its execution instance."); 
         return null;
     }
     
