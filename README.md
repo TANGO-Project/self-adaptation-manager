@@ -76,7 +76,7 @@ This includes parameters such as how long to keep history records for in seconds
 
 self.adaptation.manager.history.poll.interval. 
 
-Monitoring events are assessed using an event assessor that is specified using the self.adaptation.manager.event.assessor field. The possible options for this field are: StackedThresholdEventAssessor, ThresholdEventAssessor. Once an event has been assessed to determine the type of action to take if any a decision engine is used to determine the scale and exact position of the adaptation i.e. which VM. The decision engine used is determined by the field: self.adaptation.manager.decision.engine. This can be either: RandomDecisionEngine, LastTaskCreatedDecisionEngine or PowerRankedDecisionEngine.
+Monitoring events are assessed using an event assessor that is specified using the self.adaptation.manager.event.assessor field. The possible options for this field are: StackedThresholdEventAssessor, ThresholdEventAssessor. Once an event has been assessed to determine the type of action to take if any a decision engine is used to determine the scale and exact position of the adaptation i.e. which host or application. The decision engine used is determined by the field: self.adaptation.manager.decision.engine. This can be either: RandomDecisionEngine, LastTaskCreatedDecisionEngine or PowerRankedDecisionEngine.
 
 The field self.adaptation.manager.logging indicates if the EventLog.csv and ResponseLog.csv files should be created. These logs record the arrival of events and the response of the SAM to the events.
 
@@ -259,9 +259,11 @@ The response type SET_POWER_CAP requires a parameter to be set called POWER_CAP.
 START_OF_DAY,EQ,SET_POWER_CAP,WARNING,0,0,POWER_CAP=1000
 ```
 
-This command would can be tied to an CronEvent such as: 1,START_OF_DAY,0 0 08 ? * MON-FRI *. Triggering a start of day event, this therefore allows the power cap to be adjusted to schedule during the day.
+This command can be tied to a CronEvent such as: 1,START_OF_DAY,0 0 08 ? * MON-FRI *. Triggering a start of day event, this therefore allows the power cap to be adjusted to schedule during the day.
 
 The REDUCE_POWER_CAP, INCREASE_POWER_CAP increment and decrement power by 10W by default. This can be changed by adding the parameter POWER_INCREMENT, such as POWER_INCREMENT=100. These commands together therefore allow for greater flexibilty in adjusting the power cap during the day.
+
+The command RESELECT_ACCELERATORS allows for the ability to redeploy the application and use different accelerators. It has the parameters,RANK_BY and KILL_PREVIOUS. RANK_BY allows an applictions configuration options to be ranked by either ENERGY or TIME. The default of which is to rank by energy. The second parameter KILL_PREVIOUS is either true or false and indicates if the previous job should be cancelled or not. The default is false.
 
 All rules may have time constraints specified as parameters, these cover aspects such as the START_TIME, END_TIME and DAY_OF_WEEK, to which the rule is applicable. An example of these parameters are given below, which restrict a rule to Monday to Friday, 9am to 5pm:
 
