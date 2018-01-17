@@ -184,14 +184,14 @@ public class AldeActuator extends AbstractActuator {
         selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration, rankBy);
         //Ensure the configuration selected is a change/improvement
         if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
-            Double executableId = (Double) selectedConfiguration.getConfigurationsExecutableId();
+            int configId = selectedConfiguration.getConfigurationId();
             try {
                 //Delete the current configuration of the application
                 if (killPreviousApp) {
                     hardKillApp(name, client.getExecutionInstance(deploymentId).getExecutionId() + "");
                 }
                 //Launch the best configuration that can be found (fastest/least energy)
-                client.executeApplication(executableId.intValue());
+                client.executeApplication(configId);
             } catch (IOException ex) {
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
             }

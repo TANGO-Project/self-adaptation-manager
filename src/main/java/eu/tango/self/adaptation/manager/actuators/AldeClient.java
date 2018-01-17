@@ -76,12 +76,12 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-    
-    /**
-     * This lists all applications that are deployable by the ALDE
-     *
-     * @return The list of applications known to the ALDE
-     */
+
+        /**
+         * This lists all applications that are deployable by the ALDE
+         *
+         * @return The list of applications known to the ALDE
+         */
     public List<ApplicationDefinition> getApplicationDefinitions() {
         ArrayList<ApplicationDefinition> answer = new ArrayList<>();
         try {
@@ -95,7 +95,7 @@ public class AldeClient {
                     app.setAldeAppId(object.getInt("id"));
                     app.setExecutables(object.getJSONArray("executables"));
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
-                        answer.add(app);
+                    answer.add(app);
                 }
             }
         } catch (IOException ex) {
@@ -135,10 +135,10 @@ public class AldeClient {
                 return app;
             }
         }
-        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its deployment.");        
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its deployment.");
         return null;
     }
-    
+
     /**
      * This gets the application definition from its configuration object
      *
@@ -149,14 +149,14 @@ public class AldeClient {
     public ApplicationDefinition getApplicationDefinition(ApplicationConfiguration configuration) {
         List<ApplicationDefinition> allApps = getApplicationDefinitions();
         for (ApplicationDefinition app : allApps) {
-            if (app.hasConfiguration(configuration.getConfigurationsExecutableId())) {
+            if (app.hasConfiguration(configuration.getConfigurationId())) {
                 return app;
             }
         }
-        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its application configuration.");        
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its application configuration.");
         return null;
     }
-    
+
     /**
      * This gets the application definition of a running instance of an application
      *
@@ -171,12 +171,12 @@ public class AldeClient {
             if (app.hasConfiguration(configId)) {
                 return app;
             }
-            
+
         }
-        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its execution instance."); 
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its execution instance.");
         return null;
     }
-    
+
     /**
      * This lists the application configurations for a given application
      *
@@ -199,7 +199,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
-    }    
+    }
 
     /**
      * This gets the list of all running execution instances known to the ALDE.
@@ -208,7 +208,7 @@ public class AldeClient {
     public List<ApplicationExecutionInstance> getExecutionInstances() {
         return getExecutionInstances(true);
     }
-       
+
     /**
      * This gets the list of all running execution instances known to the ALDE.
      * @param runningOnly Indicates if it should be the currently running instances
@@ -224,9 +224,9 @@ public class AldeClient {
                 params = new JSONObject();
                 JSONArray filter = new JSONArray();
                 JSONObject item1 = new JSONObject();
-                item1.put("name","status");
-                item1.put("op","like");
-                item1.put("val","RUNNING");
+                item1.put("name", "status");
+                item1.put("op", "like");
+                item1.put("val", "RUNNING");
                 filter.put(item1);
                 params.put("filters", filter);
             }
@@ -243,8 +243,8 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
         return answer;
-    }     
-    
+    }
+
     /**
      * This gets the ALDE json definition for a slurm job.
      * @param deploymentId The deployment id of the slurm job.
@@ -255,7 +255,7 @@ public class AldeClient {
          * curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: application/json' -d'q=
          * {"filters":[{"name":"status","op":"like","val":"RUNNING"},
          * {"name":"execution_configuration_id","op":"like","val":1}]}'
-         * 
+         *
          * The one below is:
          * curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: 
          * application/json' -d'q={"filters":[{"name":"slurm_sbatch_id","op":"like",
@@ -264,12 +264,12 @@ public class AldeClient {
         JSONObject params = new JSONObject();
         JSONArray filter = new JSONArray();
         JSONObject item1 = new JSONObject();
-        item1.put("name","slurm_sbatch_id");
-        item1.put("op","like");
-        item1.put("val",deploymentId);
-        filter.put(item1);       
+        item1.put("name", "slurm_sbatch_id");
+        item1.put("op", "like");
+        item1.put("val", deploymentId);
+        filter.put(item1);
         params.put("filters", filter);
-        try {        
+        try {
             JSONObject appInstance = readJsonFromUrl(baseUri + "executions", params);
             JSONArray array = appInstance.getJSONArray("objects");
             if (array.length() > 0 && array.getJSONObject(0) != null) {
@@ -280,18 +280,18 @@ public class AldeClient {
         }
         //A backup exhaustive search in running
         for (ApplicationExecutionInstance instance : getExecutionInstances()) {
-            if ((instance.getSlurmId()+"").equals(deploymentId)) {
+            if ((instance.getSlurmId() + "").equals(deploymentId)) {
                 Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Found via exhaustive search in running set");
                 return instance;
             }
         }
         //A backup exhaustive search
         for (ApplicationExecutionInstance instance : getExecutionInstances(false)) {
-            if ((instance.getSlurmId()+"").equals(deploymentId)) {
+            if ((instance.getSlurmId() + "").equals(deploymentId)) {
                 Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Found via exhaustive search");
                 return instance;
             }
-        }        
+        }
         return null;
     }
 
@@ -363,7 +363,7 @@ public class AldeClient {
         }
         return answer;
     }
-    
+
     /**
      * This lists all gpus that are known by the ALDE
      *
@@ -386,7 +386,7 @@ public class AldeClient {
         }
         return answer;
     }
-    
+
     /**
      * This reads the entire contents from a reader and generates a String
      *
@@ -417,7 +417,7 @@ public class AldeClient {
             return new JSONObject(jsonText);
         }
     }
-    
+
     /**
      * This takes a url and parses the json from it into a Json object.
      *
@@ -432,12 +432,12 @@ public class AldeClient {
         } else {
             return readJsonFromUrl(url + "?q=" + parameters.toString());
         }
-    }    
+    }
 
     /**
      * This starts an executable running
      * @param executionId The execution id to start
-     * @throws IOException 
+     * @throws IOException
      */
     public void cancelApplication(int executionId) throws IOException {
         /**
@@ -447,7 +447,8 @@ public class AldeClient {
          */
         JSONObject json = new JSONObject();
         json.put("status", "CANCEL");
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {        
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Cancelling application {0}", executionId);           
             HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
@@ -457,14 +458,15 @@ public class AldeClient {
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }    
-    
+    }
+
     /**
      * This starts an executable running
-     * @param executionId The execution id to start
-     * @throws IOException 
+     *
+     * @param configurationId The configuration used to execute the application
+     * @throws IOException
      */
-    public void executeApplication(int executionId) throws IOException {
+    public void executeApplication(int configurationId) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
@@ -474,11 +476,12 @@ public class AldeClient {
         JSONObject json = new JSONObject();
         json.put("launch_execution", "true");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            HttpPatch request = new HttpPatch(baseUri + "execution_configurations/" + executionId);
+            HttpPatch request = new HttpPatch(baseUri + "execution_configurations/" + configurationId);
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
             httpClient.execute(request);
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing application with configuration id {0}", configurationId); 
             // handle response here...
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
