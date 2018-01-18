@@ -88,7 +88,7 @@ public class AldeActuator extends AbstractActuator {
         this.parent = parent;
         datasource = new TangoEnvironmentDataSourceAdaptor();
     }
-
+    
     /**
      * This gets the parent actuator of the ALDE if the ALDE actuator is on its
      * own then this value is null.
@@ -251,35 +251,37 @@ public class AldeActuator extends AbstractActuator {
      */
     private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations, ApplicationDefinition appDefintion, ApplicationConfiguration currentConfiguration, RankCriteria rank) {
         ConfigurationComparator comparator = new ConfigurationComparator();
+        //The configs to rank against are as follows: valid configs + current config
+        ArrayList<ApplicationConfiguration> configsToConsider = (ArrayList<ApplicationConfiguration> ) validConfigurations.clone();
+        configsToConsider.add(currentConfiguration);
         if (validConfigurations.isEmpty()) {
-            return null;
+            return null; //There is no alternative to the current running job
         }
-        //It there is only one valid configuration return that option
-        if (validConfigurations.size() == 1) {
-            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Only one other configuration was valid, so this was picked.");
-            return validConfigurations.get(0);
-        }
-        //If there is more than one then select one
-        ApplicationConfiguration answer = null;        
-        ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "", appDefintion.getConfigurations());
+        //If there is more than one configuration then one needs to be picked
+        ArrayList<ConfigurationRank> ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "", configsToConsider);        
         //If there is no ranking data just pick one
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No Ranking data of the configuration options was available so one was just picked.");
             return validConfigurations.get(0);
-        }
+        }    
+        //Perform ranking
         if (rank.equals(RankCriteria.TIME)) {
             ranked.sort(new TimeComparator());
-            if (comparator.isBetterThanReference(ranked.get(0).getDurationVsReference())) {
-                return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
-            }
-        } else {
-            ranked.sort(new EnergyComparator());
-            if (comparator.isBetterThanReference(ranked.get(0).getEnergyUsedVsReference())) {
-                return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));            
-            }
+        } else { //The default is by energy consumption
+            ranked.sort(new EnergyComparator());                    
         }
+        //Ensure the top ranked item isn't the current config
+        if (ranked.get(0).getConfigName().equals(currentConfiguration.getConfigurationId() + "")) {
+            ranked.remove(0); //Don't pick the configuration that is currently running.
+            if (ranked.isEmpty()) {
+                return null;
+            }
+        }         
+        if (comparator.isBetterThanReference(ranked.get(0).getDurationVsReference())) {
+            return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
+        }       
         //If there is no better solution then return null
-        return answer;
+        return null;
     }
 
     /**
@@ -300,7 +302,7 @@ public class AldeActuator extends AbstractActuator {
             for (ApplicationConfiguration config : validConfigurations) {
                 //If the configuration is used by a deployment then filter it out
                 //deployments doesn't seem to refer directly to the configuration in use
-                if (config.getConfigurationsExecutableId() == current.getExecutionConfigurationsId()) {
+                if (config.getConfigurationId() == current.getExecutionConfigurationsId()) {
                     answer.remove(config);
                 }
             }

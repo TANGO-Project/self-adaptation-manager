@@ -63,6 +63,10 @@ public class ConfigurationComparator {
      */
     public ArrayList<ConfigurationRank> compare(String applicationName, String referenceConfig, ArrayList<String> validConfigNames) {
         ResultsStore data = loadComparisonData();
+        //A guard that ensures the referenceConfig is part of the set of data to be filtered.
+        if (!validConfigNames.contains(referenceConfig)) {
+            validConfigNames.add(referenceConfig);
+        }        
         data = filterOnAppAndConfigNames(data, applicationName, validConfigNames);
         Logger.getLogger(ConfigurationComparator.class.getName()).log(Level.INFO, 
                 "Comparing configurations for the application: {0}, against the "
