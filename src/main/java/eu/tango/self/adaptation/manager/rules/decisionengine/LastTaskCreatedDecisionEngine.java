@@ -77,6 +77,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             case REMOVE_CPU:
             case ADD_MEMORY:
             case REMOVE_MEMORY:
+            case RESELECT_ACCELERATORS:
                 response = getLastApp(response);
                 break;
         }
@@ -98,7 +99,13 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         response = handleClockEvent(response);
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
-            response = selectTaskOnHost(response, eventData.getHost());
+            //In this case the host is empty
+            if (eventData.getAgreementTerm().contains("IDLE") && 
+                    response.hasAdaptationDetail("application")) {
+                response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
+            } else {
+                response = selectTaskOnHost(response, eventData.getHost());
+            }
         }
         if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
@@ -175,6 +182,32 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
+    
+    /**
+     * Selects a task on the any host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param application The application name to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskOnAnyHost(Response response, String application) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(),application, -1);  
+        for (ApplicationOnHost task : tasks) {        
+            ids.add(task.getId());
+        }
+        if (!ids.isEmpty()) {
+            Collections.sort(ids);
+            Collections.reverse(ids);
+            response.setTaskId(ids.get(0) + "");
+            return response;
+        } else {
+            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }     
     
     /**
      * Selects a task on the to perform the actuation against.

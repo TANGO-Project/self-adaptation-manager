@@ -23,7 +23,6 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
@@ -73,6 +72,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             case REMOVE_CPU:
             case ADD_MEMORY:
             case REMOVE_MEMORY:
+            case RESELECT_ACCELERATORS:
                 response = randomlySelectApp(response);
                 break;
             case SCALE_TO_N_TASKS:
@@ -97,7 +97,13 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         response = handleClockEvent(response);
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
-            response = selectTaskOnHost(response, eventData.getHost());
+            //In this case the host is empty
+            if (eventData.getAgreementTerm().contains("IDLE") && 
+                    response.hasAdaptationDetail("application")) {
+                response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
+            } else {
+                response = selectTaskOnHost(response, eventData.getHost());
+            }
         }
         if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
@@ -171,6 +177,27 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
     
     /**
+     * Selects a task on the host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param application The name of application to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskOnAnyHost(Response response, String application) {
+        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(),application, -1);
+        if (!tasks.isEmpty()) {
+            Collections.shuffle(tasks);
+            response.setTaskId(tasks.get(0).getId() + "");
+            return response;
+        } else {
+            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }    
+    
+    /**
      * Selects a task on the to perform the actuation against.
      *
      * @param response The original response object to modify
@@ -179,7 +206,6 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
      * where possible.
      */
     private Response selectRandomTask(Response response, String applicationName) {
-        ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = getActuator().getTasks();
         tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
         if (!tasks.isEmpty()) {

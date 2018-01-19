@@ -134,6 +134,33 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
                 deleteTask(applicationId, deploymentId, taskId.trim());
             }
         }
+    }
+    
+    /**
+     * The deployment id and application id originate from the event, thus if a
+     * response originates from the host these values are not set. Thus the task
+     * id is the only means to specify which task to perform action against.
+     *
+     * @param response The response object
+     * @return The task/deployment id to be used by to act upon the job.
+     */
+    protected String getTaskDeploymentId(Response response) {
+        if (response.getTaskId() != null && !response.getTaskId().isEmpty()) {
+            return response.getTaskId();
+        }
+        /**
+         * Information below gained from application based events, it is a backup
+         * and uses the originating application as the item to actuate against
+         *
+         */
+        if (response.getDeploymentId() != null && !response.getDeploymentId().isEmpty()) {
+            return response.getDeploymentId();
+        }
+        //This source of deployment information is caused by clock events passing information back
+        if (response.hasAdaptationDetail("deploymentid")) {
+            return response.getAdaptationDetail("deploymentid");
+        }
+        return "";
     }    
 
 }

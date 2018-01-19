@@ -67,6 +67,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             case REMOVE_CPU:
             case ADD_MEMORY:
             case REMOVE_MEMORY:
+            case RESELECT_ACCELERATORS:
                 response = getHighestPowerConsumingApp(response);
                 break;
             case SCALE_TO_N_TASKS:
@@ -91,7 +92,13 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         response = handleClockEvent(response);
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
-            response = selectTaskOnHost(response, eventData.getHost());
+            //In this case the host is empty
+            if (eventData.getAgreementTerm().contains("IDLE") && 
+                    response.hasAdaptationDetail("application")) {
+                response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
+            } else {            
+                response = selectTaskOnHost(response, eventData.getHost());
+            }
         }
         if (response.getCause() instanceof ApplicationEventData) {
             ApplicationEventData cause = (ApplicationEventData) response.getCause();
@@ -167,6 +174,34 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
+
+    /**
+     * Selects a task on the any host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param application The application name to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskOnAnyHost(Response response, String application) {
+        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(),application, -1);
+        if (!tasks.isEmpty()) {
+            double power = 0;
+            for (ApplicationOnHost task : tasks) {
+                double currentPower = getActuator().getTotalPowerUsage(task.getName(), task.getId() + "");
+                //Select the application from the most power consuming host
+                if (currentPower > power || response.getTaskId().isEmpty()) {
+                    response.setTaskId(task.getId() + "");
+                    power = currentPower;
+                }
+            }
+            return response;
+        } else {
+            response.setAdaptationDetails("Could not find a task to act upon");
+            response.setPossibleToAdapt(false);
+        }
+        return response;
+    }    
     
     /**
      * Selects a task on the to perform the actuation against.

@@ -88,7 +88,7 @@ public class AldeActuator extends AbstractActuator {
         this.parent = parent;
         datasource = new TangoEnvironmentDataSourceAdaptor();
     }
-    
+ 
     /**
      * This gets the parent actuator of the ALDE if the ALDE actuator is on its
      * own then this value is null.
@@ -138,6 +138,11 @@ public class AldeActuator extends AbstractActuator {
                 break;
             case RESELECT_ACCELERATORS:
                 boolean killPrevious = true;
+                if (getTaskDeploymentId(response) == null || getTaskDeploymentId(response).isEmpty()) {
+                    response.setPossibleToAdapt(false);
+                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No suitable application was found to reselect accelerators for");
+                    break;
+                }
                 if (response.hasAdaptationDetail("KILL_PREVIOUS")) {
                     String killPreviousStr = response.getAdaptationDetail("KILL_PREVIOUS");
                     killPrevious = Boolean.parseBoolean(killPreviousStr);
@@ -149,10 +154,14 @@ public class AldeActuator extends AbstractActuator {
                         rankBy = RankCriteria.valueOf(rankByStr);
                     }
                 }
-                reselectAccelerators(response.getApplicationId(), response.getDeploymentId(), killPrevious, rankBy);
+                ApplicationDefinition appDef = reselectAccelerators(response.getApplicationId(), getTaskDeploymentId(response), killPrevious, rankBy);
+                if (appDef == null) {
+                    response.setPossibleToAdapt(false);
+                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
+                }
                 break;
             default:
-                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recoginised by this adaptor");
                 break;
         }
         response.setPerformed(true);
@@ -172,11 +181,11 @@ public class AldeActuator extends AbstractActuator {
     public ApplicationDefinition reselectAccelerators(String name, String deploymentId, boolean killPreviousApp, RankCriteria rankBy) {
         ApplicationConfiguration selectedConfiguration;
         ApplicationConfiguration currentConfiguration = getCurrentConfigurationInUse(name, deploymentId);
-        ApplicationDefinition appDef = client.getApplicationDefinition(currentConfiguration);
         if (currentConfiguration == null) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Current running application instance not found");
-            return appDef; //Return without performing any work
-        }
+            return null; //Return without performing any work
+        }        
+        ApplicationDefinition appDef = client.getApplicationDefinition(currentConfiguration);
         //Find a the list of valid configurations
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
