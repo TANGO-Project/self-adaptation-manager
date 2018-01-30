@@ -26,6 +26,7 @@ import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
 import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
+import eu.tango.self.adaptation.manager.comparator.PowerComparator;
 import eu.tango.self.adaptation.manager.comparator.TimeComparator;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
@@ -54,7 +55,7 @@ public class AldeActuator extends AbstractActuator {
 
     public enum RankCriteria {
 
-        ENERGY, TIME
+        ENERGY, TIME, POWER
     }
 
     /**
@@ -272,12 +273,19 @@ public class AldeActuator extends AbstractActuator {
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No Ranking data of the configuration options was available so one was just picked.");
             return validConfigurations.get(0);
-        }    
+        }
+        double referenceScore;
         //Perform ranking
         if (rank.equals(RankCriteria.TIME)) {
             ranked.sort(new TimeComparator());
+            referenceScore = ranked.get(0).getDurationVsReference();
+        } else if (rank.equals(RankCriteria.POWER)) {
+            ranked.sort(new PowerComparator());
+            //TODO should use power consumption as reference
+            referenceScore = ranked.get(0).getEnergyUsedVsReference();
         } else { //The default is by energy consumption
-            ranked.sort(new EnergyComparator());                    
+            ranked.sort(new EnergyComparator());
+            referenceScore = ranked.get(0).getEnergyUsedVsReference();
         }
         //Ensure the top ranked item isn't the current config
         if (ranked.get(0).getConfigName().equals(currentConfiguration.getConfigurationId() + "")) {
@@ -285,8 +293,11 @@ public class AldeActuator extends AbstractActuator {
             if (ranked.isEmpty()) {
                 return null;
             }
-        }         
-        if (comparator.isBetterThanReference(ranked.get(0).getDurationVsReference())) {
+        }
+        /**
+         * This next line ensures the best option available is better than what is currently running.
+         */
+        if (comparator.isBetterThanReference(referenceScore)) {
             return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
         }       
         //If there is no better solution then return null
