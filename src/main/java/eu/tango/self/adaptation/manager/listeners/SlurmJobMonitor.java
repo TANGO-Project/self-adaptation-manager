@@ -256,16 +256,16 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         HashSet<Host> recentFailed = new HashSet<>(failed);
         recentFailed.removeAll(this.failingHosts);
         if (!recentFailed.isEmpty()) {
-            for (Host idleHost : recentFailed) {
-                //return the list of recently idle hosts.
+            for (Host failedHost : recentFailed) {
+                //return the list of recently failing hosts.
                 EventData event;
-                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), failedHost.getHostName(),
                         0.0,
                         0.0,
                         EventData.Type.WARNING,
                         EventData.Operator.EQ,
-                        HOST_FAILURE + (idleHost.hasAccelerator() ? ACCELERATED : ""),
-                        HOST_FAILURE + (idleHost.hasAccelerator() ? ACCELERATED : ""));
+                        HOST_FAILURE + (failedHost.hasAccelerator() ? ACCELERATED : ""),
+                        HOST_FAILURE + (failedHost.hasAccelerator() ? ACCELERATED : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }

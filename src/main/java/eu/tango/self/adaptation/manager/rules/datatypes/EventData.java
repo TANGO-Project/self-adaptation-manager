@@ -35,7 +35,7 @@ public abstract class EventData implements Comparable<EventData> {
     private EventData.Type type; //breach, warning or other (i.e. informative)
     private EventData.Operator guaranteeOperator; // threshold direction
     private String agreementTerm;
-    private String guaranteeid; //sla gurantee id
+    private String guaranteeid; //sla guarantee id
     public static final String SETTING_APPLICATION = "application";
     public static final String SETTING_HOST = "host";
     public static final String SETTING_DEPLOYMENT_ID = "deploymentid";
@@ -87,22 +87,22 @@ public abstract class EventData implements Comparable<EventData> {
      * @param time The time of the event (Unix time).
      * @param rawValue The raw value reported by the SLA manager, for the metric
      * that breached its guarantee.
-     * @param guranteedValue The value for the threshold that forms the
+     * @param guaranteedValue The value for the threshold that forms the
      * guarantee placed upon the value that breached.
      * @param type This indicates if the event notifies of a breach or a warning
      * of a potential future breach.
-     * @param guranteeOperator The operator that defines the threshold placed
+     * @param guaranteeOperator The operator that defines the threshold placed
      * upon the guarantee. e.g. greater_than, less_than ...
      * @param guaranteeid The id of the guarantee that was breached
      * @param agreementTerm The type of guarantee that was breached.
      */
-    public EventData(long time, double rawValue, double guranteedValue, Type type,
-            Operator guranteeOperator, String guaranteeid, String agreementTerm) {
+    public EventData(long time, double rawValue, double guaranteedValue, Type type,
+            Operator guaranteeOperator, String guaranteeid, String agreementTerm) {
         this.time = time;
         this.rawValue = rawValue;
-        this.guaranteedValue = guranteedValue;
+        this.guaranteedValue = guaranteedValue;
         this.type = type;
-        this.guaranteeOperator = guranteeOperator;
+        this.guaranteeOperator = guaranteeOperator;
         this.guaranteeid = guaranteeid;
         this.agreementTerm = agreementTerm;
     }
@@ -131,10 +131,10 @@ public abstract class EventData implements Comparable<EventData> {
     }
 
     /**
-     * @param guranteeid the guarantee id to set
+     * @param guaranteeid the guarantee id to set
      */
-    public void setGuaranteeid(String guranteeid) {
-        this.guaranteeid = guranteeid;
+    public void setGuaranteeid(String guaranteeid) {
+        this.guaranteeid = guaranteeid;
     }
 
     public void setAgreementTerm(String agreementTerm) {
