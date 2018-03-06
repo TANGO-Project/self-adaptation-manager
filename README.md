@@ -181,7 +181,8 @@ HOST:ns50:cpu-measured    GT        PAUSE_APP
 The first is the agreement term. This can be the name of any metric that is provided by the monitored infrastructure. In addition it can be based upon the following specialised events:
 
 * IDLE_HOST - This creates an event in cases where a host becomes idle.
-* IDLE_HOST+PENDING_JOB - This creates an event in cases where a host becomes idle and in addition has an accelerator that could be used.
+* IDLE_HOST+Accelerator - This creates an event in cases where a host becomes idle and in addition has an accelerator that could be used.
+* IDLE_HoST+PENDING_JOB - This event indicates a host is idle and has a pending job waiting for other resources.
 * HOST_DRAIN - This event indicates that a physical host has been marked to drain of jobs
 * HOST_FAILURE - This event indicates that a physical host has failed
 * APP_FINISHED - This event indicates that a job has finished
