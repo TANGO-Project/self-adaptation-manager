@@ -545,7 +545,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      * @return The list of hosts that are in the specified state
      */
     private HashSet<Host> getHostInState(String state) {
-        HashSet<Host> answer = new HashSet();
+        HashSet<Host> answer = new HashSet<>();
         List<Host> hosts = datasource.getHostList();
         for (Host host : hosts) {
             if (host.getState().equals(state)) {
@@ -561,7 +561,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      * @return The list of hosts that are currently idle
      */
     private HashSet<Host> getIdleHosts() {
-        HashSet<Host> answer = new HashSet();
+        HashSet<Host> answer = new HashSet<>();
         List<Host> hosts = datasource.getHostList();
         for (Host item : hosts) {
             if (item.getState().trim().equalsIgnoreCase("IDLE")) {
