@@ -293,9 +293,9 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                     deploymentId = splitArray[2];
                 }
                 ApplicationEventData answer = new ApplicationEventData(measurement.getClock(),
-                        currentValue, term.getGuranteedValue(),
+                        currentValue, term.getGuaranteedValue(),
                         term.getSeverity(),
-                        term.getGuranteeOperator(),
+                        term.getGuaranteeOperator(),
                         applicationId,
                         deploymentId,
                         term.getGuaranteeid(),
@@ -340,9 +340,9 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         double currentValue = measurement.getMetric(agreementTerm).getValue();
         if (term.isBreached(currentValue)) {
             return new HostEventData(measurement.getClock(), host.getHostName(),
-                    currentValue, term.getGuranteedValue(),
+                    currentValue, term.getGuaranteedValue(),
                     term.getSeverity(),
-                    term.getGuranteeOperator(),
+                    term.getGuaranteeOperator(),
                     term.getGuaranteeid(),
                     term.getAgreementTerm());
         }

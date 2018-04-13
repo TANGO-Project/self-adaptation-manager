@@ -61,7 +61,7 @@ public class SLALimits {
         double power = 0;
         for (SLATerm qosCriteria1 : qosCriteria) {
             if (qosCriteria1.getAgreementTerm().equals(POWER)) {
-                return qosCriteria1.getGuranteedValue();
+                return qosCriteria1.getGuaranteedValue();
             }
         }
         return power;
@@ -73,7 +73,7 @@ public class SLALimits {
     public void setPower(double power) {
         for (SLATerm qosCriteria1 : qosCriteria) {
             if (qosCriteria1.getAgreementTerm().equals(POWER)) {
-                qosCriteria1.setGuranteedValue(power);
+                qosCriteria1.setGuaranteedValue(power);
             }
         }
     }

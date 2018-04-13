@@ -28,9 +28,9 @@ import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 public class SLATerm {
 
     private String guaranteeid; //sla gurantee id      
-    private double guranteedValue; //the guranteed value
+    private double guaranteedValue; //the guranteed value
     private EventData.Type severity; //breach, warning or other (i.e. informative)
-    private EventData.Operator guranteeOperator; // threshold direction
+    private EventData.Operator guaranteeOperator; // threshold direction
     private String agreementTerm; //The identifier of the Term i.e. Power, energy etc
 
     /**
@@ -40,11 +40,11 @@ public class SLATerm {
         return guaranteeid;
     }
 
-    public SLATerm(String guaranteeid, double guranteedValue, EventData.Type severity, EventData.Operator guranteeOperator, String agreementTerm) {
+    public SLATerm(String guaranteeid, double guranteedValue, EventData.Type severity, EventData.Operator guaranteeOperator, String agreementTerm) {
         this.guaranteeid = guaranteeid;
-        this.guranteedValue = guranteedValue;
+        this.guaranteedValue = guranteedValue;
         this.severity = severity;
-        this.guranteeOperator = guranteeOperator;
+        this.guaranteeOperator = guaranteeOperator;
         this.agreementTerm = agreementTerm;
     }
 
@@ -58,15 +58,15 @@ public class SLATerm {
     /**
      * @return the guranteedValue
      */
-    public double getGuranteedValue() {
-        return guranteedValue;
+    public double getGuaranteedValue() {
+        return guaranteedValue;
     }
 
     /**
-     * @param guranteedValue the guranteedValue to set
+     * @param guaranteedValue the guranteedValue to set
      */
-    public void setGuranteedValue(double guranteedValue) {
-        this.guranteedValue = guranteedValue;
+    public void setGuaranteedValue(double guaranteedValue) {
+        this.guaranteedValue = guaranteedValue;
     }
 
     /**
@@ -84,17 +84,17 @@ public class SLATerm {
     }
 
     /**
-     * @return the guranteeOperator
+     * @return the guaranteeOperator
      */
-    public EventData.Operator getGuranteeOperator() {
-        return guranteeOperator;
+    public EventData.Operator getGuaranteeOperator() {
+        return guaranteeOperator;
     }
 
     /**
-     * @param guranteeOperator the guranteeOperator to set
+     * @param guaranteeOperator the guaranteeOperator to set
      */
-    public void setGuranteeOperator(EventData.Operator guranteeOperator) {
-        this.guranteeOperator = guranteeOperator;
+    public void setGuaranteeOperator(EventData.Operator guaranteeOperator) {
+        this.guaranteeOperator = guaranteeOperator;
     }
 
     /**
@@ -124,20 +124,20 @@ public class SLATerm {
      * This indicates if this SLA term has been breached or not.
      *
      * @param currentValue The current measured value for this term.
-     * @return If an SLA breach has occured or not.
+     * @return If an SLA breach has occurred or not.
      */
     public boolean isBreached(double currentValue) {
-        switch (guranteeOperator) {
+        switch (guaranteeOperator) {
             case EQ:
-                return currentValue == guranteedValue;
+                return currentValue == guaranteedValue;
             case GT:
-                return currentValue > guranteedValue;
+                return currentValue > guaranteedValue;
             case GTE:
-                return currentValue >= guranteedValue;
+                return currentValue >= guaranteedValue;
             case LT:
-                return currentValue < guranteedValue;
+                return currentValue < guaranteedValue;
             case LTE:
-                return currentValue <= guranteedValue;
+                return currentValue <= guaranteedValue;
         }
         return false;
     }
