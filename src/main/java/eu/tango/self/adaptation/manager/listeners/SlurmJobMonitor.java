@@ -29,6 +29,7 @@ import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.io.IOException;
@@ -52,12 +53,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<Host> failingHosts = new HashSet<>();
     private HashSet<Host> drainingHosts = new HashSet<>();
+    private double lastPowerCap = Double.NaN;
     private HashSet<ApplicationOnHost> runningJobs = null;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
     
     private static final String APP_STARTED = "APP_STARTED";
     private static final String APP_FINISHED = "APP_FINISHED";
     private static final String IDLE_HOST = "IDLE_HOST";
+    private static final String POWER_CAP_CHANGE = "POWER_CAP_CHANGE";   
     private static final String SUSPENDED_JOB = "+SUSPENDED_JOB";
     private static final String PENDING_JOB = "+PENDING_JOB";
     private static final String ACCELERATED = "+ACCELERATED";
@@ -190,6 +193,9 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         if (containsTerm(limits, CLOSE_TO_DEADLINE)) {
             answer.addAll(detectCloseToDeadlineJobs());
         }
+        if (containsTerm(limits, POWER_CAP_CHANGE)) {
+            answer.addAll(detectPowerCapChange());
+        }
         if (containsTerm(limits, HOST_FAILURE)) {
             answer.addAll(detectHostFailure(true));
         }
@@ -239,6 +245,53 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         idleHosts = currentIdle;
         return answer;
     }
+    
+    /**
+     * This detects changes to SLURMs power cap
+     * @return An event indicating the change in the current power cap
+     */
+    private ArrayList<EventData> detectPowerCapChange() {   
+        ArrayList<EventData> answer = new ArrayList<>();
+        double currentPowerCap = getCurrentPowerCap();
+        if (currentPowerCap != lastPowerCap && Double.isFinite(currentPowerCap)) {
+        EventData event = new ClockEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        POWER_CAP_CHANGE,
+                        POWER_CAP_CHANGE);
+                event.setSignificantOnOwn(true);
+                ((ClockEventData) event).setSettings("CURRENT_VALUE=" + currentPowerCap + ";PREVIOUS_VALUE=" + lastPowerCap);
+                answer.add(event);
+        }
+        lastPowerCap = currentPowerCap;
+        return answer;
+    }
+    
+    /**
+     * This obtains the current power cap from SLURM. In the event the value
+     * isn't read correctly the value Double.NaN is provided instead.
+     *
+     * @return
+     */
+    private double getCurrentPowerCap() {
+        ArrayList<String> powerStr = execCmd("scontrol show power"); //using the command
+        if (powerStr.isEmpty()) {
+            return Double.NaN;
+        }
+        try {
+            String[] values = powerStr.get(0).split(" ");
+            for (String value : values) {
+                if (value.startsWith("PowerCap")) {
+                    return Double.parseDouble(value.split("=")[1]);
+                }
+            }
+        } catch (NumberFormatException ex) {
+
+        }
+        return Double.NaN;
+    }    
 
     /**
      * This takes the list of hosts and detects if one has recently been set to
