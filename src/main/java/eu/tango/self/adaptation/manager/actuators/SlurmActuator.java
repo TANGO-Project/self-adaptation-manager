@@ -20,21 +20,21 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.EnergyModeller;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
-import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
+import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This actuator interacts with the Device supervisor SLURM, with the aim of
