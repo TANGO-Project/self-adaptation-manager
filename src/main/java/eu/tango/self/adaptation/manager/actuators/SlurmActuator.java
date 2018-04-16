@@ -597,20 +597,4 @@ public class SlurmActuator extends AbstractActuator {
         response.setPerformed(true);
     }
 
-    /**
-     * This gets the hostname associated with a response object. This is either
-     * derived from the originating event or from the adaptation detail "host".
-     * @param response The response object to get the host information for
-     * @return The name of the host
-     */
-    private String getHostname(Response response) {
-        if (response.getCause() instanceof HostEventData) {
-            return ((HostEventData) response.getCause()).getHost();
-        }
-        if (response.hasAdaptationDetail("host")) {
-            return response.getAdaptationDetail("host");
-        }
-        return null;
-    }
-
 }

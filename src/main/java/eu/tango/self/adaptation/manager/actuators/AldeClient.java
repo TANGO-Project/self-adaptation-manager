@@ -24,28 +24,28 @@ import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Testbed;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import java.io.File;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.List;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * This client directly interfaces with the ALDE to query it
@@ -487,4 +487,17 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    /**
+     * This shuts down a host and migrates work away from it 
+     * @param hostname the host to shutdown
+     * @throws IOException
+     */
+    public void shutdownHost(String hostname) throws IOException {
+        /**
+         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
+         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 1 (alternative 3)
+         */
+    }    
+    
 }

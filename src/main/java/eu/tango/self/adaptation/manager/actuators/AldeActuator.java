@@ -28,6 +28,7 @@ import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.comparator.EnergyComparator;
 import eu.tango.self.adaptation.manager.comparator.PowerComparator;
 import eu.tango.self.adaptation.manager.comparator.TimeComparator;
+import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
@@ -161,6 +162,16 @@ public class AldeActuator extends AbstractActuator {
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
                 }
                 break;
+                case SHUTDOWN_HOST:
+                String host = getHostname(response);    
+                if (host != null) {
+                    shutdownHost(host);
+                }
+                if (response.hasAdaptationDetail("REBOOT")) {
+                    int resumeInNseconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
+                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "host=" + host, resumeInNseconds);
+                }
+                break;
             default:
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recoginised by this adaptor");
                 break;
@@ -262,7 +273,7 @@ public class AldeActuator extends AbstractActuator {
     private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations, ApplicationDefinition appDefintion, ApplicationConfiguration currentConfiguration, RankCriteria rank) {
         ConfigurationComparator comparator = new ConfigurationComparator();
         //The configs to rank against are as follows: valid configs + current config
-        ArrayList<ApplicationConfiguration> configsToConsider = (ArrayList<ApplicationConfiguration> ) validConfigurations.clone();
+        ArrayList<ApplicationConfiguration> configsToConsider = (ArrayList<ApplicationConfiguration>) validConfigurations.clone();
         configsToConsider.add(currentConfiguration);
         if (validConfigurations.isEmpty()) {
             return null; //There is no alternative to the current running job
@@ -340,7 +351,7 @@ public class AldeActuator extends AbstractActuator {
      */
     private ArrayList<ApplicationConfiguration> getValidConfigurations(ApplicationDefinition appDef, boolean toRunNow) {
         //TODO complete the getValidConfigurations method
-        ArrayList<ApplicationConfiguration> answer = new ArrayList();
+        ArrayList<ApplicationConfiguration> answer = new ArrayList<>();
         if (appDef == null) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The application definition was null.");
             return answer;
@@ -525,5 +536,18 @@ public class AldeActuator extends AbstractActuator {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }            
     }
+    
+    /**
+     * This powers down a host
+     *
+     * @param hostname The host to power down
+     */
+    public void shutdownHost(String hostname) {
+        try {
+            client.shutdownHost(hostname);
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+    }    
 
 }
