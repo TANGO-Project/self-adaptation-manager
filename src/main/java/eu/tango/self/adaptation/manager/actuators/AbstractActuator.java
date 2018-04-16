@@ -80,6 +80,12 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
         queue.add(response);
     }
 
+    /**
+     * This executes a given action for a response. Usually it is taken 
+     * from the actuator's pending action queue.
+     *
+     * @param response The response object to launch the action for
+     */    
     protected abstract void launchAction(Response response);
 
     /**
