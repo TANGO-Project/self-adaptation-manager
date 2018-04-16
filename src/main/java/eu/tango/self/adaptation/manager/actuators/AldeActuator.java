@@ -111,8 +111,8 @@ public class AldeActuator extends AbstractActuator {
     }
 
     /**
-     * This executes a given action for a response that has been placed in the
-     * actuator's queue for deployment.
+     * This executes a given action for a response. Usually it is taken 
+     * from the actuator's pending action queue.
      *
      * @param response The response object to launch the action for
      */
@@ -496,54 +496,6 @@ public class AldeActuator extends AbstractActuator {
     public List<ApplicationOnHost> getTasks() {
         if (parent != null) {
             return parent.getTasks();
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public ApplicationOnHost getTask(String name, String deployment, int taskId) {
-        if (parent != null) {
-            return parent.getTask(name, deployment, taskId);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        if (parent != null) {
-            return parent.getTotalPowerUsage(applicationName, deploymentId);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
-        if (parent != null) {
-            return parent.getPowerUsageTask(applicationName, deploymentId, taskId);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        if (parent != null) {
-            return parent.getAveragePowerUsage(applicationName, deploymentId, taskType);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        if (parent != null) {
-            return parent.getTaskTypesAvailableToAdd(applicationName, deploymentId);
-        }
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
-        if (parent != null) {
-            return parent.getTaskIdsAvailableToRemove(applicationName, deploymentId);
         }
         throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -18,10 +18,8 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
-import eu.tango.energymodeller.EnergyModeller;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
@@ -45,7 +43,6 @@ import java.util.logging.Logger;
 public class SlurmActuator extends AbstractActuator {
 
     private final SlurmDataSourceAdaptor datasource;
-    private final EnergyModeller modeller = EnergyModeller.getInstance();
 
     public SlurmActuator() {
         datasource = new SlurmDataSourceAdaptor();
@@ -75,62 +72,6 @@ public class SlurmActuator extends AbstractActuator {
             }
         }
         return null;
-    }
-
-    @Override
-    public ApplicationOnHost getTask(String name, String deploymentId, int taskId) {
-        /**
-         * The energy modeller's app id is a number
-         */
-        List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
-        for (ApplicationOnHost task : tasks) {
-            //TODO Consider how this can be used to get sub tasks?
-            if ((task.getName().trim().equals(name.trim()))
-                    && (task.getId() + "").equals(deploymentId.trim())) {
-                return task;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        double answer = 0.0;
-        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
-        for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(tasks)) {
-            answer = answer + record.getPower();
-        }
-        return answer;
-    }
-
-    @Override
-    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
-        ApplicationOnHost task = getTask(deploymentId, deploymentId, taskId);
-        if (task == null) {
-            return 0;
-        }
-        return modeller.getCurrentEnergyForApplication(task).getPower();
-    }
-
-    @Override
-    public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
-        List<Integer> answer = new ArrayList<>();
-        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
-        for (ApplicationOnHost task : tasks) {
-            //Treat host id as unique id of task/application on a host
-            answer.add(task.getAllocatedTo().getId());
-        }
-        return answer;
     }
 
     @Override
@@ -541,8 +482,8 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     /**
-     * This executes a given action for a response that has been placed in the
-     * actuator's queue for deployment.
+     * This executes a given action for a response. Usually it is taken 
+     * from the actuator's pending action queue.
      *
      * @param response The response object to launch the action for
      */

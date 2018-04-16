@@ -81,36 +81,6 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     public List<ApplicationOnHost> getTasks() {
         return slurm.getTasks();
     }
-    
-    @Override
-    public ApplicationOnHost getTask(String name, String deployment, int taskId) {
-        return slurm.getTask(name, deployment, taskId);
-    }
-
-    @Override
-    public double getTotalPowerUsage(String applicationName, String deploymentId) {
-        return slurm.getTotalPowerUsage(applicationName, deploymentId);
-    }
-
-    @Override
-    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
-        return slurm.getPowerUsageTask(applicationName, deploymentId, taskId);
-    }
-
-    @Override
-    public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        return slurm.getAveragePowerUsage(applicationName, deploymentId, taskType);
-    }
-
-    @Override
-    public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        return slurm.getTaskTypesAvailableToAdd(applicationName, deploymentId);
-    }
-
-    @Override
-    public List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
-        return slurm.getTaskIdsAvailableToRemove(applicationName, deploymentId);
-    }
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {

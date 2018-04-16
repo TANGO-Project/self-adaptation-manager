@@ -18,18 +18,20 @@
  */
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
+import eu.tango.energymodeller.EnergyModeller;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 
 /**
  * The aim of this class is to decide given an event that has been assessed what
@@ -50,6 +52,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     private ActuatorInvoker actuator;
     //Singleton instance helps avoid loading rules in multiple times, i.e. once per decision engine.
     private final SlaRulesLoader loader = SlaRulesLoader.getInstance();
+    private final EnergyModeller modeller = EnergyModeller.getInstance();
 
     public AbstractDecisionEngine() {
     }
@@ -90,13 +93,13 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             return false;
         }
         //average power of the task type to add
-        double averagePower = actuator.getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
+        double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
         Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
         //The current total measured power consumption
-        double totalMeasuredPower = actuator.getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
+        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
         Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
         averagePower = averagePower * count;
-        List<String> taskTypes = getActuator().getTaskTypesAvailableToAdd(response.getApplicationId(),
+        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
                 response.getDeploymentId());
         if (!taskTypes.contains(taskType)) {
             Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type {0} isn't available to add", taskType);
@@ -218,6 +221,104 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     /**
      * General Utility functions
      */
+
+    /**
+     * This lists which tasks that can be added to a deployment in order to make it
+     * scale.
+     *
+     * @param applicationName The name of the application
+     * @param deploymentId The deployment ID
+     * @return The ids that can be used to scale the named deployment
+     */
+    public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * This lists which tasks that can be removed from a deployment in order to make it
+     * scale.
+     *
+     * @param applicationName The name of the application
+     * @param deploymentId The deployment ID
+     * @return The task ids that can be used to down size the named deployment
+     */
+    protected List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
+        List<Integer> answer = new ArrayList<>();
+        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        for (ApplicationOnHost task : tasks) {
+            //Treat host id as unique id of task/application on a host
+            answer.add(task.getAllocatedTo().getId());
+        }
+        return answer;
+    }    
+    
+    /**
+     * This gets a task of a given application, deployment and task id.
+     *
+     * @param name The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     * @param taskId The task id
+     * @return The task given the id values specified.
+     */    
+    protected ApplicationOnHost getTask(String name, String deploymentId, int taskId) {
+        /**
+         * The energy modeller's app id is a number
+         */
+        List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
+        for (ApplicationOnHost task : tasks) {
+            //TODO Consider how this can be used to get sub tasks?
+            if ((task.getName().trim().equals(name.trim()))
+                    && (task.getId() + "").equals(deploymentId.trim())) {
+                return task;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * This gets the power usage of a application.
+     *
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
+     * @return The power usage of the named application. 
+     */
+    protected double getTotalPowerUsage(String applicationName, String deploymentId) {
+        double answer = 0.0;
+        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(tasks)) {
+            answer = answer + record.getPower();
+        }
+        return answer;
+    }
+
+    /**
+     * This gets the power usage of a task.
+     *
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
+     * @param taskId The task id
+     * @return The power usage of a named task. 
+     */
+    protected double getPowerUsageTask(String applicationName, String deploymentId, int taskId) {
+        ApplicationOnHost task = getTask(deploymentId, deploymentId, taskId);
+        if (task == null) {
+            return 0;
+        }
+        return modeller.getCurrentEnergyForApplication(task).getPower();
+    }
+
+    /**
+     * This gets the power usage of a task.
+     *
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
+     * @param taskType The id of the task to get the measurement for
+     * @return The power usage of a named task. 
+     */
+    protected double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * This gets the lowest power consuming task type it may for example be used
      * to add another instance of this type.
@@ -227,7 +328,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * available task types to add).
      * @return The task type with the lowest average power consumption
      */
-    public String pickLowestAveragePower(Response response, List<String> taskType) {
+    protected String pickLowestAveragePower(Response response, List<String> taskType) {
         response.setAdaptationDetails(taskType.get(0));
         if (taskType.isEmpty()) {
             return "";
@@ -235,7 +336,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         String lowestAvgPowerType = taskType.get(0);
         double lowestAvgPower = Double.MAX_VALUE;
         for (String currentTaskType : taskType) {
-            double currentTypesAvgPower = getActuator().getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(),
+            double currentTypesAvgPower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(),
                     currentTaskType);
             if (currentTypesAvgPower == 0) {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO,
@@ -258,7 +359,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * removed for example).
      * @return The VmId to remove.
      */
-    public Integer getHighestPoweredTask(Response response, List<Integer> taskIds) {
+    protected Integer getHighestPoweredTask(Response response, List<Integer> taskIds) {
         Integer answer = null;
         double answerPower = 0;
         String taskType = response.getAdaptationDetail("TASK_TYPE");
@@ -268,12 +369,12 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             return answer;
         }
         for (Integer taskId : taskIds) {
-            double currentValue = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            double currentValue = getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             if (currentValue == 0) {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
                         "The calculation of the highest powered Task saw a zero value for Task: {0}", taskId);
             }
-            ApplicationOnHost taskDef = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            ApplicationOnHost taskDef = getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             if (currentValue > answerPower && (taskType == null)) {  // || taskDef.getOvfId().equals(vmType))) {
                 answer = taskId;
                 answerPower = currentValue;
@@ -296,11 +397,11 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * removed for example).
      * @return The list of Tasks and there power consumption
      */
-    public ArrayList<PowerApplicationMapping> getApplicationPowerList(Response response, List<Integer> taskIds) {
+    protected ArrayList<PowerApplicationMapping> getApplicationPowerList(Response response, List<Integer> taskIds) {
         ArrayList<PowerApplicationMapping> answer = new ArrayList<>();
         for (Integer taskId : taskIds) {
-            double power = getActuator().getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
-            ApplicationOnHost task = getActuator().getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            double power = getPowerUsageTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            ApplicationOnHost task = getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             answer.add(new PowerApplicationMapping(power, task));
         }
         Collections.sort(answer);

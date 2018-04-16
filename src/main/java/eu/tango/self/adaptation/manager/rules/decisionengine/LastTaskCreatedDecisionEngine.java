@@ -23,13 +23,13 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
 
 /**
  * The aim of this class is to decide given an event that has been assessed what
@@ -249,7 +249,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
             return response;
         }
-        List<Integer> taskIds = getActuator().getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
+        List<Integer> taskIds = getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
         if (taskIds == null) {
             System.out.println("Internal Error list of deleteable tasks Ids equals null.");
             response.setPossibleToAdapt(false);
@@ -280,7 +280,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
             return response;
         }
-        List<String> taskTypes = getActuator().getTaskTypesAvailableToAdd(response.getApplicationId(), response.getDeploymentId());
+        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(), response.getDeploymentId());
         if (!taskTypes.isEmpty()) {
             Collections.shuffle(taskTypes);
             response.setAdaptationDetails(taskTypes.get(0));

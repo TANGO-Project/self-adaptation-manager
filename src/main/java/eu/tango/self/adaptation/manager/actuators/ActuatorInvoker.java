@@ -40,7 +40,7 @@ public interface ActuatorInvoker {
      * If the application description can't be reported by this actuator 
      * then null is returned instead.
      */
-    public abstract ApplicationDefinition getApplication(String name, String deploymentId);
+    public ApplicationDefinition getApplication(String name, String deploymentId);
     
     /**
      * This gets the list of tasks on a given host
@@ -53,66 +53,7 @@ public interface ActuatorInvoker {
      * This gets the list of tasks on all hosts
      * @return The list of tasks on a given host
      */    
-    public List<ApplicationOnHost> getTasks();
-    
-    /**
-     * This gets a task of a given application, deployment and task id.
-     *
-     * @param name The application name or identifier
-     * @param deployment The deployment instance identifier
-     * @param taskId The task id
-     * @return The task given the id values specified.
-     */
-    public ApplicationOnHost getTask(String name, String deployment, int taskId);
-    
-    /**
-     * This gets the power usage of a application.
-     *
-     * @param applicationName The name of the application
-     * @param deploymentId The id of the deployment instance of the application
-     * @return The power usage of the named application. 
-     */
-    public double getTotalPowerUsage(String applicationName, String deploymentId);      
-    
-    /**
-     * This gets the power usage of a task.
-     *
-     * @param applicationName The name of the application
-     * @param deploymentId The id of the deployment instance of the application
-     * @param taskId The task id
-     * @return The power usage of a named task. 
-     */
-    public double getPowerUsageTask(String applicationName, String deploymentId, int taskId);    
-    
-    /**
-     * This gets the power usage of a task.
-     *
-     * @param applicationName The name of the application
-     * @param deploymentId The id of the deployment instance of the application
-     * @param taskType The id of the task to get the measurement for
-     * @return The power usage of a named task. 
-     */
-    public double getAveragePowerUsage(String applicationName, String deploymentId, String taskType);     
-
-    /**
-     * This lists which tasks that can be added to a deployment in order to make it
-     * scale.
-     *
-     * @param applicationName The name of the application
-     * @param deploymentId The deployment ID
-     * @return The ids that can be used to scale the named deployment
-     */
-    public abstract List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId);
-    
-    /**
-     * This lists which tasks that can be added to a deployment in order to make it
-     * scale.
-     *
-     * @param applicationName The name of the application
-     * @param deploymentId The deployment ID
-     * @return The task ids that can be used to down size the named deployment
-     */
-    public abstract List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId);   
+    public List<ApplicationOnHost> getTasks();   
     
     /**
      * This stops the application from running
@@ -123,9 +64,10 @@ public interface ActuatorInvoker {
     public void hardKillApp(String applicationName, String deploymentId);
 
     /**
-     * This causes the actuator to invoke a given action
+     * This causes the actuator to invoke a given action. Usually the action is
+     * placed in a queue and executed soon after.
      *
-     * @param response
+     * @param response The response to an event that needs to be executed.
      */
     public void actuate(Response response);
     
