@@ -102,7 +102,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
                 response.getDeploymentId());
         if (!taskTypes.contains(taskType)) {
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type {0} isn't available to add", taskType);
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type {0} is not available to add", taskType);
             for (String type : taskTypes) {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type: {0} may be added.", type);
             }
