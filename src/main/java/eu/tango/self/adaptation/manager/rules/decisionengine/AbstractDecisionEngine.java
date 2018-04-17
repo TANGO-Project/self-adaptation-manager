@@ -114,9 +114,9 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     
     /**
      * The decision logic for selecting an application to adapt. In this case
-     * it gets the highest power application to adapt in the case of hardware based
-     * events and selects the application to adapt that is seen as the cause
-     * of the event in other cases.
+     * it gets the "highest ranked" application to adapt in the case of hardware 
+     * based events and selects the application to adapt that is seen as the cause
+     * of the event in application based cases.
      *
      * @param response The response object to adapt
      * @return The response object with a fully formed decision made on how to
@@ -156,7 +156,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     }
     
     /**
-     * Selects a task on the host to perform the actuation against.
+     * Selects a task on the host to perform the actuation against. This method 
+     * should decide on which application the adaptation should occur.
      *
      * @param response The original response object to modify
      * @param hostname The hostname to apply the adaptation to
@@ -166,7 +167,9 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected abstract Response selectTaskOnHost(Response response, String hostname);
 
     /**
-     * Selects a task on any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against. The aim is
+     * to call this method when faced with a host event. This method 
+     * should decide on which application the adaptation should occur.
      *
      * @param response The original response object to modify
      * @param application The name of the application to apply the adaptation to
@@ -337,7 +340,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 return response;
             }
             if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
-                response = selectTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
+                response = selectTaskOnAnyHost(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
                 response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
                 response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION), "*"));
                 return response;
@@ -345,17 +348,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         }
         return response;
     }
-    
-    /**
-     * Selects a task on the to perform the actuation against.
-     *
-     * @param response The original response object to modify
-     * @param applicationName The application id/name
-     * @return The response object with a task ID assigned to action against
-     * where possible.
-     */
-    protected abstract Response selectTask(Response response, String applicationName);    
-    
+
     /**
      * This takes a response caused by an application and kills all other instances
      * of that application.

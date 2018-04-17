@@ -83,7 +83,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against.  In this case
+     * it selects the most power hungry task.
      *
      * @param response The original response object to modify
      * @param application The name of the application to apply the adaptation to
@@ -97,38 +98,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             double power = 0;
             for (ApplicationOnHost task : tasks) {
                 double currentPower = getTotalPowerUsage(task.getName(), task.getId() + "");
-                //Select the application from the most power consuming host
-                if (currentPower > power || response.getTaskId().isEmpty()) {
-                    response.setTaskId(task.getId() + "");
-                    power = currentPower;
-                }
-            }
-            return response;
-        } else {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-            response.setPossibleToAdapt(false);
-        }
-        return response;
-    }
-
-    /**
-     * Selects a task on the to perform the actuation against. In this case
-     * it selects the most power hungry task.
-     *
-     * @param response The original response object to modify
-     * @param applicationName The application id/name
-     * @return The response object with a task ID assigned to action against
-     * where possible.
-     */
-    @Override
-    protected Response selectTask(Response response, String applicationName) {
-        List<ApplicationOnHost> tasks = getActuator().getTasks();
-        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
-        if (!tasks.isEmpty()) {
-            double power = 0;
-            for (ApplicationOnHost task : tasks) {
-                double currentPower = getTotalPowerUsage(task.getName(), task.getId() + "");
-                //Select the most power consuming task
+                //Select the most power consuming application
                 if (currentPower > power || response.getTaskId().isEmpty()) {
                     response.setTaskId(task.getId() + "");
                     power = currentPower;

@@ -117,35 +117,6 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the to perform the actuation against. This selects the
-     * task that was last launched to act against.
-     *
-     * @param response The original response object to modify
-     * @param applicationName The application id/name
-     * @return The response object with a task ID assigned to action against
-     * where possible.
-     */
-    @Override
-    protected Response selectTask(Response response, String applicationName) {
-        ArrayList<Integer> ids = new ArrayList<>();
-        List<ApplicationOnHost> tasks = getActuator().getTasks();
-        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
-        for (ApplicationOnHost task : tasks) {
-            ids.add(task.getId());
-        }
-        if (!ids.isEmpty()) {
-            Collections.sort(ids);
-            Collections.reverse(ids);
-            response.setTaskId(ids.get(0) + "");
-            return response;
-        } else {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-            response.setPossibleToAdapt(false);
-        }
-        return response;
-    }
-
-    /**
      * The decision logic for deleting a task. It removes the last task to be
      * created (i.e. highest task ID first).
      *

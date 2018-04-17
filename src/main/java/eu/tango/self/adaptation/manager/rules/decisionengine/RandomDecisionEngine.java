@@ -81,7 +81,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against. It selects a 
+     * random task to act against, from all applications with the given name.
      *
      * @param response The original response object to modify
      * @param application The name of the application to apply the adaptation to
@@ -91,30 +92,6 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     @Override    
     protected Response selectTaskOnAnyHost(Response response, String application) {
         List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
-        if (!tasks.isEmpty()) {
-            Collections.shuffle(tasks);
-            response.setTaskId(tasks.get(0).getId() + "");
-            return response;
-        } else {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-            response.setPossibleToAdapt(false);
-        }
-        return response;
-    }
-
-    /**
-     * Selects a task on the to perform the actuation against. It selects a 
-     * random task to act against, from all applications with the given name.
-     *
-     * @param response The original response object to modify
-     * @param applicationName The application id/name
-     * @return The response object with a task ID assigned to action against
-     * where possible.
-     */
-    @Override
-    protected Response selectTask(Response response, String applicationName) {
-        List<ApplicationOnHost> tasks = getActuator().getTasks();
-        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
         if (!tasks.isEmpty()) {
             Collections.shuffle(tasks);
             response.setTaskId(tasks.get(0).getId() + "");
