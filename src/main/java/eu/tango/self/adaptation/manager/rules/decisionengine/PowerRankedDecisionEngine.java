@@ -138,7 +138,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             }
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to act upon");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
             response.setPossibleToAdapt(false);
         }
         return response;
@@ -166,7 +166,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             }
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to act upon");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
             response.setPossibleToAdapt(false);
         }
         return response;
@@ -195,7 +195,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             }
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to act upon");
+            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
             response.setPossibleToAdapt(false);
         }
         return response;
