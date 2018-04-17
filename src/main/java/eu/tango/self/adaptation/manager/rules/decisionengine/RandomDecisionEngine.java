@@ -144,10 +144,10 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against.
      *
      * @param response The original response object to modify
-     * @param application The name of application to apply the adaptation to
+     * @param application The name of the application to apply the adaptation to
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
@@ -187,7 +187,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * The decision logic for adding a task.
+     * The decision logic for deleting a task.
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
@@ -205,7 +205,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             response.setTaskId(taskIds.get(0) + "");
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to delete");
+            response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
         }
         return response;

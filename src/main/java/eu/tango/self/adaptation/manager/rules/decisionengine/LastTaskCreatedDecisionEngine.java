@@ -151,10 +151,10 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against.
      *
      * @param response The original response object to modify
-     * @param application The application name to apply the adaptation to
+     * @param application The name of the application to apply the adaptation to
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
@@ -219,7 +219,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         }
         List<Integer> taskIds = getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
         if (taskIds == null) {
-            System.out.println("Internal Error list of deleteable tasks Ids equals null.");
+            System.out.println("Internal Error list of deleteable task Ids equals null.");
+            response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
             return response;
         }

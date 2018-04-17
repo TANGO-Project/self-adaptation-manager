@@ -77,6 +77,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
 
             }
         }
+        //Note: if the event data was from an application the task id would already be set
         return response;
     }
 
@@ -145,10 +146,10 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against.
      *
      * @param response The original response object to modify
-     * @param application The application name to apply the adaptation to
+     * @param application The name of the application to apply the adaptation to
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
@@ -218,7 +219,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         List<Integer> taskIds = getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
         if (taskIds == null) {
             System.out.println("Internal Error list of deleteable task Ids equals null.");
-            response.setAdaptationDetails("Unable find a task to delete.");
+            response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
             return response;
         }
@@ -227,7 +228,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             response.setTaskId(getHighestPoweredTask(response, taskIds) + "");
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to delete");
+            response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
         }
         return response;
