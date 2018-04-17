@@ -19,11 +19,8 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.Collections;
 import java.util.List;
@@ -54,42 +51,6 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
          * derived from the AbstractDecisionEngine.
          */        
         return super.selectApplicationToAdapt(response);
-    }
-
-    /**
-     * This modifies the response object's cause in the case that it is a clock
-     * event into either an application or a host based event.
-     *
-     * @param response The response object to modify
-     * @return The altered response object, no changes are made if the cause is
-     * not a clock event
-     */
-    @Override
-    protected Response handleClockEvent(Response response) {
-        if (response.getCause() instanceof ClockEventData) {
-            ClockEventData cause = (ClockEventData) response.getCause();
-            //The next two if statements deal with call backs, where the original event has settings data attached.
-            if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
-                response.setCause(cause.castToApplicationEventData());
-                return response;
-            }
-            if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
-                response.setCause(cause.castToHostEventData());
-                return response;
-            }
-            //The next two if statements deal with cases where the decision rules have information attached.
-            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
-                response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
-                return response;
-            }
-            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
-                response = selectPowerHungryTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
-                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
-                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION), "*"));
-                return response;
-            }
-        }
-        return response;
     }
 
     /**
@@ -151,14 +112,16 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the to perform the actuation against.
+     * Selects a task on the to perform the actuation against. In this case
+     * it selects the most power hungry task.
      *
      * @param response The original response object to modify
      * @param applicationName The application id/name
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
-    private Response selectPowerHungryTask(Response response, String applicationName) {
+    @Override
+    protected Response selectTask(Response response, String applicationName) {
         List<ApplicationOnHost> tasks = getActuator().getTasks();
         tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
         if (!tasks.isEmpty()) {

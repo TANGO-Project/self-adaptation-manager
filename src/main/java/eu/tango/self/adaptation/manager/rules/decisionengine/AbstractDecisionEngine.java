@@ -25,9 +25,12 @@ import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -308,7 +311,50 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The altered response object, no changes are made if the cause is
      * not a clock event
      */
-    protected abstract Response handleClockEvent(Response response);    
+    /**
+     * This modifies the response object's cause in the case that it is a clock
+     * event into either an application or a host based event.
+     *
+     * @param response The response object to modify
+     * @return The altered response object, no changes are made if the cause is
+     * not a clock event
+     */
+    protected Response handleClockEvent(Response response) {
+        if (response.getCause() instanceof ClockEventData) {
+            ClockEventData cause = (ClockEventData) response.getCause();
+            //The next two if statements deal with call backs, where the original event has settings data attached.
+            if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
+                response.setCause(cause.castToApplicationEventData());
+                return response;
+            }
+            if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
+                response.setCause(cause.castToHostEventData());
+                return response;
+            }
+            //The next two if statements deal with cases where the decision rules have information attached.
+            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
+                response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
+                return response;
+            }
+            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
+                response = selectTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
+                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
+                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION), "*"));
+                return response;
+            }
+        }
+        return response;
+    }
+    
+    /**
+     * Selects a task on the to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param applicationName The application id/name
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    protected abstract Response selectTask(Response response, String applicationName);    
     
     /**
      * This takes a response caused by an application and kills all other instances

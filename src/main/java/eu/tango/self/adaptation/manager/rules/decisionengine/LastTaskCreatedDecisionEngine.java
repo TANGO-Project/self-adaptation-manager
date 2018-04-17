@@ -19,11 +19,8 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
-import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_HOST;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,43 +61,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * This modifies the response object's cause in the case that it is a clock
-     * event into either an application or a host based event.
-     *
-     * @param response The response object to modify
-     * @return The altered response object, no changes are made if the cause is
-     * not a clock event
-     */
-    @Override
-    protected Response handleClockEvent(Response response) {
-        if (response.getCause() instanceof ClockEventData) {
-            ClockEventData cause = (ClockEventData) response.getCause();
-            //The next two if statements deal with call backs, where the original event has settings data attached.
-            if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
-                response.setCause(cause.castToApplicationEventData());
-                return response;
-            }
-            if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
-                response.setCause(cause.castToHostEventData());
-                return response;
-            }
-            //The next two if statements deal with cases where the decision rules have information attached.
-            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
-                response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
-                return response;
-            }
-            if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
-                response = selectLastTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
-                response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
-                response.setCause(cause.castToApplicationEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION), "*"));
-                return response;
-            }
-        }
-        return response;
-    }
-
-    /**
-     * Selects a task on the host to perform the actuation against.
+     * Selects a task on the host to perform the actuation against. This selects the
+     * task that was last launched to act against.
      *
      * @param response The original response object to modify
      * @param hostname The hostname to apply the adaptation to
@@ -127,7 +89,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on any host to perform the actuation against.
+     * Selects a task on any host to perform the actuation against. This selects the
+     * task that was last launched to act against.
      *
      * @param response The original response object to modify
      * @param application The name of the application to apply the adaptation to
@@ -154,14 +117,16 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the to perform the actuation against.
+     * Selects a task on the to perform the actuation against. This selects the
+     * task that was last launched to act against.
      *
      * @param response The original response object to modify
      * @param applicationName The application id/name
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
-    private Response selectLastTask(Response response, String applicationName) {
+    @Override
+    protected Response selectTask(Response response, String applicationName) {
         ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = getActuator().getTasks();
         tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
