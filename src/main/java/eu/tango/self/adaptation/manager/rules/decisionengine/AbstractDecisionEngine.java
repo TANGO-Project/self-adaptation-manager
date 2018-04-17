@@ -25,8 +25,10 @@ import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
+import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +58,16 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 
     public AbstractDecisionEngine() {
     }
+    
+    @Override
+    public void setActuator(ActuatorInvoker actuator) {
+        this.actuator = actuator;
+    }
+
+    @Override
+    public ActuatorInvoker getActuator() {
+        return actuator;
+    }    
     
     @Override
     public Response decide(Response response) {
@@ -98,22 +110,67 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     }
     
     /**
-     * This selects an application to adapt from the initial response type
+     * The decision logic for selecting an application to adapt. In this case
+     * it gets the highest power application to adapt in the case of hardware based
+     * events and selects the application to adapt that is seen as the cause
+     * of the event in other cases.
+     *
      * @param response The response object to adapt
      * @return The response object with a fully formed decision made on how to
      * adapt.
      */
-    public abstract Response selectApplicationToAdapt(Response response);
+    public Response selectApplicationToAdapt(Response response) {
+        if (getActuator() == null) {
+            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
+            response.setPossibleToAdapt(false);
+            return response;
+        }
+        response = handleClockEvent(response);
+        if (response.getCause() instanceof HostEventData) {
+            HostEventData eventData = (HostEventData) response.getCause();
+            //In this case the host is empty
+            if (eventData.getAgreementTerm().contains("IDLE")
+                    && response.hasAdaptationDetail("application")) {
+                response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
+            } else {
+                response = selectTaskOnHost(response, eventData.getHost());
+            }
+        }
+        if (response.getCause() instanceof ApplicationEventData) {
+            ApplicationEventData cause = (ApplicationEventData) response.getCause();
+            if (response.getTaskId() == null || response.getTaskId().isEmpty() || response.getTaskId().equals("*")) {
+                if (cause.getDeploymentId() != null) {
+                    response.setTaskId(cause.getDeploymentId());
+                } else {
+                    response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
+                    response.setPossibleToAdapt(false);
+                }
 
-    @Override
-    public void setActuator(ActuatorInvoker actuator) {
-        this.actuator = actuator;
+            }
+        }
+        //Note: if the event data was from an application the task id would already be set
+        return response;
     }
+    
+    /**
+     * Selects a task on the host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param hostname The hostname to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    protected abstract Response selectTaskOnHost(Response response, String hostname);
 
-    @Override
-    public ActuatorInvoker getActuator() {
-        return actuator;
-    }
+    /**
+     * Selects a task on any host to perform the actuation against.
+     *
+     * @param response The original response object to modify
+     * @param application The name of the application to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    protected abstract Response selectTaskOnAnyHost(Response response, String application);    
 
     /**
      * This tests to see if the power consumption limit will be breached or not

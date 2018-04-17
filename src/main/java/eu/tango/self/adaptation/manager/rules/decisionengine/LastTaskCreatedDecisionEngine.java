@@ -19,9 +19,7 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ClockEventData;
-import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_APPLICATION;
@@ -56,36 +54,13 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      */
     @Override
     public Response selectApplicationToAdapt(Response response) {
-        if (getActuator() == null) {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
-            response.setPossibleToAdapt(false);
-            return response;
-        }
-        response = handleClockEvent(response);
-        if (response.getCause() instanceof HostEventData) {
-            HostEventData eventData = (HostEventData) response.getCause();
-            //In this case the host is empty
-            if (eventData.getAgreementTerm().contains("IDLE")
-                    && response.hasAdaptationDetail("application")) {
-                response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
-            } else {
-                response = selectTaskOnHost(response, eventData.getHost());
-            }
-        }
-        if (response.getCause() instanceof ApplicationEventData) {
-            ApplicationEventData cause = (ApplicationEventData) response.getCause();
-            if (response.getTaskId() == null || response.getTaskId().isEmpty() || response.getTaskId().equals("*")) {
-                if (cause.getDeploymentId() != null) {
-                    response.setTaskId(cause.getDeploymentId());
-                } else {
-                    response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-                    response.setPossibleToAdapt(false);
-                }
-
-            }
-        }
-        //Note: if the event data was from an application the task id would already be set        
-        return response;
+        /**
+         * The call to the super method utilises abstract methods that are 
+         * implemented here. These change things such as sort orders of applications
+         * providing a different outcome of the overall call to similar classes 
+         * derived from the AbstractDecisionEngine.
+         */
+        return super.selectApplicationToAdapt(response);
     }
 
     /**
@@ -132,7 +107,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
-    private Response selectTaskOnHost(Response response, String hostname) {
+    @Override    
+    protected Response selectTaskOnHost(Response response, String hostname) {
         ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
         for (ApplicationOnHost task : tasks) {
@@ -158,7 +134,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      * @return The response object with a task ID assigned to action against
      * where possible.
      */
-    private Response selectTaskOnAnyHost(Response response, String application) {
+    @Override
+    protected Response selectTaskOnAnyHost(Response response, String application) {
         ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
         for (ApplicationOnHost task : tasks) {
