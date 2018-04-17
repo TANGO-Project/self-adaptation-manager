@@ -145,7 +145,11 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * The decision logic for adding a task.
+     * The decision logic for adding a task. It adds a new task of a type that 
+     * has the lowest power consumption possible, so long as there is room to 
+     * add another one of that type. Unless a parameterised specific task type is
+     * to be added. In this case the adaptation detail should have a value for 
+     * TASK_TYPE.
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
@@ -184,7 +188,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * This generates the list of tasks to remove
+     * This generates the list of tasks to remove. They are removed in the order
+     * in which they are created.
      *
      * @param tasksPossibleToRemove The list of tasks that could be removed
      * @param count The amount of tasks needing to go

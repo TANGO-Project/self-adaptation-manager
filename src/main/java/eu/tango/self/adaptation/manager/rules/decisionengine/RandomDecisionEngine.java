@@ -129,7 +129,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * The decision logic for adding a task.
+     * The decision logic for adding a task. It adds a new task of a type that is
+     * randomly chosen, so long as there is room to add another one of that type.
      *
      * @param response The response to finalise details for.
      * @return The finalised response object
@@ -160,7 +161,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * This generates the list of tasks to remove
+     * This generates the list of tasks to remove. They are removed in a random
+     * order.
      *
      * @param tasksPossibleToRemove The list of tasks that could be removed
      * @param count The amount of tasks needing to go

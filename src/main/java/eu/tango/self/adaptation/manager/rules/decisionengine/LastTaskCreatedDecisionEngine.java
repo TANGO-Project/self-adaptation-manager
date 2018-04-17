@@ -182,7 +182,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * This generates the list of tasks to remove
+     * This generates the list of tasks to remove. They are removed in the order
+     * in which they are created.
      *
      * @param tasksPossibleToRemove The list of tasks that could be removed
      * @param count The amount of tasks needing to go
