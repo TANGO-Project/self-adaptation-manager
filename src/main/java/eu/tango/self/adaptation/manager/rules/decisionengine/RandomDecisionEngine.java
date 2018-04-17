@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 University of Leeds
+ * Copyright 2016 University of Leeds
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -42,53 +42,18 @@ import java.util.List;
  */
 public class RandomDecisionEngine extends AbstractDecisionEngine {
 
-    @Override
-    public Response decide(Response response) {
-        switch (response.getActionType()) {
-            case ADD_TASK:
-                response = addTask(response);
-                break;
-            case REMOVE_TASK:
-                response = deleteTask(response);
-                break;
-            case KILL_SIMILAR_APPS:
-            case PAUSE_SIMILAR_APPS:
-            case UNPAUSE_SIMILAR_APPS:
-            case INCREASE_WALL_TIME_SIMILAR_APPS:
-            case REDUCE_WALL_TIME_SIMILAR_APPS:
-            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
-                handleClockEvent(response);                
-                actOnAllSimilarApps(response);
-                break;
-            case KILL_APP:
-            case HARD_KILL_APP:
-            case INCREASE_WALL_TIME:
-            case REDUCE_WALL_TIME:
-            case PAUSE_APP:
-            case UNPAUSE_APP:
-            case OVERSUBSCRIBE_APP:
-            case EXCLUSIVE_APP:
-            case ADD_CPU:
-            case REMOVE_CPU:
-            case ADD_MEMORY:
-            case REMOVE_MEMORY:
-            case RESELECT_ACCELERATORS:
-                response = randomlySelectApp(response);
-                break;
-            case SCALE_TO_N_TASKS:
-                response = scaleToNTasks(response);
-                break;
-        }
-        return response;
-    }
-
     /**
-     * The decision logic for adding a task.
+     * The decision logic for selecting an application to adapt. In this case
+     * it randomly selects an application to adapt in the case of hardware based
+     * events and selects the application to adapt that is seen as the cause
+     * of the event in other cases.
      *
-     * @param response The response to finalise details for.
-     * @return The finalised response object
+     * @param response The response object to adapt
+     * @return The response object with a fully formed decision made on how to
+     * adapt.
      */
-    public Response randomlySelectApp(Response response) {
+    @Override
+    public Response selectApplicationToAdapt(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
@@ -98,8 +63,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
             //In this case the host is empty
-            if (eventData.getAgreementTerm().contains("IDLE") && 
-                    response.hasAdaptationDetail("application")) {
+            if (eventData.getAgreementTerm().contains("IDLE")
+                    && response.hasAdaptationDetail("application")) {
                 response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
             } else {
                 response = selectTaskOnHost(response, eventData.getHost());
@@ -120,31 +85,33 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         //Note: if the event data was from an application the task id would already be set
         return response;
     }
-    
+
     /**
-     * This modifies the response object's cause in the case that it is a clock event
-     * into either an application or a host based event.
+     * This modifies the response object's cause in the case that it is a clock
+     * event into either an application or a host based event.
+     *
      * @param response The response object to modify
-     * @return The altered response object, no changes are made if the cause is 
+     * @return The altered response object, no changes are made if the cause is
      * not a clock event
      */
-    private Response handleClockEvent(Response response) {      
+    @Override
+    protected Response handleClockEvent(Response response) {
         if (response.getCause() instanceof ClockEventData) {
-            ClockEventData cause = (ClockEventData) response.getCause(); 
+            ClockEventData cause = (ClockEventData) response.getCause();
             //The next two if statements deal with call backs, where the original event has settings data attached.
-            if (cause.hasSetting(ADAPTATION_DETAIL_APPLICATION)) {             
+            if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
                 response.setCause(cause.castToApplicationEventData());
                 return response;
             }
             if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
                 response.setCause(cause.castToHostEventData());
                 return response;
-            }       
+            }
             //The next two if statements deal with cases where the decision rules have information attached.
             if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
                 response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
                 return response;
-            } 
+            }
             if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
                 response = selectRandomTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
                 response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
@@ -153,8 +120,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             }
         }
         return response;
-    }    
-    
+    }
+
     /**
      * Selects a task on the host to perform the actuation against.
      *
@@ -175,7 +142,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
-    
+
     /**
      * Selects a task on the host to perform the actuation against.
      *
@@ -185,7 +152,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
      * where possible.
      */
     private Response selectTaskOnAnyHost(Response response, String application) {
-        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(),application, -1);
+        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
         if (!tasks.isEmpty()) {
             Collections.shuffle(tasks);
             response.setTaskId(tasks.get(0).getId() + "");
@@ -195,8 +162,8 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
         }
         return response;
-    }    
-    
+    }
+
     /**
      * Selects a task on the to perform the actuation against.
      *
@@ -217,7 +184,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
         }
         return response;
-    }      
+    }
 
     /**
      * The decision logic for adding a task.
@@ -225,6 +192,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
+    @Override
     public Response deleteTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
@@ -249,6 +217,7 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
+    @Override
     public Response addTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);

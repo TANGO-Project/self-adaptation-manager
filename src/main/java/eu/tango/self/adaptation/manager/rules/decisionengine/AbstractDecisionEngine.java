@@ -56,6 +56,54 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 
     public AbstractDecisionEngine() {
     }
+    
+    @Override
+    public Response decide(Response response) {
+        switch (response.getActionType()) {
+            case ADD_TASK:
+                response = addTask(response);
+                break;
+            case REMOVE_TASK:
+                response = deleteTask(response);
+                break;
+            case KILL_SIMILAR_APPS:
+            case PAUSE_SIMILAR_APPS:
+            case UNPAUSE_SIMILAR_APPS:
+            case INCREASE_WALL_TIME_SIMILAR_APPS:
+            case REDUCE_WALL_TIME_SIMILAR_APPS:
+            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
+                handleClockEvent(response);
+                actOnAllSimilarApps(response);
+                break;
+            case KILL_APP:
+            case HARD_KILL_APP:
+            case INCREASE_WALL_TIME:
+            case REDUCE_WALL_TIME:
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case OVERSUBSCRIBE_APP:
+            case EXCLUSIVE_APP:
+            case ADD_CPU:
+            case REMOVE_CPU:
+            case ADD_MEMORY:
+            case REMOVE_MEMORY:
+            case RESELECT_ACCELERATORS:
+                response = selectApplicationToAdapt(response);
+                break;
+            case SCALE_TO_N_TASKS:
+                response = scaleToNTasks(response);
+                break;
+        }
+        return response;
+    }
+    
+    /**
+     * This selects an application to adapt from the initial response type
+     * @param response The response object to adapt
+     * @return The response object with a fully formed decision made on how to
+     * adapt.
+     */
+    public abstract Response selectApplicationToAdapt(Response response);
 
     @Override
     public void setActuator(ActuatorInvoker actuator) {
@@ -178,6 +226,32 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 //        }
         return response;
     }
+    
+    /**
+     * The decision logic for adding a task.
+     *
+     * @param response The response to finalise details for.
+     * @return The finalised response object
+     */
+    public abstract Response deleteTask(Response response);
+
+    /**
+     * The decision logic for adding a task.
+     *
+     * @param response The response to finalise details for.
+     * @return The finalised response object
+     */
+    public  abstract Response addTask(Response response);    
+
+    /**
+     * This modifies the response object's cause in the case that it is a clock
+     * event into either an application or a host based event.
+     *
+     * @param response The response object to modify
+     * @return The altered response object, no changes are made if the cause is
+     * not a clock event
+     */
+    protected abstract Response handleClockEvent(Response response);    
     
     /**
      * This takes a response caused by an application and kills all other instances

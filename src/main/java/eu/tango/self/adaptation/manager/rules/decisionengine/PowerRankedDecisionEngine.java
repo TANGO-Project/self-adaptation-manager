@@ -37,53 +37,18 @@ import java.util.List;
  */
 public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
 
-    @Override
-    public Response decide(Response response) {
-        switch (response.getActionType()) {
-            case ADD_TASK:
-                response = addTask(response);
-                break;
-            case REMOVE_TASK:
-                response = deleteTask(response);
-                break;
-            case KILL_SIMILAR_APPS:
-            case PAUSE_SIMILAR_APPS:
-            case UNPAUSE_SIMILAR_APPS:
-            case INCREASE_WALL_TIME_SIMILAR_APPS:
-            case REDUCE_WALL_TIME_SIMILAR_APPS:
-            case MINIMIZE_WALL_TIME_SIMILAR_APPS:
-                handleClockEvent(response);                
-                actOnAllSimilarApps(response);
-                break;
-            case KILL_APP:
-            case HARD_KILL_APP:
-            case INCREASE_WALL_TIME:
-            case REDUCE_WALL_TIME:
-            case PAUSE_APP:
-            case UNPAUSE_APP:
-            case OVERSUBSCRIBE_APP:
-            case EXCLUSIVE_APP:
-            case ADD_CPU:
-            case REMOVE_CPU:
-            case ADD_MEMORY:
-            case REMOVE_MEMORY:
-            case RESELECT_ACCELERATORS:
-                response = getHighestPowerConsumingApp(response);
-                break;
-            case SCALE_TO_N_TASKS:
-                response = scaleToNTasks(response);
-                break;
-        }
-        return response;
-    }
-
     /**
-     * The decision logic for adding a task.
+     * The decision logic for selecting an application to adapt. In this case
+     * it gets the highest power application to adapt in the case of hardware based
+     * events and selects the application to adapt that is seen as the cause
+     * of the event in other cases.
      *
-     * @param response The response to finalise details for.
-     * @return The finalised response object
+     * @param response The response object to adapt
+     * @return The response object with a fully formed decision made on how to
+     * adapt.
      */
-    public Response getHighestPowerConsumingApp(Response response) {
+    @Override
+    public Response selectApplicationToAdapt(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
@@ -93,10 +58,10 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         if (response.getCause() instanceof HostEventData) {
             HostEventData eventData = (HostEventData) response.getCause();
             //In this case the host is empty
-            if (eventData.getAgreementTerm().contains("IDLE") && 
-                    response.hasAdaptationDetail("application")) {
+            if (eventData.getAgreementTerm().contains("IDLE")
+                    && response.hasAdaptationDetail("application")) {
                 response = selectTaskOnAnyHost(response, response.getAdaptationDetail("application"));
-            } else {            
+            } else {
                 response = selectTaskOnHost(response, eventData.getHost());
             }
         }
@@ -114,17 +79,19 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;
     }
-    
+
     /**
-     * This modifies the response object's cause in the case that it is a clock event
-     * into either an application or a host based event.
+     * This modifies the response object's cause in the case that it is a clock
+     * event into either an application or a host based event.
+     *
      * @param response The response object to modify
-     * @return The altered response object, no changes are made if the cause is 
+     * @return The altered response object, no changes are made if the cause is
      * not a clock event
      */
-    private Response handleClockEvent(Response response) {
+    @Override
+    protected Response handleClockEvent(Response response) {
         if (response.getCause() instanceof ClockEventData) {
-            ClockEventData cause = (ClockEventData) response.getCause(); 
+            ClockEventData cause = (ClockEventData) response.getCause();
             //The next two if statements deal with call backs, where the original event has settings data attached.
             if (cause.hasSetting(ClockEventData.SETTING_APPLICATION)) {
                 response.setCause(cause.castToApplicationEventData());
@@ -133,12 +100,12 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             if (cause.hasSetting(ClockEventData.SETTING_HOST)) {
                 response.setCause(cause.castToHostEventData());
                 return response;
-            }       
+            }
             //The next two if statements deal with cases where the decision rules have information attached.
             if (response.hasAdaptationDetail(ADAPTATION_DETAIL_HOST)) {
                 response.setCause(cause.castToHostEventData(response.getAdaptationDetail(ADAPTATION_DETAIL_HOST)));
                 return response;
-            } 
+            }
             if (response.hasAdaptationDetail(ADAPTATION_DETAIL_APPLICATION)) {
                 response = selectPowerHungryTask(response, response.getAdaptationDetail(ADAPTATION_DETAIL_APPLICATION));
                 response.setAdaptationDetails(response.getAdaptationDetails() + ";origin=clock");
@@ -147,13 +114,15 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             }
         }
         return response;
-    }      
+    }
 
     /**
      * Selects a task on the host to perform the actuation against.
+     *
      * @param response The original response object to modify
      * @param hostname The hostname to apply the adaptation to
-     * @return The response object with a task ID assigned to action against where possible.
+     * @return The response object with a task ID assigned to action against
+     * where possible.
      */
     private Response selectTaskOnHost(Response response, String hostname) {
         List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
@@ -184,7 +153,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      * where possible.
      */
     private Response selectTaskOnAnyHost(Response response, String application) {
-        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(),application, -1);
+        List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
         if (!tasks.isEmpty()) {
             double power = 0;
             for (ApplicationOnHost task : tasks) {
@@ -201,8 +170,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
         }
         return response;
-    }    
-    
+    }
+
     /**
      * Selects a task on the to perform the actuation against.
      *
@@ -230,7 +199,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             response.setPossibleToAdapt(false);
         }
         return response;
-    }       
+    }
 
     /**
      * The decision logic for deleting a task. It removes the last task to be
@@ -239,6 +208,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
+    @Override
     public Response deleteTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
@@ -269,6 +239,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
      * @param response The response to finalise details for.
      * @return The finalised response object
      */
+    @Override
     public Response addTask(Response response) {
         if (getActuator() == null) {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
