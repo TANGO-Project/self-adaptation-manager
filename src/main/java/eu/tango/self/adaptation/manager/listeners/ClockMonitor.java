@@ -19,25 +19,24 @@
 package eu.tango.self.adaptation.manager.listeners;
 
 import eu.ascetic.ioutils.io.ResultsStore;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.quartz.JobDetail;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.DateBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.quartz.JobBuilder;
-import org.quartz.JobKey;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.SimpleTrigger;
 import org.quartz.TriggerKey;
+import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 
 /**
@@ -51,7 +50,7 @@ public class ClockMonitor implements EventListener, Runnable {
      * All clock monitors must share the same event assessor, so that when the
      * job executes they know where to send the job processing request to.
      */
-    private static EventAssessor eventAssessor;
+    private EventAssessor eventAssessor;
     private Scheduler scheduler;
     private static final String CONFIG_FILE = "CronEvents.csv";
     private static final String CRON_EVENT_NAME = "Clock-Monitor-Event";
@@ -280,7 +279,7 @@ public class ClockMonitor implements EventListener, Runnable {
                         .build();
                 newJob = true;
             }
-            Trigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
+            Trigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity(eventName, CRON_EVENT_NAME) //"Trigger-" + triggerCount
                     .withDescription(description)
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
