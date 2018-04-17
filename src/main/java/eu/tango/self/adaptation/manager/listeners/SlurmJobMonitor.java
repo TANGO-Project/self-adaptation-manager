@@ -23,7 +23,6 @@ import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.TangoEnvironmentDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
-import eu.tango.self.adaptation.manager.actuators.SlurmActuator;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
@@ -251,7 +250,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
      */
     private ArrayList<EventData> detectPowerCapChange(SLALimits limits) {   
         ArrayList<EventData> answer = new ArrayList<>();
-        double currentPowerCap = getCurrentPowerCap();
+        double currentPowerCap = SlurmDataSourceAdaptor.getCurrentPowerCap();
         if (currentPowerCap != lastPowerCap && Double.isFinite(currentPowerCap)) {
             for (SLATerm term : limits.getQosCriteria()) {
                 if (term.getAgreementTerm().equals(POWER_CAP) && term.isBreached(currentPowerCap)) {
@@ -270,31 +269,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
         lastPowerCap = currentPowerCap;
         return answer;
-    } 
-    
-    /**
-     * This obtains the current power cap from SLURM. In the event the value
-     * isn't read correctly the value Double.NaN is provided instead.
-     *
-     * @return
-     */
-    private double getCurrentPowerCap() {
-        ArrayList<String> powerStr = execCmd("scontrol show power"); //using the command
-        if (powerStr.isEmpty()) {
-            return Double.NaN;
-        }
-        try {
-            String[] values = powerStr.get(0).split(" ");
-            for (String value : values) {
-                if (value.startsWith("PowerCap")) {
-                    return Double.parseDouble(value.split("=")[1]);
-                }
-            }
-        } catch (NumberFormatException ex) {
-
-        }
-        return Double.NaN;
-    }    
+    }
 
     /**
      * This takes the list of hosts and detects if one has recently been set to
@@ -606,7 +581,7 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         try {
             return execCmd(cmd);
         } catch (IOException ex) {
-            Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return new ArrayList<>();
     }

@@ -24,7 +24,6 @@ import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
-import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -390,30 +389,6 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     /**
-     * This obtains the current power cap from SLURM. In the event the value
-     * isn't read correctly the value Double.NaN is provided instead.
-     *
-     * @return
-     */
-    private double getCurrentPowerCap() {
-        ArrayList<String> powerStr = execCmd("scontrol show power"); //using the command
-        if (powerStr.isEmpty()) {
-            return Double.NaN;
-        }
-        try {
-            String[] values = powerStr.get(0).split(" ");
-            for (String value : values) {
-                if (value.startsWith("PowerCap")) {
-                    return Double.parseDouble(value.split("=")[1]);
-                }
-            }
-        } catch (NumberFormatException ex) {
-
-        }
-        return Double.NaN;
-    }
-
-    /**
      * This decreases the cluster level power cap on the infrastructure, by a set amount
      * @param response The response object that caused the adaptation to be invoked.
      */
@@ -423,7 +398,7 @@ public class SlurmActuator extends AbstractActuator {
         //See: https://slurm.schedmd.com/SLUG15/Power_Adaptive_final.pdf
         //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
         //See: https://slurm.schedmd.com/power_mgmt.html   
-        double currentPowerCap = getCurrentPowerCap();
+        double currentPowerCap = SlurmDataSourceAdaptor.getCurrentPowerCap();
         double incremenet = 10;
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
@@ -444,7 +419,7 @@ public class SlurmActuator extends AbstractActuator {
         //See: https://slurm.schedmd.com/SLUG15/Power_mgmt.pdf
         //See: https://slurm.schedmd.com/power_mgmt.html
 
-        double currentPowerCap = getCurrentPowerCap();
+        double currentPowerCap = SlurmDataSourceAdaptor.getCurrentPowerCap();
         double incremenet = 10;
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
