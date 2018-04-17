@@ -144,7 +144,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
             response.setTaskId(taskIds.get(0) + "");
             return response;
         } else {
-            response.setAdaptationDetails("Could not find a task to delete");
+            response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
         }
         return response;
