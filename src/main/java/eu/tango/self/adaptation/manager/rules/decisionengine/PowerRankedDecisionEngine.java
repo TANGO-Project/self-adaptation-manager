@@ -54,7 +54,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     }
 
     /**
-     * Selects a task on the host to perform the actuation against.
+     * Selects a task on the host to perform the actuation against. In this case
+     * it selects the most power hungry task.
      *
      * @param response The original response object to modify
      * @param hostname The hostname to apply the adaptation to
@@ -64,22 +65,7 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     @Override
     protected Response selectTaskOnHost(Response response, String hostname) {
         List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
-        if (!tasks.isEmpty()) {
-            double power = 0;
-            for (ApplicationOnHost task : tasks) {
-                double currentPower = getTotalPowerUsage(task.getName(), task.getId() + "");
-                //Select the most power consuming task
-                if (currentPower > power || response.getTaskId().isEmpty()) {
-                    response.setTaskId(task.getId() + "");
-                    power = currentPower;
-                }
-            }
-            return response;
-        } else {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-            response.setPossibleToAdapt(false);
-        }
-        return response;
+        return selectTaskFromList(response, tasks);
     }
 
     /**
@@ -94,6 +80,19 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     @Override
     protected Response selectTaskOnAnyHost(Response response, String application) {
         List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
+        return selectTaskFromList(response, tasks);
+    }
+    
+    /**
+     * Selects a task from a list to perform the actuation against. In this case
+     * it selects the most power hungry task.
+     *
+     * @param response The original response object to modify
+     * @param application The name of the application to apply the adaptation to
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskFromList(Response response, List<ApplicationOnHost> tasks) {      
         if (!tasks.isEmpty()) {
             double power = 0;
             for (ApplicationOnHost task : tasks) {
@@ -109,8 +108,8 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
             response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
             response.setPossibleToAdapt(false);
         }
-        return response;
-    }
+        return response;       
+    }    
 
     /**
      * The decision logic for deleting a task. It removes the last task to be
