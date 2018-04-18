@@ -19,10 +19,10 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.comparators.ApplicationOnHostId;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,21 +71,8 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      */
     @Override    
     protected Response selectTaskOnHost(Response response, String hostname) {
-        ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = getActuator().getTasksOnHost(hostname);
-        for (ApplicationOnHost task : tasks) {
-            ids.add(task.getId());
-        }
-        if (!ids.isEmpty()) {
-            Collections.sort(ids);
-            Collections.reverse(ids);
-            response.setTaskId(ids.get(0) + "");
-            return response;
-        } else {
-            response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
-            response.setPossibleToAdapt(false);
-        }
-        return response;
+        return selectTaskFromList(response, tasks);
     }
 
     /**
@@ -99,21 +86,28 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      */
     @Override
     protected Response selectTaskOnAnyHost(Response response, String application) {
-        ArrayList<Integer> ids = new ArrayList<>();
         List<ApplicationOnHost> tasks = ApplicationOnHost.filter(getActuator().getTasks(), application, -1);
-        for (ApplicationOnHost task : tasks) {
-            ids.add(task.getId());
-        }
-        if (!ids.isEmpty()) {
-            Collections.sort(ids);
-            Collections.reverse(ids);
-            response.setTaskId(ids.get(0) + "");
+        return selectTaskFromList(response, tasks);
+    }
+    
+    /**
+     * Selects a task to perform the actuation against. This selects the
+     * task that was last launched to act against.
+     * @param response The original response object to modify
+     * @return The response object with a task ID assigned to action against
+     * where possible.
+     */
+    private Response selectTaskFromList(Response response, List<ApplicationOnHost> tasks) {      
+        if (!tasks.isEmpty()) {
+            Collections.sort(tasks, new ApplicationOnHostId());
+            Collections.reverse(tasks);
+            response.setTaskId(tasks.get(0).getId() + "");
             return response;
         } else {
             response.setAdaptationDetails(ADAPTATION_DETAIL_NO_ACTUATION_TASK);
             response.setPossibleToAdapt(false);
         }
-        return response;
+        return response;        
     }
 
     /**
