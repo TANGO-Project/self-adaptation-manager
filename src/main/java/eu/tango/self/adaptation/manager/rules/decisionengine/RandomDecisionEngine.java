@@ -103,6 +103,12 @@ public class RandomDecisionEngine extends AbstractDecisionEngine {
         return response;
     }
 
+    @Override
+    protected Response selectHostToAdapt(Response response) {
+        //Could also rank by Max Power or flops per Watt
+        return selectHostToAdapt(response, null);
+    }
+
     /**
      * The decision logic for deleting a task.
      *

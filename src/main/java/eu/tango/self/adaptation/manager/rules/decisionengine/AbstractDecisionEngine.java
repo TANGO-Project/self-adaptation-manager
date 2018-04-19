@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.EnergyModeller;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.model.SLALimits;
@@ -34,6 +35,7 @@ import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATI
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,6 +76,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     
     @Override
     public Response decide(Response response) {
+        handleClockEvent(response);        
         switch (response.getActionType()) {
             case ADD_TASK:
                 response = addTask(response);
@@ -87,7 +90,6 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             case INCREASE_WALL_TIME_SIMILAR_APPS:
             case REDUCE_WALL_TIME_SIMILAR_APPS:
             case MINIMIZE_WALL_TIME_SIMILAR_APPS:
-                handleClockEvent(response);
                 actOnAllSimilarApps(response);
                 break;
             case KILL_APP:
@@ -108,6 +110,11 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             case SCALE_TO_N_TASKS:
                 response = scaleToNTasks(response);
                 break;
+            case SHUTDOWN_HOST:
+            case STARTUP_HOST:
+                handleUnspecifiedHost(response);
+                break;
+                
         }
         return response;
     }
@@ -178,6 +185,17 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     protected abstract Response selectTaskOnAnyHost(Response response, String application);    
 
+    /**
+     * Selects a host to perform the adaptation actuation against. The aim is
+     * to call this method when faced with a host event with an unspecified host
+     * value. This might occur in events with global power cap values (i.e. cluster
+     * level).
+     *
+     * @param response The original response object to modify
+     * @return The response object with a host value specified
+     */
+    protected abstract Response selectHostToAdapt(Response response);     
+    
     /**
      * This tests to see if the power consumption limit will be breached or not
      * as well as the task boundaries.
@@ -307,13 +325,24 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     public  abstract Response addTask(Response response);    
 
     /**
-     * This modifies the response object's cause in the case that it is a clock
-     * event into either an application or a host based event.
+     * This modifies the response object to make a decision in cases where a host
+     * level event doesn't specify the host. i.e. where the event might for
+     * example relate to a cluster level power cap "POWER_CAP", with a host specified
+     * as "*".
      *
      * @param response The response object to modify
      * @return The altered response object, no changes are made if the cause is
-     * not a clock event
+     * not a host event
      */
+    protected Response handleUnspecifiedHost(Response response) {
+        if (response.getCause() instanceof HostEventData) {
+            HostEventData event = (HostEventData) response.getCause();
+            if (event.getHost().equals("*") || event.getHost().isEmpty()) {
+                response = selectHostToAdapt(response);
+            }
+        }
+        return response;
+    }    
     /**
      * This modifies the response object's cause in the case that it is a clock
      * event into either an application or a host based event.
@@ -436,7 +465,6 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
          */
         List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
         for (ApplicationOnHost task : tasks) {
-            //TODO Consider how this can be used to get sub tasks?
             if ((task.getName().trim().equals(name.trim()))
                     && (task.getId() + "").equals(deploymentId.trim())) {
                 return task;
@@ -544,7 +572,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
                         "The calculation of the highest powered Task saw a zero value for Task: {0}", taskId);
             }
-            ApplicationOnHost taskDef = getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
+            //ApplicationOnHost taskDef = getTask(response.getApplicationId(), response.getDeploymentId(), taskId);
             if (currentValue > answerPower && (taskType == null)) {  // || taskDef.getOvfId().equals(vmType))) {
                 answer = taskId;
                 answerPower = currentValue;
@@ -557,10 +585,58 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         }
         return answer;
     }
+    
+    /**
+     * This applies a sort and then picks the first relevant host to perform the
+     * adaptation for.
+     * @param response The response object to set a host name for
+     * @param sort The sort to apply, if null will shuffle hosts instead, i.e. random.
+     * @param reverseOrder If the order should be reversed from the natural order
+     * @return The modified response object with a host value set.
+     */
+    protected Response selectHostToAdapt(Response response, Comparator<Host> sort) {
+        if (response.getCause() instanceof HostEventData) {
+            List<Host> hosts = getHostList(sort);          
+            if (sort == null) {
+                Collections.shuffle(hosts);
+            }
+            HostEventData event = (HostEventData) response.getCause();
+            if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
+                Collections.reverse(hosts); //largest first (i.e. power consumer)
+                for (Host host : hosts) {
+                    if (host.isAvailable()) {
+                        event.setHost(host.getHostName());
+                        return response;
+                    }
+                }           
+            } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
+                for (Host host : hosts) { //smallest first (i.e. power consumer)
+                    if (!host.isAvailable()) {
+                        event.setHost(host.getHostName());
+                        return response;
+                    }
+                }                
+            }
+        }
+        return response;
+    }    
+    
+    /**
+     * This creates a list of hosts as defined by a sorted order
+     * @param sort The sort order to apply, null = natural sort
+     * @return The list of hosts available
+     */
+    protected List<Host> getHostList(Comparator<Host> sort) {
+        if (sort == null)
+            return new ArrayList<>(modeller.getHostList());
+        else {
+            return modeller.getHostList(sort);            
+        }
+    }
 
     /**
      * This gets the list of all task objects from a given taskId and provides the
-     * power consumption, ready for ranking
+     * power consumption, ready for ranking.
      *
      * @param response The response object to perform the test for.
      * @param taskIds The Taskids that are to be tested (i.e. ones that could be

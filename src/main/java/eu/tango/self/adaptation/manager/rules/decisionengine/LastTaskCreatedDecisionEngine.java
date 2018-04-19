@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.comparators.ApplicationOnHostId;
+import eu.tango.energymodeller.types.energyuser.comparators.HostIdlePower;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
@@ -109,6 +110,12 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
         }
         return response;        
     }
+    
+    @Override
+    protected Response selectHostToAdapt(Response response) {
+        //Could also rank by Max Power or flops per Watt
+        return selectHostToAdapt(response, new HostIdlePower());
+    }    
 
     /**
      * The decision logic for deleting a task. It removes the last task to be
