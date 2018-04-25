@@ -591,7 +591,6 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * adaptation for.
      * @param response The response object to set a host name for
      * @param sort The sort to apply, if null will shuffle hosts instead, i.e. random.
-     * @param reverseOrder If the order should be reversed from the natural order
      * @return The modified response object with a host value set.
      */
     protected Response selectHostToAdapt(Response response, Comparator<Host> sort) {
