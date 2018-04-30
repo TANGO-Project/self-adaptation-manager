@@ -41,13 +41,13 @@ public class HostEventData extends EventData {
      * guarantee placed upon the value that breached.
      * @param type This indicates if the event notifies of a breach or a warning
      * of a potential future breach.
-     * @param guranteeOperator The operator that defines the threshold placed
+     * @param guaranteeOperator The operator that defines the threshold placed
      * upon the guarantee. e.g. greater_than, less_than ...
      * @param guaranteeid The id of the guarantee that was breached
      * @param agreementTerm The type of guarantee that was breached.
      */    
-    public HostEventData(long time, String host, double rawValue, double guaranteedValue, Type type, Operator guranteeOperator, String guaranteeid, String agreementTerm) {
-        super(time, rawValue, guaranteedValue, type, guranteeOperator, guaranteeid, agreementTerm);
+    public HostEventData(long time, String host, double rawValue, double guaranteedValue, Type type, Operator guaranteeOperator, String guaranteeid, String agreementTerm) {
+        super(time, rawValue, guaranteedValue, type, guaranteeOperator, guaranteeid, agreementTerm);
         this.host = host;
     }
 

@@ -30,8 +30,8 @@ public class ClockEventData extends EventData {
         setSignificantOnOwn(true);
     }  
     
-    public ClockEventData(long time, double rawValue, double guranteedValue, Type type, Operator guranteeOperator, String guaranteeid, String agreementTerm) {
-        super(time, rawValue, guranteedValue, type, guranteeOperator, guaranteeid, agreementTerm);
+    public ClockEventData(long time, double rawValue, double guaranteedValue, Type type, Operator guaranteeOperator, String guaranteeid, String agreementTerm) {
+        super(time, rawValue, guaranteedValue, type, guaranteeOperator, guaranteeid, agreementTerm);
         setSignificantOnOwn(true);
     }
  
