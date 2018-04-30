@@ -21,6 +21,8 @@ package eu.tango.self.adaptation.manager.listeners;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -30,6 +32,7 @@ import javax.ws.rs.core.Response;
 
 /**
  * This provides a REST interface for submitting events to the SAM.
+ *
  * @author Richard Kavanagh
  */
 @Path("/event")
@@ -41,30 +44,29 @@ public class RestEventService {
     public String getTest() {
         return "This is a test for server liveliness";
     }
-    
+
     @POST
     @Path("/submit")
     @Produces(MediaType.APPLICATION_JSON)
     public Response addEvent(RestEvent data) {
-        
+
         /*
      
-        curl -H "Content-type: application/json" -d '{
-        "time" : 5,
-        "origin" : "Host",
-        "rawValue" : 0,
-        "guaranteedValue" : 0,
-        "type" : "SLA_BREACH",
-        "guaranteeOperator" : "EQ",
-        "agreementTerm" : "test",
-        "guaranteeid" : "test",
-        "hostname" : "ns51",
-        "applicationId" : "",    
-        "deploymentId" : ""
-        }' 'http://localhost:8080/sam/event/submit'  
+         curl -H "Content-type: application/json" -d '{
+         "time" : 5,
+         "origin" : "Host",
+         "rawValue" : 0,
+         "guaranteedValue" : 0,
+         "type" : "SLA_BREACH",
+         "guaranteeOperator" : "EQ",
+         "agreementTerm" : "test",
+         "guaranteeid" : "test",
+         "hostname" : "ns51",
+         "applicationId" : "",    
+         "deploymentId" : ""
+         }' 'http://localhost:8080/sam/event/submit'  
         
-        */
-        
+         */
         if (data == null || data.getOrigin() == null) {
             return Response.status(201).build();
         }
@@ -91,6 +93,9 @@ public class RestEventService {
                         EventData.Operator.valueOf(data.getGuaranteeOperator()),
                         data.getGuaranteeid(),
                         data.getAgreementTerm());
+                break;
+            default:
+                Logger.getLogger(RestEventService.class.getName()).log(Level.WARNING, "Origin of event unknown!");
                 break;
         }
         if (toProcess != null) {
