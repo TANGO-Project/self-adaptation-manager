@@ -25,6 +25,7 @@ import eu.tango.self.adaptation.manager.actuators.AldeAndSlurmActuator;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
+import eu.tango.self.adaptation.manager.listeners.RestEventMonitor;
 import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
 import eu.tango.self.adaptation.manager.rules.AbstractEventAssessor;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
@@ -86,6 +87,10 @@ public class SelfAdaptationManager {
         listener = ClockMonitor.getInstance();
         listener.setEventAssessor(eventAssessor);
         listeners.add(listener);
+        //Add the REST Interface monitor
+        listener = RestEventMonitor.getInstance();
+        listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);        
         //Add the actuator
         actuator = new AldeAndSlurmActuator(datasource);
         eventAssessor.setActuator(actuator);

@@ -21,10 +21,13 @@ package eu.tango.self.adaptation.manager.listeners;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -38,12 +41,27 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class RestEventMonitor implements EventListener, Runnable {
 
     // Base URI the Grizzly HTTP server will listen on
-    public static final String BASE_URI = "http://localhost:8080/sam/";
+    public String baseUri = "http://localhost:8080/sam/";
 
     private EventAssessor eventAssessor;
     private HttpServer server;
+    private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     
     private RestEventMonitor() {
+        try {
+            PropertiesConfiguration config;
+            if (new File(CONFIG_FILE).exists()) {
+                config = new PropertiesConfiguration(CONFIG_FILE);
+            } else {
+                config = new PropertiesConfiguration();
+                config.setFile(new File(CONFIG_FILE));
+            }
+            config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
+            baseUri = config.getString("self.adaptation.manager.rest.uri", baseUri);
+            config.setProperty("self.adaptation.manager.rest.uri", baseUri);
+        } catch (ConfigurationException ex) {
+            Logger.getLogger(RestEventMonitor.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
+        }        
     }
 
     /**
@@ -86,14 +104,14 @@ public class RestEventMonitor implements EventListener, Runnable {
         }        
     }
 
-    public static HttpServer startServer() {
+    public HttpServer startServer() {
         // create a resource config that scans for JAX-RS resources and providers
         // in eu.tango.self.adaptation.manager.listeners package
         final ResourceConfig rc = new ResourceConfig().packages("eu.tango.self.adaptation.manager.listeners");
 
         // create and start a new instance of grizzly http server
-        // exposing the Jersey application at BASE_URI
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+        // exposing the Jersey application at baseUri
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create(baseUri), rc);
     }
 
     @Override
@@ -103,7 +121,7 @@ public class RestEventMonitor implements EventListener, Runnable {
         }
         Logger.getLogger(RestEventMonitor.class.getName()).log(Level.INFO,
                 String.format("Jersey app started with WADL available at "
-                        + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
+                        + "%sapplication.wadl\nHit enter to stop it...", baseUri));
     }
 
     @Override
