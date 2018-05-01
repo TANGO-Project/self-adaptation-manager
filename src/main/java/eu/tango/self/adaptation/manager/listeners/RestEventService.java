@@ -54,7 +54,6 @@ public class RestEventService {
         /*
      
          curl -H "Content-type: application/json" -d '{
-         "time" : 5,
          "origin" : "Host",
          "rawValue" : 0,
          "guaranteedValue" : 0,
