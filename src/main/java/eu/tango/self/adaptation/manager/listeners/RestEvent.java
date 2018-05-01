@@ -28,8 +28,6 @@ import javax.xml.bind.annotation.XmlElement;
 public class RestEvent {
 
     @XmlElement
-    private long time; //the time of the event
-    @XmlElement
     private String origin; //application, host or clock
     @XmlElement
     private double rawValue; //the metric raw value
@@ -49,20 +47,6 @@ public class RestEvent {
     private String applicationId;
     @XmlElement
     private String deploymentId;
-
-    /**
-     * @return the time
-     */
-    public long getTime() {
-        return time;
-    }
-
-    /**
-     * @param time the time to set
-     */
-    public void setTime(long time) {
-        this.time = time;
-    }
 
     /**
      * @return the origin
@@ -206,9 +190,7 @@ public class RestEvent {
 
     @Override
     public String toString() {
-        String answer
-                = "time : " + time
-                + " origin :" + origin
+        String answer = " origin :" + origin
                 + " rawValue :" + rawValue
                 + " guaranteedValue :" + guaranteedValue
                 + " type :" + type

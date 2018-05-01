@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.listeners;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.GET;
@@ -74,7 +75,7 @@ public class RestEventService {
         EventData toProcess = null;
         switch (data.getOrigin()) {
             case "Application":
-                toProcess = new ApplicationEventData(data.getTime(),
+                toProcess = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                         data.getRawValue(),
                         data.getGuaranteedValue(),
                         EventData.Type.valueOf(data.getType()),
@@ -85,7 +86,7 @@ public class RestEventService {
                         data.getAgreementTerm());
                 break;
             case "Host":
-                toProcess = new HostEventData(data.getTime(),
+                toProcess = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                         data.getHostname(),
                         data.getRawValue(),
                         data.getGuaranteedValue(),
