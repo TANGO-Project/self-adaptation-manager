@@ -297,9 +297,9 @@ curl -H "Content-type: application/json" -d '{
          }' 'http://localhost:8080/sam/event/submit'
 ```
 
-In the example above it submits a event warning of an idle host ns51.
+In the example above it submits a event warning of an idle host ns51. The value for origin can be either "Host" or "Application", which create events of a given type. 
 
-The value for origin can be either "Host" or "Application", which create events of a given type. 
+The WADL for the SAMs REST interface can be found using the command: ```curl http://localhost:8080/sam/application.wadl``` and additionally a liveliness test can be used by the following command: ```curl http://localhost:8080/sam/event/test```.
 
 ## Relation to other TANGO components
 
