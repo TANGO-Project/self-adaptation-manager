@@ -33,7 +33,7 @@ public class ApplicationEventData extends EventData {
     private ApplicationDefinition application;
 
     /**
-     * This creates a new event data object.
+     * This creates a new event data object for application oriented events.
      *
      * @param time The time of the event (Unix time).
      * @param rawValue The raw value reported by the SLA manager, for the metric
@@ -47,8 +47,10 @@ public class ApplicationEventData extends EventData {
      * @param applicationId The id of the application that caused the breach
      * @param deploymentId The id of the specific deployment that caused the
      * breach
-     * @param guaranteeid The id of the guarantee that was breached
-     * @param agreementTerm The type of guarantee that was breached.
+     * @param guaranteeid The id of the guarantee that was breached, may be a 
+     * reference to a particular term in the SLA.
+     * @param agreementTerm The term of the agreement that was breached, such 
+     * as a metric's name.
      */    
     public ApplicationEventData(long time, double rawValue, double guaranteedValue, Type type, Operator guaranteeOperator, String applicationId, String deploymentId, String guaranteeid, String agreementTerm) {
         super(time, rawValue, guaranteedValue, type, guaranteeOperator, guaranteeid, agreementTerm);

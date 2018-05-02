@@ -30,6 +30,23 @@ public class ClockEventData extends EventData {
         setSignificantOnOwn(true);
     }  
     
+    /**
+     * This creates a new clock event data object.
+     *
+     * @param time The time of the event (Unix time).
+     * @param rawValue The raw value reported by the SLA manager, for the metric
+     * that breached its guarantee.
+     * @param guaranteedValue The value for the threshold that forms the
+     * guarantee placed upon the value that breached.
+     * @param type This indicates if the event notifies of a breach or a warning
+     * of a potential future breach.
+     * @param guaranteeOperator The operator that defines the threshold placed
+     * upon the guarantee. e.g. greater_than, less_than ...
+     * @param guaranteeid The id of the guarantee that was breached, may be a 
+     * reference to a particular term in the SLA.
+     * @param agreementTerm The term of the agreement that was breached, such 
+     * as a metric's name.
+     */  
     public ClockEventData(long time, double rawValue, double guaranteedValue, Type type, Operator guaranteeOperator, String guaranteeid, String agreementTerm) {
         super(time, rawValue, guaranteedValue, type, guaranteeOperator, guaranteeid, agreementTerm);
         setSignificantOnOwn(true);

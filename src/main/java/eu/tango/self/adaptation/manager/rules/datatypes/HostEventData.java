@@ -31,7 +31,7 @@ public class HostEventData extends EventData {
     }
     
     /**
-     * This creates a new event data object.
+     * This creates a new event data object for host oriented events.
      *
      * @param time The time of the event (Unix time).
      * @param host The host from where the event originated
@@ -43,8 +43,8 @@ public class HostEventData extends EventData {
      * of a potential future breach.
      * @param guaranteeOperator The operator that defines the threshold placed
      * upon the guarantee. e.g. greater_than, less_than ...
-     * @param guaranteeid The id of the guarantee that was breached
-     * @param agreementTerm The type of guarantee that was breached.
+     * @param guaranteeid The id of the guarantee that was breached, may be a reference to a particular term in the SLA.
+     * @param agreementTerm The term of the agreement that was breached, such as a metric's name.
      */    
     public HostEventData(long time, String host, double rawValue, double guaranteedValue, Type type, Operator guaranteeOperator, String guaranteeid, String agreementTerm) {
         super(time, rawValue, guaranteedValue, type, guaranteeOperator, guaranteeid, agreementTerm);
