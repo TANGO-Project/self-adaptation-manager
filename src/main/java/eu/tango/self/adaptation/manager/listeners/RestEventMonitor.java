@@ -121,7 +121,7 @@ public class RestEventMonitor implements EventListener, Runnable {
         }
         Logger.getLogger(RestEventMonitor.class.getName()).log(Level.INFO,
                 String.format("Jersey app started with WADL available at "
-                        + "%sapplication.wadl\nHit enter to stop it...", baseUri));
+                        + "%sapplication.wadl", baseUri));
     }
 
     @Override
@@ -151,6 +151,7 @@ public class RestEventMonitor implements EventListener, Runnable {
 
     @Override
     public void run() {
+        startListening();
         /*
          * No action needed, this thread should just wait for the server instance 
          * to close down.
