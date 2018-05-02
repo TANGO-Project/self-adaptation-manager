@@ -274,11 +274,32 @@ START_TIME=9:00;END_TIME=17:00;DAY_OF_WEEK=1111100
 
 ## Usage Guide
 
-The jar is simply executed with the command: 
+The self-adaptation manager runs as a service waiting for events to occur on the infrastructure. i.e. through SLURM or CollectD based events. This service is launched by executing the jar, which is simply executed with the command: 
 
 ```
 java -jar self-adaptation-manager.jar
 ```
+
+An alternative to listening for events from SLURM or CollectD is to receive events through a REST based interface. This allows for events to be submitted via the following curl command:
+
+```
+curl -H "Content-type: application/json" -d '{
+         "origin" : "Host",
+         "rawValue" : 0,
+         "guaranteedValue" : 0,
+         "type" : "WARNING",
+         "guaranteeOperator" : "EQ",
+         "agreementTerm" : "IDLE_HOST",
+         "guaranteeid" : "IDLE_HOST",
+         "hostname" : "ns51",
+         "applicationId" : "",    
+         "deploymentId" : ""
+         }' 'http://localhost:8080/sam/event/submit'
+```
+
+In the example above it submits a event warning of an idle host ns51.
+
+The value for origin can be either "Host" or "Application", which create events of a given type. 
 
 ## Relation to other TANGO components
 
