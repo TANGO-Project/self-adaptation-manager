@@ -41,7 +41,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class RestEventMonitor implements EventListener, Runnable {
 
     // Base URI the Grizzly HTTP server will listen on
-    public String baseUri = "http://localhost:8080/sam/";
+    private String baseUri = "http://localhost:8080/sam/";
 
     private EventAssessor eventAssessor;
     private HttpServer server;
