@@ -99,6 +99,7 @@ public class RestEventService {
                 break;
         }
         if (toProcess != null) {
+            toProcess.setSignificantOnOwn(data.isSignificantOnOwn());
             RestEventMonitor.getInstance().assessEvent(toProcess);
         }
         return Response.status(201).build();

@@ -47,6 +47,8 @@ public class RestEvent {
     private String applicationId;
     @XmlElement
     private String deploymentId;
+    @XmlElement
+    private boolean significantOnOwn = false;    
 
     /**
      * @return the origin
@@ -187,6 +189,24 @@ public class RestEvent {
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
+    
+    /**
+     * Indicates if the event needs to have multiple occurrences before becoming
+     * significant enough to respond to
+     * @return the significantOnOwn
+     */
+    public boolean isSignificantOnOwn() {
+        return significantOnOwn;
+    }
+
+    /**
+     * Sets the marker to indicate if the event needs to have multiple 
+     * occurrences before becoming significant enough to respond to
+     * @param significantOnOwn the significantOnOwn to set
+     */
+    public void setSignificantOnOwn(boolean significantOnOwn) {
+        this.significantOnOwn = significantOnOwn;
+    }    
 
     @Override
     public String toString() {
@@ -197,9 +217,10 @@ public class RestEvent {
                 + " guaranteeOperator :" + guaranteeOperator
                 + " agreementTerm :" + agreementTerm
                 + " guaranteeid :" + guaranteeid
-                + " hostname :" + hostname
-                + " applicationId :" + applicationId
-                + " deploymentId :" + deploymentId;
+                + " hostname :" + (hostname != null ? hostname : "")
+                + " applicationId :" + (applicationId != null ? applicationId : "")
+                + " deploymentId :" + (deploymentId != null ? deploymentId : "")
+                + " significant :" + significantOnOwn;
         return answer;
     }
 
