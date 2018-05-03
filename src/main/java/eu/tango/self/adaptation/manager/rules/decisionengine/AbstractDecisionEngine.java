@@ -611,7 +611,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 for (Host host : hosts) {
                     if (host.isAvailable()) {
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
-                        currentChangeFactor = currentChangeFactor + host.getIdlePowerConsumption();
+                        currentChangeFactor = currentChangeFactor + modeller.getCurrentEnergyForHost(host).getPower();
                         if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
                             return response;
                         }
@@ -621,7 +621,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 for (Host host : hosts) { //smallest first (i.e. power consumer)
                     if (!host.isAvailable()) {
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
-                        currentChangeFactor = currentChangeFactor + host.getIdlePowerConsumption();
+                        currentChangeFactor = currentChangeFactor + modeller.getCurrentEnergyForHost(host).getPower();
                         if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
                             return response;
                         }
