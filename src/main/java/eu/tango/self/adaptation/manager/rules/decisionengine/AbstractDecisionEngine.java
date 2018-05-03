@@ -112,6 +112,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
                 break;
             case SHUTDOWN_HOST:
             case STARTUP_HOST:
+            case SHUTDOWN_N_HOSTS:
+            case STARTUP_N_HOSTS:
                 handleUnspecifiedHost(response);
                 break;
                 
@@ -587,38 +589,68 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     }
     
     /**
-     * This applies a sort and then picks the first relevant host to perform the
-     * adaptation for.
+     * This applies a sort and then picks the first N relevant hosts to perform 
+     * the adaptation for.
      * @param response The response object to set a host name for
      * @param sort The sort to apply, if null will shuffle hosts instead, i.e. random.
      * @return The modified response object with a host value set.
      */
     protected Response selectHostToAdapt(Response response, Comparator<Host> sort) {
         if (response.getCause() instanceof HostEventData) {
-            List<Host> hosts = getHostList(sort);          
+            List<Host> hosts = getHostList(sort);
             if (sort == null) {
                 Collections.shuffle(hosts);
             }
             HostEventData event = (HostEventData) response.getCause();
-            if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
-                Collections.reverse(hosts); //largest first (i.e. power consumer)
+            //An indicator of how big the breach is.
+            double scaleFactor = event.getDeviationBetweenRawAndGuarantee();
+            //An indicator of how much the current seleected change will help
+            double currentChangeFactor = 0.0;
+            if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST) || response.getActionType().equals(Response.AdaptationType.SHUTDOWN_N_HOSTS)) {
+                Collections.reverse(hosts); //largest first (i.e. power consumer)               
                 for (Host host : hosts) {
                     if (host.isAvailable()) {
-                        event.setHost(host.getHostName());
-                        return response;
+                        event.setHost(generateHostString(event.getHost(), host.getHostName()));
+                        currentChangeFactor = currentChangeFactor + host.getIdlePowerConsumption();
+                        if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
+                            return response;
+                        }
                     }
                 }           
-            } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
+            } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)  || response.getActionType().equals(Response.AdaptationType.STARTUP_N_HOSTS)) {
                 for (Host host : hosts) { //smallest first (i.e. power consumer)
                     if (!host.isAvailable()) {
-                        event.setHost(host.getHostName());
-                        return response;
+                        event.setHost(generateHostString(event.getHost(), host.getHostName()));
+                        currentChangeFactor = currentChangeFactor + host.getIdlePowerConsumption();
+                        if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
+                            return response;
+                        }
                     }
                 }                
             }
         }
         return response;
-    }    
+    }
+    
+    /**
+     * This method concatenates hosts into a host string ready for either shutting down
+     * or starting up a set of hosts.
+     * @param original The original host string
+     * @param toAdd The host to add to the action list
+     * @return The new concatenated hosts list
+     */
+    private String generateHostString(String original, String toAdd) {
+        if (original == null || original.isEmpty()) {
+            if (toAdd == null) {
+                return "";
+            }
+            return toAdd;
+        }
+        if (toAdd == null) {
+            return original;
+        }
+        return original + "," + toAdd;
+    }
     
     /**
      * This creates a list of hosts as defined by a sorted order

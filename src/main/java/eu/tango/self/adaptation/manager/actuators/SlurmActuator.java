@@ -375,8 +375,13 @@ public class SlurmActuator extends AbstractActuator {
      */
     public void shutdownHost(String hostname) {
         //Consider: https://slurm.schedmd.com/power_save.html
-        execCmd("scontrol update NodeName=" + hostname + "State=power_down");
-        //TODO Consider writing a time wake procedure. i.e. shutdown for X hours etc
+        if (hostname.contains(",")) {
+            for (String host : hostname.split(",")) {
+                execCmd("scontrol update NodeName=" + host.trim() + "State=power_down");
+            }
+        } else {
+            execCmd("scontrol update NodeName=" + hostname.trim() + "State=power_down");
+        }
     }
 
     /**
@@ -385,7 +390,13 @@ public class SlurmActuator extends AbstractActuator {
      * @param hostname The host to power up
      */
     public void startupHost(String hostname) {
-        execCmd("scontrol update NodeName=" + hostname + "State=power_up");
+        if (hostname.contains(",")) {
+            for (String host : hostname.split(",")) {
+                execCmd("scontrol update NodeName=" + host.trim() + "State=power_up");
+            }
+        } else {
+            execCmd("scontrol update NodeName=" + hostname.trim() + "State=power_up");
+        }
     }
 
     /**
@@ -431,7 +442,9 @@ public class SlurmActuator extends AbstractActuator {
 
     /**
      * This sets the cluster level power cap on the infrastructure
-     * @param response The response object that caused the adaptation to be invoked.
+     *
+     * @param response The response object that caused the adaptation to be
+     * invoked.
      */
     public void setPowerCap(Response response) {
         if (response.hasAdaptationDetail("POWER_CAP")) {
