@@ -435,8 +435,8 @@ public class AldeClient {
     }
 
     /**
-     * This starts an executable running
-     * @param executionId The execution id to start
+     * This stops an executable running
+     * @param executionId The execution id to stop
      * @throws IOException
      */
     public void cancelApplication(int executionId) throws IOException {
@@ -498,6 +498,47 @@ public class AldeClient {
          * The command that this code replicates: curl -X PATCH -H'Content-type: ....
          * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 1 (alternative 3)
          */
-    }    
+        throw new UnsupportedOperationException("Not supported yet.");        
+    }
+    
+    /**
+     * This starts a host
+     * @param hostname the host to start
+     * @throws IOException
+     */
+    public void startHost(String hostname) throws IOException {
+        /**
+         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
+         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 1 (alternative 3)
+         */
+        throw new UnsupportedOperationException("Not supported yet.");           
+    }
+    
+    /**
+     * This adds resource to a running executable
+     * @param executionId The execution id to add resource to it
+     * @throws IOException
+     */
+    public void addResouce(int executionId) throws IOException {
+        /**
+         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
+         * TODO To complete call to ALDE to shutdown a host as per scenario 10  i.e. S10-SAM:ResouceScaling
+         */
+        throw new UnsupportedOperationException("Not supported yet.");           
+    }
+    
+    /**
+     * This removes resources from a running executable
+     * @param executionId The execution id to remove resource from
+     * @throws IOException
+     */
+    public void removeResouce(int executionId) throws IOException {
+        /**
+         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
+         * TODO To complete call to ALDE to shutdown a host as per scenario 10 i.e. S10-SAM:ResouceScaling
+         */
+        throw new UnsupportedOperationException("Not supported yet.");           
+    }
+    
     
 }

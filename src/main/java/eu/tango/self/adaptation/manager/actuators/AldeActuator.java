@@ -162,15 +162,21 @@ public class AldeActuator extends AbstractActuator {
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
                 }
                 break;
+                case STARTUP_HOST:
+                String host = getHostname(response);
+                if (host != null) {
+                    startupHost(host);
+                }
+                break;                
                 case SHUTDOWN_HOST:
-                String host = getHostname(response);    
+                host = getHostname(response);    
                 if (host != null) {
                     shutdownHost(host);
                 }
                 if (response.hasAdaptationDetail("REBOOT")) {
                     int resumeInNseconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
                     ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "host=" + host, resumeInNseconds);
-                }
+                }     
                 break;
             default:
                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recoginised by this adaptor");
@@ -522,19 +528,20 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
-        if (parent != null) {
-            parent.addTask(applicationName, deploymentId, taskType);
+        try {
+            client.addResouce(Integer.parseInt(deploymentId));
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         try {
-            client.cancelApplication(Integer.parseInt(taskID));
+            client.removeResouce(Integer.parseInt(deployment));
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
-        }            
+        }   
     }
     
     /**
@@ -545,6 +552,19 @@ public class AldeActuator extends AbstractActuator {
     public void shutdownHost(String hostname) {
         try {
             client.shutdownHost(hostname);
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+    }
+    
+    /**
+     * This powers up a host
+     *
+     * @param hostname The host to power up
+     */
+    public void startupHost(String hostname) {
+        try {
+            client.startHost(hostname);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         } 
