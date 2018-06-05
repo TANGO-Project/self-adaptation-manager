@@ -43,8 +43,8 @@ import org.jcollectd.agent.api.Notification;
 import org.jcollectd.agent.api.Notification.Severity;
 
 /**
- * This creates an environment monitor that connects directly into CollectD via
- * its network plug-in.
+ * This creates an environment monitor that connects to CollectD either via
+ * its network plug-in or via its InfluxDB database.
  *
  * @author Richard Kavanagh
  */
