@@ -22,8 +22,6 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
-import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
-import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,7 +41,6 @@ public class CompssJobMonitor extends AbstractJobMonitor {
     private double lastPowerCap = Double.NaN;
     private HashSet<ApplicationOnHost> runningJobs = null;
     private ProgrammingModelClient datasource = new ProgrammingModelClient();
-    private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
     private static final String APP_STARTED = "APP_STARTED";
     private static final String APP_FINISHED = "APP_FINISHED";
     private static final String IDLE_HOST = "IDLE_HOST";

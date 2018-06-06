@@ -25,7 +25,6 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
-import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
@@ -47,7 +46,6 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
     private HashSet<Host> drainingHosts = new HashSet<>();
     private double lastPowerCap = Double.NaN;
     private HashSet<ApplicationOnHost> runningJobs = null;
-    private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
     
     private static final String APP_STARTED = "APP_STARTED";
     private static final String APP_FINISHED = "APP_FINISHED";
@@ -94,6 +92,7 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
      * @param limits The QoS goal limits.
      * @return The first SLA breach event. Null if none found.
      */
+    @Override
     protected ArrayList<EventData> detectEvent(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
         if (containsTerm(limits, IDLE_HOST)) {
