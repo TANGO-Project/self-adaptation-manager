@@ -18,20 +18,15 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Testbed;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -385,53 +380,6 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return answer;
-    }
-
-    /**
-     * This reads the entire contents from a reader and generates a String
-     *
-     * @param rd The reader to perform the full read with
-     * @return The String representation of the contents of the reader.
-     * @throws IOException
-     */
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * This takes a url and parses the json from it into a Json object.
-     *
-     * @param url The url to parse
-     * @return The json object provided by the named url
-     * @throws IOException
-     */
-    public static JSONObject readJsonFromUrl(String url) throws IOException {
-        try (InputStream is = new URL(url).openStream()) {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String jsonText = readAll(rd);
-            return new JSONObject(jsonText);
-        }
-    }
-
-    /**
-     * This takes a url and parses the json from it into a Json object.
-     *
-     * @param url The url to parse
-     * @param parameters The parameters to add to the query
-     * @return The json object provided by the named url
-     * @throws IOException
-     */
-    public JSONObject readJsonFromUrl(String url, JSONObject parameters) throws IOException {
-        if (parameters == null) {
-            return readJsonFromUrl(url);
-        } else {
-            return readJsonFromUrl(url + "?q=" + parameters.toString());
-        }
     }
 
     /**
