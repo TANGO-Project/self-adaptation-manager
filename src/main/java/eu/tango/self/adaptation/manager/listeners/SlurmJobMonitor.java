@@ -26,28 +26,22 @@ import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
-import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Monitors jobs to provide jobs based events for adaptation
  *
  * @author Richard Kavanagh
  */
-public class SlurmJobMonitor implements EventListener, Runnable {
+public class SlurmJobMonitor extends AbstractJobMonitor {
 
-    private EventAssessor eventAssessor;
     private final HostDataSource datasource;
-    private boolean running = false;
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<Host> failingHosts = new HashSet<>();
     private HashSet<Host> drainingHosts = new HashSet<>();
@@ -93,88 +87,14 @@ public class SlurmJobMonitor implements EventListener, Runnable {
         }
     }
 
-    @Override
-    public void setEventAssessor(EventAssessor assessor) {
-        eventAssessor = assessor;
-    }
-
-    @Override
-    public EventAssessor getEventAssessor() {
-        return eventAssessor;
-    }
-
-    /**
-     * This starts the environment monitor going, in a daemon thread.
-     */
-    @Override
-    public void startListening() {
-        Thread slurmJobMonThread = new Thread(this);
-        slurmJobMonThread.setDaemon(true);
-        slurmJobMonThread.start();
-    }
-
-    @Override
-    public void stopListening() {
-        running = false;
-    }
-
-    @Override
-    public boolean isListening() {
-        return running;
-    }
-
-    /**
-     * This reloads the SLA criteria held in the slurm job monitor.
-     */
-    public void reloadLimits() {
-        limits.reloadLimits();
-    }
-
-    @Override
-    public void run() {
-        running = true;
-        try {
-            // Wait for a message
-            while (running) {
-                for (EventData event : detectEvent(limits.getLimits())) {
-                    eventAssessor.assessEvent(event);
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Checks to see if the SLA rules includes a check for a given condition
-     *
-     * @param limits The SLA terms
-     * @param termName The name of the SLA term
-     * @return If the term is contained or not within the SLA limits set
-     */
-    private boolean containsTerm(SLALimits limits, String termName) {
-        for (SLATerm slaTerm : limits.getQosCriteria()) {
-            if (slaTerm.getAgreementTerm().equals(termName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * This takes a list of measurements and determines if an SLA breach has
      * occurred by comparing them to the QoS limits.
      *
-     * @param measurements The list of measurements
      * @param limits The QoS goal limits.
      * @return The first SLA breach event. Null if none found.
      */
-    private ArrayList<EventData> detectEvent(SLALimits limits) {
+    protected ArrayList<EventData> detectEvent(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
         if (containsTerm(limits, IDLE_HOST)) {
             answer.addAll(detectRecentIdleHost());
@@ -565,45 +485,6 @@ public class SlurmJobMonitor implements EventListener, Runnable {
             answer.add(pendingJob.getAllocatedTo());
         }
         return answer;
-    }
-
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     * @throws java.io.IOException
-     */
-    private static ArrayList<String> execCmd(String mainCmd) {
-        String cmd[] = {"/bin/sh",
-            "-c",
-            mainCmd};
-        try {
-            return execCmd(cmd);
-        } catch (IOException ex) {
-            Logger.getLogger(SlurmJobMonitor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     * @throws java.io.IOException
-     */
-    private static ArrayList<String> execCmd(String[] cmd) throws java.io.IOException {
-        ArrayList<String> output = new ArrayList<>();
-        Process proc = Runtime.getRuntime().exec(cmd);
-        java.io.InputStream is = proc.getInputStream();
-        java.util.Scanner s = new java.util.Scanner(is);
-        String outputLine;
-        while (s.hasNextLine()) {
-            outputLine = s.nextLine();
-            output.add(outputLine);
-        }
-        return output;
     }
 
 }

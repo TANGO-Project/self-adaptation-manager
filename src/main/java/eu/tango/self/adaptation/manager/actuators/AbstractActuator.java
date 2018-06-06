@@ -20,7 +20,6 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -88,44 +87,6 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
      * @param response The response object to launch the action for
      */    
     protected abstract void launchAction(Response response);
-
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     */
-    protected static ArrayList<String> execCmd(String cmd) {
-        String wholeCmd[] = {"/bin/sh",
-            "-c",
-            cmd};
-        try {
-            return execCmd(wholeCmd);
-        } catch (IOException ex) {
-            Logger.getLogger(AbstractActuator.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * This executes a command and returns the output as a line of strings.
-     *
-     * @param cmd The command to execute
-     * @return A list of output broken down by line
-     * @throws java.io.IOException
-     */
-    protected static ArrayList<String> execCmd(String[] cmd) throws java.io.IOException {
-        ArrayList<String> output = new ArrayList<>();
-        Process proc = Runtime.getRuntime().exec(cmd);
-        java.io.InputStream is = proc.getInputStream();
-        java.util.Scanner s = new java.util.Scanner(is);
-        String val;
-        while (s.hasNextLine()) {
-            val = s.nextLine();
-            output.add(val);
-        }
-        return output;
-    }
     
     @Override
     public void scaleToNTasks(String applicationId, String deploymentId, Response response) {
