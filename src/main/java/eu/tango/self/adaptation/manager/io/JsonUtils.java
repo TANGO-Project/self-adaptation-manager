@@ -36,6 +36,13 @@ import org.json.JSONObject;
 public abstract class JsonUtils {
 
     /**
+     * This utility class is not expected to be instantiated. It is a collection
+     * of static methods.
+     */
+    private JsonUtils() {
+    }
+    
+    /**
      * This reads the entire contents from a reader and generates a String
      *
      * @param rd The reader to perform the full read with

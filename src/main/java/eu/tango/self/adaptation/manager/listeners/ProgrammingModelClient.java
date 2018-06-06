@@ -19,7 +19,6 @@
 package eu.tango.self.adaptation.manager.listeners;
 
 import eu.tango.energymodeller.types.energyuser.Host;
-import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromFile;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
@@ -119,37 +118,6 @@ public class ProgrammingModelClient {
             Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
         return new ArrayList<>();
-    }
-
-    /**
-     * This main method is for testing purposes only and should be removed in time.
-     * @param args 
-     * TODO remove this method
-     */
-    public static void main(String[] args) {
-        try {
-            JSONObject items = readJsonFromFile("C:\\Users\\Richard\\Documents\\University Work\\Research\\Tango\\WP5\\DeltaTec Usecase\\compss jobs\\Post Run\\in_remote.prof");
-            ArrayList<CompssImplementation> answer = (ArrayList<CompssImplementation>) CompssImplementation.getCompssImplementation(items);
-            for (CompssImplementation answer1 : answer) {
-                answer1.toString();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            JSONObject items = readJsonFromFile("C:\\Users\\Richard\\Documents\\University Work\\Research\\Tango\\WP5\\DeltaTec Usecase\\compss jobs\\Post Run\\in_remote.prof");
-
-            ArrayList<CompssResource> answer = (ArrayList<CompssResource>) CompssResource.getCompssResouce(items);
-            for (CompssResource answer1 : answer) {
-                System.out.println(answer1.getHostname());
-                System.out.println(answer1.getImplemenations().size());
-                for (CompssImplementation answer2 : answer1.getImplemenations()) {
-                    System.out.println(answer2.getName());
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
 }

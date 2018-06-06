@@ -30,6 +30,13 @@ import java.util.logging.Logger;
 public abstract class ExecuteUtils {
 
     /**
+     * This utility class is not expected to be instantiated. It is a collection
+     * of static methods.
+     */    
+    private ExecuteUtils() {
+    }
+    
+    /**
      * This executes a command and returns the output as a line of strings.
      *
      * @param cmd The command to execute
