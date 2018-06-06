@@ -18,9 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
-import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
