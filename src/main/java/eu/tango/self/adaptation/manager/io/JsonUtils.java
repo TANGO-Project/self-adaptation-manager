@@ -74,6 +74,22 @@ public abstract class JsonUtils {
     }
 
     /**
+     * This takes a url and parses the json from it into a Json object.
+     *
+     * @param url The url to parse
+     * @param parameters The parameters to add to the query
+     * @return The json object provided by the named url
+     * @throws IOException
+     */
+    public static JSONObject readJsonFromUrl(String url, JSONObject parameters) throws IOException {
+        if (parameters == null) {
+            return readJsonFromUrl(url);
+        } else {
+            return readJsonFromUrl(url + "?q=" + parameters.toString());
+        }
+    }    
+    
+    /**
      * This takes a filename and parses the json from it into a Json array.
      *
      * @param filename The file to parse
@@ -99,22 +115,6 @@ public abstract class JsonUtils {
         BufferedReader rd = new BufferedReader(fileReader);
         String jsonText = readAll(rd);
         return new JSONObject(jsonText);
-    }
-
-    /**
-     * This takes a url and parses the json from it into a Json object.
-     *
-     * @param url The url to parse
-     * @param parameters The parameters to add to the query
-     * @return The json object provided by the named url
-     * @throws IOException
-     */
-    public static JSONObject readJsonFromUrl(String url, JSONObject parameters) throws IOException {
-        if (parameters == null) {
-            return readJsonFromUrl(url);
-        } else {
-            return readJsonFromUrl(url + "?q=" + parameters.toString());
-        }
-    }    
+    } 
     
 }
