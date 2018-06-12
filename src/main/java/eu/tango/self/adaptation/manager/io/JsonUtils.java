@@ -28,6 +28,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.XML;
 
 /**
  * A utilities class for managing json input
@@ -115,6 +116,35 @@ public abstract class JsonUtils {
         BufferedReader rd = new BufferedReader(fileReader);
         String jsonText = readAll(rd);
         return new JSONObject(jsonText);
-    } 
+    }
+    
+    /**
+     * This takes a url and parses the xml from it and converts it into a Json object.
+     *
+     * @param url The url to parse
+     * @return The json object provided by the named url
+     * @throws IOException
+     */
+    public static JSONObject readJsonFromXmlAtUrl(String url) throws IOException {
+        try (InputStream is = new URL(url).openStream()) {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String jsonText = readAll(rd);
+            return new JSONObject(jsonText);
+        }
+    }    
+    
+    /**
+     * This takes an XML file on disk and returns its JSON representation, ready
+     * for processing.
+     * @param filename The file to get the xml for
+     * @return The Json representation of the xml
+     * @throws IOException 
+     */
+    public static JSONObject readJsonFromXMLFile(String filename) throws IOException {
+        FileReader fileReader = new FileReader(filename);
+        BufferedReader rd = new BufferedReader(fileReader);
+        String xml = readAll(rd);
+        return XML.toJSONObject(xml);               
+    }     
     
 }
