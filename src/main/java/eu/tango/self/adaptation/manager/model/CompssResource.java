@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -59,14 +60,33 @@ public class CompssResource extends AldeJsonObjectWrapper {
      * @return The list of implementation objects from the json
      */
     public static List<CompssResource> getCompssResouce(JSONObject items) {
-        ArrayList<CompssResource> answer = new ArrayList<>();    
-        JSONObject resources = items.getJSONObject("resources");
-        for (Iterator iterator = resources.keys(); iterator.hasNext();) {
-            Object key = iterator.next();
-            if (key instanceof String && resources.getJSONObject((String) key) instanceof JSONObject) {
-                JSONObject compssResource = resources.getJSONObject((String) key);
-                answer.add(new CompssResource((String) key, compssResource));
+        ArrayList<CompssResource> answer = new ArrayList<>();
+        /**
+         * The code below parse a compss resource from an json originating source
+         */        
+        if (items.has("resources")) {
+            JSONObject resources = items.getJSONObject("resources");
+            for (Iterator iterator = resources.keys(); iterator.hasNext();) {
+                Object key = iterator.next();
+                if (key instanceof String && resources.getJSONObject((String) key) instanceof JSONObject) {
+                    JSONObject compssResource = resources.getJSONObject((String) key);
+                    answer.add(new CompssResource((String) key, compssResource));
+                }
             }
+            return answer;
+        }
+        /**
+         * The code below parse a compss resource from an xml originating source
+         */
+        if (items.has("Resource")) {
+            JSONArray resources = items.getJSONArray("Resource");
+            for (int i = 0; i < resources.length();i++) {
+                if (resources.getJSONObject(i) instanceof JSONObject) {
+                    JSONObject compssResource = resources.getJSONObject(i);
+                    answer.add(new CompssResource(compssResource.getString("id"), compssResource));
+                }
+            }
+            return answer;
         }
         return answer;
     }    

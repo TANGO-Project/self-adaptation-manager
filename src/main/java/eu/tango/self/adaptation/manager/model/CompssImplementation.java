@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -47,15 +48,29 @@ public class CompssImplementation extends AldeJsonObjectWrapper {
      * @return The list of implementation objects from the json
      */
     public static List<CompssImplementation> getCompssImplementation(JSONObject items) {
-        ArrayList<CompssImplementation> answer = new ArrayList<>();    
-        JSONObject implementations = items.getJSONObject("implementations");
-        for (Iterator iterator = implementations.keys(); iterator.hasNext();) {
-            Object key = iterator.next();
-            if (key instanceof String && implementations.getJSONObject((String) key) instanceof JSONObject) {
-                JSONObject implementation = implementations.getJSONObject((String) key);
-                answer.add(new CompssImplementation((String) key, implementation));
+        ArrayList<CompssImplementation> answer = new ArrayList<>();
+        if (items.has("implementations")) {
+            JSONObject implementations = items.getJSONObject("implementations");
+            for (Iterator iterator = implementations.keys(); iterator.hasNext();) {
+                Object key = iterator.next();
+                if (key instanceof String && implementations.getJSONObject((String) key) instanceof JSONObject) {
+                    JSONObject implementation = implementations.getJSONObject((String) key);
+                    answer.add(new CompssImplementation((String) key, implementation));
+                }
             }
+            return answer;
         }
+        if (items.has("Core")) {
+            JSONObject core = items.getJSONObject("Core");
+            JSONArray implementations = core.getJSONArray("Impl");
+            for (int i = 0; i < core.length();i++) {
+                if (implementations.getJSONObject(i) instanceof JSONObject) {
+                    JSONObject implementation = implementations.getJSONObject(i);
+                    answer.add(new CompssImplementation(implementation.getString("Signature"), implementation));
+                }
+            }
+            return answer;
+        }        
         return answer;
     }
     
@@ -72,6 +87,9 @@ public class CompssImplementation extends AldeJsonObjectWrapper {
         if (json.has("maxTime")) {
             return json.getInt("maxTime");
         }
+        if (json.has("MaxExecutionTime")) {
+            return json.getInt("MaxExecutionTime");
+        }        
         //the default assumption is zero.
         return 0;        
     }    
@@ -84,6 +102,9 @@ public class CompssImplementation extends AldeJsonObjectWrapper {
         if (json.has("minTime")) {
             return json.getInt("minTime");
         }
+        if (json.has("MinExecutionTime")) {
+            return json.getInt("MinExecutionTime");
+        }           
         //the default assumption is zero.
         return 0;        
     }
@@ -96,6 +117,9 @@ public class CompssImplementation extends AldeJsonObjectWrapper {
         if (json.has("avgTime")) {
             return json.getInt("avgTime");
         }
+        if (json.has("MeanExecutionTime")) {
+            return json.getInt("MeanExecutionTime");
+        }    
         //the default assumption is zero.
         return 0;        
     }
@@ -108,6 +132,9 @@ public class CompssImplementation extends AldeJsonObjectWrapper {
         if (json.has("executions")) {
             return json.getInt("executions");
         }
+        if (json.has("ExecutedCount")) {
+            return json.getInt("ExecutedCount");
+        }        
         //the default assumption is zero.
         return 0;        
     }          
