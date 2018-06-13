@@ -67,7 +67,7 @@ public class Node extends AldeJsonObjectWrapper implements Comparable<Node> {
      */
     public int getId() {
         if (json.has("id")) {
-            return (int) json.getInt("id");
+            return json.getInt("id");
         }
         //the default assumption is zero.
         return 0;        
