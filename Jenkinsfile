@@ -2,7 +2,7 @@ pipeline {
     agent { docker { image '(jdk-8-alpine/Dockerfile)' } }
     tools {
         maven 'Maven 3.5.3'
-        jdk 'jdk7'
+        jdk 'jdk8'
     }
     stages {
         stage ('Initialize') {
