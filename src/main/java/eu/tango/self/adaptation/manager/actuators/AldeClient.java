@@ -465,27 +465,54 @@ public class AldeClient {
     /**
      * This adds resource to a running executable
      * @param executionId The execution id to add resource to it
+     * @param resource The string that represents the resource to add
      * @throws IOException
      */
-    public void addResouce(int executionId) throws IOException {
+    public void addResouce(int executionId, String resource) throws IOException {
         /**
-         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per scenario 10  i.e. S10-SAM:ResouceScaling
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/executions/197 -d'{"add_resource": SOME_STRING_HERE}'
          */
-        throw new UnsupportedOperationException("Not supported yet.");           
+        JSONObject json = new JSONObject();
+        json.put("add_resource", resource);
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Adding resources to the application {0}", executionId);           
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }          
     }
     
     /**
      * This removes resources from a running executable
      * @param executionId The execution id to remove resource from
+     * @param resource The string that represents the resource to remove
      * @throws IOException
      */
-    public void removeResouce(int executionId) throws IOException {
+    public void removeResouce(int executionId, String resource) throws IOException {
         /**
-         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per scenario 10 i.e. S10-SAM:ResouceScaling
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/executions/197 -d'{"remove_resource": SOME_STRING_HERE}'
          */
-        throw new UnsupportedOperationException("Not supported yet.");           
+        JSONObject json = new JSONObject();
+        json.put("remove_resource", resource);
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Removing resources from the application {0}", executionId);           
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }     
     }
     
     

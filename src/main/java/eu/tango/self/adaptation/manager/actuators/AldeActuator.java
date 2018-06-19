@@ -529,7 +529,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
         try {
-            client.addResouce(Integer.parseInt(deploymentId));
+            client.addResouce(Integer.parseInt(deploymentId), ""); //TODO Adjust String here
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -538,7 +538,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         try {
-            client.removeResouce(Integer.parseInt(deployment));
+            client.removeResouce(Integer.parseInt(deployment), ""); //TODO Adjust String here
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
