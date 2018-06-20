@@ -130,10 +130,10 @@ public class AldeActuator extends AbstractActuator {
         }
         switch (response.getActionType()) {
             case ADD_TASK:
-                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetails());
+                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
                 break;
             case REMOVE_TASK:
-                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getTaskId());
+                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
@@ -528,8 +528,8 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
-        try {
-            client.addResouce(Integer.parseInt(deploymentId), ""); //TODO Adjust String here
+        try { //TODO deployment ID needs to map to slurm job ID and pass ok to Compss
+            client.addResouce(Integer.parseInt(deploymentId), taskType);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -538,7 +538,8 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         try {
-            client.removeResouce(Integer.parseInt(deployment), ""); //TODO Adjust String here
+            //TODO deployment ID needs to map to slurm job ID and pass ok to Compss
+            client.removeResouce(Integer.parseInt(deployment), taskID);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
