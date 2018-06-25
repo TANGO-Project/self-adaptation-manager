@@ -92,9 +92,6 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
         switch (response.getActionType()) {
             case ADD_CPU:
             case REMOVE_CPU:
-            case ADD_TASK:
-            case REMOVE_TASK:
-            case SCALE_TO_N_TASKS:
             case PAUSE_APP:
             case UNPAUSE_APP:
             case PAUSE_SIMILAR_APPS:
@@ -115,6 +112,20 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case STARTUP_HOST:
             case SHUTDOWN_HOST:
                 slurm.actuate(response);
+                break;
+            case SCALE_TO_N_TASKS:
+            case ADD_TASK:
+            case REMOVE_TASK:
+                /**
+                 * Task type information indicates that it is an ALDE based adaptation
+                 * otherwise slurm adds more nodes to the job. 
+                 */
+                if (response.hasAdaptationDetail("TASK_TYPE")) {
+                    //This sends the compss command through the ALDE
+                    alde.actuate(response);
+                } else { //Generically add more nodes to the job
+                    slurm.actuate(response);
+                }
                 break;
             case RESELECT_ACCELERATORS:
                 alde.setParent(this);
