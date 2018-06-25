@@ -444,7 +444,7 @@ public class AldeClient {
     public void shutdownHost(String hostname) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 1 (alternative 3)
+         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
          */
         throw new UnsupportedOperationException("Not supported yet.");        
     }
@@ -457,7 +457,7 @@ public class AldeClient {
     public void startHost(String hostname) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 1 (alternative 3)
+         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
          */
         throw new UnsupportedOperationException("Not supported yet.");           
     }
