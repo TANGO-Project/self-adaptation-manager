@@ -70,7 +70,6 @@ public class RestEventService {
         if (data == null || data.getOrigin() == null) {
             return Response.status(201).build();
         }
-        System.out.println(data);
         EventData toProcess = null;
         switch (data.getOrigin()) {
             case "Application":
