@@ -72,7 +72,7 @@ public interface ActuatorInvoker {
     public void actuate(Response response);
     
     /**
-     * This adds a task of a given task type to named deployment.
+     * This adds a task/resource of a given type to named deployment.
      *
      * @param applicationName The name of the application
      * @param deploymentId The deployment ID
@@ -81,7 +81,7 @@ public interface ActuatorInvoker {
     public void addTask(String applicationName, String deploymentId, String taskType);
 
     /**
-     * This deletes a task from an application
+     * This deletes a task/resource from an application
      *
      * @param applicationName The name of the application
      * @param deployment The id of the deployment instance of the task
