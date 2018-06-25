@@ -528,8 +528,9 @@ public class AldeActuator extends AbstractActuator {
 
     @Override
     public void addTask(String applicationName, String deploymentId, String taskType) {
-        try { //TODO deployment ID needs to map to slurm job ID and pass ok to Compss
-            client.addResouce(Integer.parseInt(deploymentId), taskType);
+        try {
+            int executionId = client.getExecutionInstance(deploymentId).getExecutionId();
+            client.addResouce(executionId, taskType);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -538,8 +539,8 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void deleteTask(String applicationName, String deployment, String taskID) {
         try {
-            //TODO deployment ID needs to map to slurm job ID and pass ok to Compss
-            client.removeResouce(Integer.parseInt(deployment), taskID);
+            int executionId = client.getExecutionInstance(deployment).getExecutionId();
+            client.removeResouce(executionId, taskID);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
