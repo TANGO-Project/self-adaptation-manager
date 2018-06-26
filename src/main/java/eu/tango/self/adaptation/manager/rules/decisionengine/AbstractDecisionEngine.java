@@ -223,45 +223,46 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         if (actuator == null) {
             return false;
         }
-        //average power of the task type to add
-        double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
-        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
-        //The current total measured power consumption
-        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
-        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
-        averagePower = averagePower * count;
-        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
-                response.getDeploymentId());
-        if (!taskTypes.contains(taskType)) {
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type {0} is not available to add", taskType);
-            for (String type : taskTypes) {
-                Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type: {0} may be added.", type);
-            }
-            if (taskTypes.isEmpty()) {
-                Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "No task types were available to add.");
-            }
-            return false;
-        }
-        if (averagePower == 0 || totalMeasuredPower == 0) {
-            //Skip if the measured power values don't make any sense.
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{averagePower, totalMeasuredPower});
-            return true;
-//            return enoughSpaceForVM(response, vmOvfType);
-        }
-        String applicationID = response.getApplicationId();
-        String deploymentID = response.getDeploymentId();
-        SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
-        if (limits != null && limits.getPower() != null) {
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + averagePower);
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
-            if (totalMeasuredPower + averagePower > limits.getPower()) {
-                return false;
-            }
-        }
-        //TODO compare any further standard guarantees here that make sense
-        //TODO cost??
         return true;
-//        return enoughSpaceForVM(response, vmOvfType);
+//        //average power of the task type to add
+//        double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
+//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
+//        //The current total measured power consumption
+//        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
+//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
+//        averagePower = averagePower * count;
+//        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
+//                response.getDeploymentId());
+//        if (!taskTypes.contains(taskType)) {
+//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type {0} is not available to add", taskType);
+//            for (String type : taskTypes) {
+//                Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Task type: {0} may be added.", type);
+//            }
+//            if (taskTypes.isEmpty()) {
+//                Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "No task types were available to add.");
+//            }
+//            return false;
+//        }
+//        if (averagePower == 0 || totalMeasuredPower == 0) {
+//            //Skip if the measured power values don't make any sense.
+//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{averagePower, totalMeasuredPower});
+//            return true;
+////            return enoughSpaceForVM(response, vmOvfType);
+//        }
+//        String applicationID = response.getApplicationId();
+//        String deploymentID = response.getDeploymentId();
+//        SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
+//        if (limits != null && limits.getPower() != null) {
+//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + averagePower);
+//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
+//            if (totalMeasuredPower + averagePower > limits.getPower()) {
+//                return false;
+//            }
+//        }
+//        //TODO compare any further standard guarantees here that make sense
+//        //TODO cost??
+//        return true;
+////        return enoughSpaceForVM(response, vmOvfType);
     }
 
     /**
@@ -432,7 +433,10 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The ids that can be used to scale the named deployment
      */
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<String> answer = new ArrayList<>();
+        answer.add("test");
+        return answer; //TODO implement this here
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     /**
@@ -516,7 +520,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The power usage of a named task. 
      */
     protected double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 0; //TODO implement this
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     /**

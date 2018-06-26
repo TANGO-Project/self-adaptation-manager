@@ -468,23 +468,23 @@ public class AldeClient {
      * @param resource The string that represents the resource to add
      * @throws IOException
      */
-    public void addResouce(int executionId, String resource) throws IOException {
+    public void addResource(int executionId, String resource) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
          * http://127.0.0.1:5000/api/v1/executions/197 -d'{"add_resource": SOME_STRING_HERE}'
          */
         JSONObject json = new JSONObject();
-        json.put("add_resource", resource);
+        json.put("add_resource", "test");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Adding resources to the application {0}", executionId);           
-            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);    
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
             httpClient.execute(request);
         } catch (Exception ex) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when adding resources", ex);
         }          
     }
     

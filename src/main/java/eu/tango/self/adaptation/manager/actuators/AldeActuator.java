@@ -530,7 +530,7 @@ public class AldeActuator extends AbstractActuator {
     public void addTask(String applicationName, String deploymentId, String taskType) {
         try {
             int executionId = client.getExecutionInstance(deploymentId).getExecutionId();
-            client.addResouce(executionId, taskType);
+            client.addResource(executionId, taskType);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }
