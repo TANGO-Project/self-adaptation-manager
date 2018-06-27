@@ -494,7 +494,7 @@ public class AldeClient {
      * @param resource The string that represents the resource to remove
      * @throws IOException
      */
-    public void removeResouce(int executionId, String resource) throws IOException {
+    public void removeResource(int executionId, String resource) throws IOException {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
