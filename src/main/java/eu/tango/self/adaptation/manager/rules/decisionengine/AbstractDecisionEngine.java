@@ -23,6 +23,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
+import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -36,6 +37,7 @@ import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATI
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -223,14 +225,15 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         if (actuator == null) {
             return false;
         }
-        return true;
-//        //average power of the task type to add
-//        double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
-//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
-//        //The current total measured power consumption
-//        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
-//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
-//        averagePower = averagePower * count;
+//        return true;
+//        average power of the task type to add
+        double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
+        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
+        //The current total measured power consumption
+        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
+        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
+        double totalAdditionalPower = averagePower * count;
+        //TODO Adjust this: Task types are not implemented so this bit has been commented out
 //        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
 //                response.getDeploymentId());
 //        if (!taskTypes.contains(taskType)) {
@@ -243,26 +246,25 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 //            }
 //            return false;
 //        }
-//        if (averagePower == 0 || totalMeasuredPower == 0) {
-//            //Skip if the measured power values don't make any sense.
-//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{averagePower, totalMeasuredPower});
-//            return true;
-////            return enoughSpaceForVM(response, vmOvfType);
-//        }
-//        String applicationID = response.getApplicationId();
-//        String deploymentID = response.getDeploymentId();
-//        SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
-//        if (limits != null && limits.getPower() != null) {
-//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + averagePower);
-//            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
-//            if (totalMeasuredPower + averagePower > limits.getPower()) {
-//                return false;
-//            }
-//        }
-//        //TODO compare any further standard guarantees here that make sense
-//        //TODO cost??
-//        return true;
-////        return enoughSpaceForVM(response, vmOvfType);
+        if (totalAdditionalPower == 0 || totalMeasuredPower == 0) {
+            //Skip if the measured power values don't make any sense.
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{totalAdditionalPower, totalMeasuredPower});
+            return true;
+//            return enoughSpaceForTask(response, taskType);
+        }
+        String applicationID = response.getApplicationId();
+        String deploymentID = response.getDeploymentId();
+        SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
+        if (limits != null && limits.getPower() != null) {
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + totalAdditionalPower);
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
+            if (totalMeasuredPower + totalAdditionalPower > limits.getPower()) {
+                return false;
+            }
+        }
+        //TODO compare any further standard guarantees here that make sense
+        return true;
+//        return enoughSpaceForTask(response, taskType);
     }
 
     /**
@@ -272,41 +274,41 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The finalised response object
      */
     public Response scaleToNTasks(Response response) {
-//        if (getActuator() == null) {
-//            response.setAdaptationDetails("Unable to find actuator.");
-//            response.setPossibleToAdapt(false);
-//            return response;
-//        }
+        if (getActuator() == null) {
+            response.setAdaptationDetails("Unable to find actuator.");
+            response.setPossibleToAdapt(false);
+            return response;
+        }
 //        String appId = response.getApplicationId();
 //        String deploymentId = response.getDeploymentId();
-//        String vmType = response.getAdaptationDetail("VM_TYPE");
-//        int currentVmCount = getActuator().getVmCountOfGivenType(appId, deploymentId, vmType);
+//        String taskType = response.getAdaptationDetail("TASK_TYPE");
+//        int currentTaskCount = getActuator().getApplication(appId, deploymentId).getTaskCount();
 //        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Adaptation Details {0}", response.getAdaptationDetails());
-//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "VM Type: {0} VM Count: {1}", new Object[]{vmType, response.getAdaptationDetail("VM_COUNT")});
-//        int targetCount = Integer.parseInt(response.getAdaptationDetail("VM_COUNT"));
-//        int difference = targetCount - currentVmCount;
-//        ApplicationDefinition ovf = response.getCause().getApplicationDefinition();
-//        ProductSection details = OVFUtils.getProductionSectionFromOvfType(ovf, vmType);
+//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Task Type: {0} Task Count: {1}", new Object[]{taskType, response.getAdaptationDetail("TASK_COUNT")});
+//        int targetCount = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
+//        int difference = targetCount - currentTaskCount;
+////        ApplicationDefinition appDefinition = ((ApplicationEventData) response.getCause()).getApplicationDefinition();
+////        ProductSection details = OVFUtils.getProductionSectionFromOvfType(appDefinition, taskType);
 //        if (difference == 0) {
 //            response.setPerformed(true);
 //            response.setPossibleToAdapt(false);
-//            response.setAdaptationDetails("Unable to adapt, the VM count is already at the target value");
+//            response.setAdaptationDetails("Unable to adapt, the Task count is already at the target value");
 //            return response;
 //        }
-//        if (ovf != null && details != null) {
-//            if (targetCount < details.getLowerBound() || targetCount > details.getUpperBound()) {
-//                response.setPerformed(true);
-//                response.setPossibleToAdapt(false);
-//                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
-//                return response;
-//            }
-//        }
-//        if (difference > 0) { //add VMs
-//            response.setAdaptationDetails("VM_TYPE=" + vmType + ";VM_COUNT=" + difference);
-//        } else { //less that zero so remove VMs
-//            List<Integer> vmsPossibleToRemove = getActuator().getTaskIdsAvailableToRemove(appId, deploymentId);
+////        if (appDefinition != null && details != null) {
+////            if (targetCount < details.getLowerBound() || targetCount > details.getUpperBound()) {
+////                response.setPerformed(true);
+////                response.setPossibleToAdapt(false);
+////                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
+////                return response;
+////            }
+////        }
+//        if (difference > 0) { //add tasks
+//            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";TASK_COUNT=" + difference);
+//        } else { //less that zero so remove Tasks
+//            List<Integer> tasksPossibleToRemove = getActuator().getTaskIdsAvailableToRemove(appId, deploymentId);
 //            //Note: the 0 - difference is intended to make the number positive
-//            response.setAdaptationDetails("VM_TYPE=" + vmType + ";VMs_TO_REMOVE=" + getTasksToRemove(vmsPossibleToRemove, 0 - difference));
+//            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";Tasks_TO_REMOVE=" + getTasksToRemove(tasksPossibleToRemove, 0 - difference));
 //        }
         return response;
     }
@@ -433,10 +435,10 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The ids that can be used to scale the named deployment
      */
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
+        //TODO implement this here
         ArrayList<String> answer = new ArrayList<>();
         answer.add("test");
-        return answer; //TODO implement this here
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return answer;
     }
 
     /**
@@ -517,11 +519,24 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @param applicationName The name of the application
      * @param deploymentId The id of the deployment instance of the application
      * @param taskType The id of the task to get the measurement for
-     * @return The power usage of a named task. 
+     * @return The power usage of a named task. Unless information is unavailable 
+     * then a zero value is given.
      */
     protected double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
-        return 0; //TODO implement this
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //TODO note task type is not considered here
+        ArrayList<ApplicationOnHost> application = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        HashSet<CurrentUsageRecord> appPowerRecord = modeller.getCurrentEnergyForApplication(application);
+        double count = (double) appPowerRecord.size();
+        double power = 0;
+        for (CurrentUsageRecord appPower : appPowerRecord) {
+            if (appPower.getPower() > 0) {
+                power = power + appPower.getPower();
+            }
+        }
+        if (power == 0 || count == 0) {
+            return 0.0;
+        }
+        return power / count;
     }
     
     /**
