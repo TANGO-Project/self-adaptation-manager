@@ -95,11 +95,11 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
         if (tasksToRemove == null) { //Add Tasks
             int count = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
             for (int i = 0; i < count; i++) {
-                addTask(applicationId, deploymentId, taskType);
+                addResource(applicationId, deploymentId, taskType);
             }
         } else { //Remove tasks
             for (String taskId : tasksToRemove.split(",")) {
-                deleteTask(applicationId, deploymentId, taskId.trim());
+                deleteResource(applicationId, deploymentId, taskId.trim());
             }
         }
     }

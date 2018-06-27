@@ -139,13 +139,13 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
-    public void addTask(String applicationName, String deploymentId, String taskType) {
-        slurm.addTask(applicationName, deploymentId, taskType);
+    public void addResource(String applicationName, String deploymentId, String taskType) {
+        slurm.addResource(applicationName, deploymentId, taskType);
     }
 
     @Override
-    public void deleteTask(String applicationName, String deployment, String taskID) {
-        slurm.deleteTask(applicationName, deployment, taskID);
+    public void deleteResource(String applicationName, String deployment, String taskID) {
+        slurm.deleteResource(applicationName, deployment, taskID);
     }
 
     @Override

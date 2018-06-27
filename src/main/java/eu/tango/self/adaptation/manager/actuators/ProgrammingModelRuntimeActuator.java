@@ -111,10 +111,10 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         }
         switch (response.getActionType()) {
             case ADD_TASK:
-                addTask(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
+                addResource(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
                 break;
             case REMOVE_TASK:
-                deleteTask(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
+                deleteResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);
@@ -152,20 +152,22 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     }
 
     @Override
-    public void addTask(String applicationName, String deploymentId, String taskType) {
+    public void addResource(String applicationName, String deploymentId, String taskType) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> CREATE SLURM-Cluster default <singularity_image>"
         String masterNode = ""; 
         String masterJobId = "";
         String singularityImage = "";
+        //TODO get this information here from somewhere!!!
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE SLURM-Cluster default " + singularityImage);
     }
 
     @Override
-    public void deleteTask(String applicationName, String deployment, String taskID) {
+    public void deleteResource(String applicationName, String deployment, String taskID) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> REMOVE SLURM-Cluster <node_to_delete>"
         String masterNode = ""; 
         String masterJobId = "";
         String nodeToDelete = "";
+        //TODO get this information here from somewhere!!!
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE SLURM-Cluster " + nodeToDelete);
     }
     

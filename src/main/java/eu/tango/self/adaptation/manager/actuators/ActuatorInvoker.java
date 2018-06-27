@@ -78,7 +78,7 @@ public interface ActuatorInvoker {
      * @param deploymentId The deployment ID
      * @param taskType The task type to instantiate
      */
-    public void addTask(String applicationName, String deploymentId, String taskType);
+    public void addResource(String applicationName, String deploymentId, String taskType);
 
     /**
      * This deletes a task/resource from an application
@@ -87,7 +87,7 @@ public interface ActuatorInvoker {
      * @param deployment The id of the deployment instance of the task
      * @param taskID The id of the task to delete
      */
-    public void deleteTask(String applicationName, String deployment, String taskID);    
+    public void deleteResource(String applicationName, String deployment, String taskID);    
  
     /**
      * This scales a task type to a set amount of tasks

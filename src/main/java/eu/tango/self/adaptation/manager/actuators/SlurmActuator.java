@@ -298,15 +298,15 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     @Override
-    public void addTask(String applicationName, String deploymentId, String taskType) {
+    public void addResource(String applicationName, String deploymentId, String taskType) {
         int oldCount = getNodeCount(deploymentId);
-        if (oldCount > 0) { //checks to make sure the count of cpus was detected correctly
+        if (oldCount > 0) { //checks to make sure the count of nodes was detected correctly
             execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount + 1));
         }
     }
 
     @Override
-    public void deleteTask(String applicationName, String deploymentId, String taskID) {
+    public void deleteResource(String applicationName, String deploymentId, String taskID) {
         int oldCount = getNodeCount(deploymentId);
         if (oldCount > 2) {
             execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount - 1));
@@ -497,10 +497,10 @@ public class SlurmActuator extends AbstractActuator {
                 removeCpu(response.getApplicationId(), getTaskDeploymentId(response));
                 break;
             case ADD_TASK:
-                addTask(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
+                addResource(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
                 break;
             case REMOVE_TASK:
-                deleteTask(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
+                deleteResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);

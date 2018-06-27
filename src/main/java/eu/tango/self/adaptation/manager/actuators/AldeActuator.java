@@ -130,10 +130,10 @@ public class AldeActuator extends AbstractActuator {
         }
         switch (response.getActionType()) {
             case ADD_TASK:
-                addTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
+                addResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
                 break;
             case REMOVE_TASK:
-                deleteTask(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
+                deleteResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
@@ -527,7 +527,7 @@ public class AldeActuator extends AbstractActuator {
     }
 
     @Override
-    public void addTask(String applicationName, String deploymentId, String taskType) {
+    public void addResource(String applicationName, String deploymentId, String taskType) {
         try {
             int executionId = client.getExecutionInstance(deploymentId).getExecutionId();
             client.addResource(executionId, taskType);
@@ -537,7 +537,7 @@ public class AldeActuator extends AbstractActuator {
     }
 
     @Override
-    public void deleteTask(String applicationName, String deployment, String taskID) {
+    public void deleteResource(String applicationName, String deployment, String taskID) {
         try {
             int executionId = client.getExecutionInstance(deployment).getExecutionId();
             client.removeResource(executionId, taskID);
