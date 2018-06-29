@@ -83,6 +83,11 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
+    public List<ApplicationOnHost> getTasks(String applicationName, String deploymentId) {
+        return slurm.getTasks(applicationName, deploymentId);
+    }    
+
+    @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         slurm.hardKillApp(applicationName, deploymentId);
     }

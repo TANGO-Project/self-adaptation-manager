@@ -18,9 +18,11 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -102,6 +104,20 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
                 deleteResource(applicationId, deploymentId, taskId.trim());
             }
         }
+    }
+
+    @Override
+    public List<ApplicationOnHost> getTasks(String applicationName, String deploymentId) {
+        List<ApplicationOnHost> unFilteredAnswer = getTasks();
+        List<ApplicationOnHost> answer = new ArrayList<>();
+        int deployid = Integer.parseInt(deploymentId);
+        for (ApplicationOnHost application : unFilteredAnswer) {
+            if (application.getName().equals(applicationName) &&
+                    application.getId() == deployid) {
+                answer.add(application);
+            }
+        }        
+        return answer;
     }
     
     /**
