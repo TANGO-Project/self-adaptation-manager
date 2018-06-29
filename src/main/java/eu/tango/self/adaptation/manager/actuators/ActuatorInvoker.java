@@ -54,6 +54,13 @@ public interface ActuatorInvoker {
      * @return The list of tasks on a given host
      */    
     public List<ApplicationOnHost> getTasks();   
+
+    /**
+     * @param applicationName The name of the application
+     * @param deploymentId The id of the deployment instance of the application
+     * @return The list of tasks on a given host
+     */    
+    public List<ApplicationOnHost> getTasks(String applicationName, String deploymentId);     
     
     /**
      * This stops the application from running
@@ -84,10 +91,10 @@ public interface ActuatorInvoker {
      * This deletes a task/resource from an application
      *
      * @param applicationName The name of the application
-     * @param deployment The id of the deployment instance of the task
+     * @param deploymentId The id of the deployment instance of the task
      * @param taskID The id of the task to delete
      */
-    public void deleteResource(String applicationName, String deployment, String taskID);    
+    public void deleteResource(String applicationName, String deploymentId, String taskID);    
  
     /**
      * This scales a task type to a set amount of tasks
