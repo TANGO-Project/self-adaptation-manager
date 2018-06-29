@@ -278,9 +278,11 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 value = measurement.getMetric(agreementTerm);                
                 currentValue = value.getValue();
             }
-            if (deployId == -1 && measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+") != null) {
+            if (deployId == -1 && !measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+").isEmpty()) {
                 //app_power:compss:* or app_power:compss:100, using regular expression
-                value = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+");                
+                HashSet<MetricValue> values = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+"); 
+                //The collection is expected to be of size 1, the matching pattern is quite specific
+                value = (MetricValue) values.toArray()[0];
                 currentValue = value.getValue();
             }
             //Ensuring stale values are ignored and metrics that can't be found.
