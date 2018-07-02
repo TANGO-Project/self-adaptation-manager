@@ -223,10 +223,10 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     public boolean getCanTaskBeAdded(Response response, String taskType, int count) {
         if (actuator == null) {
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Actuator not found - therefore not adapting");
             return false;
         }
-//        return true;
-//        average power of the task type to add
+        //average power of the task type to add
         double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
         Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
         //The current total measured power consumption
@@ -255,7 +255,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         String applicationID = response.getApplicationId();
         String deploymentID = response.getDeploymentId();
         SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
-        if (limits != null && limits.getPower() != null) {
+        if (limits != null && limits.getPower() != null && limits.getPower() != 0) {
             Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + totalAdditionalPower);
             Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
             if (totalMeasuredPower + totalAdditionalPower > limits.getPower()) {
@@ -279,37 +279,38 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             response.setPossibleToAdapt(false);
             return response;
         }
-//        String appId = response.getApplicationId();
-//        String deploymentId = response.getDeploymentId();
-//        String taskType = response.getAdaptationDetail("TASK_TYPE");
-//        int currentTaskCount = getActuator().getApplication(appId, deploymentId).getTaskCount();
-//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Adaptation Details {0}", response.getAdaptationDetails());
-//        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Task Type: {0} Task Count: {1}", new Object[]{taskType, response.getAdaptationDetail("TASK_COUNT")});
-//        int targetCount = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
-//        int difference = targetCount - currentTaskCount;
-////        ApplicationDefinition appDefinition = ((ApplicationEventData) response.getCause()).getApplicationDefinition();
-////        ProductSection details = OVFUtils.getProductionSectionFromOvfType(appDefinition, taskType);
-//        if (difference == 0) {
-//            response.setPerformed(true);
-//            response.setPossibleToAdapt(false);
-//            response.setAdaptationDetails("Unable to adapt, the Task count is already at the target value");
-//            return response;
+        String appId = response.getApplicationId();
+        String deploymentId = response.getDeploymentId();
+        String taskType = response.getAdaptationDetail("TASK_TYPE");
+        int currentTaskCount = getActuator().getTasks(appId, deploymentId).size();
+        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Adaptation Details {0}", response.getAdaptationDetails());
+        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Task Type: {0} Task Count: {1}", new Object[]{taskType, response.getAdaptationDetail("TASK_COUNT")});
+        int targetCount = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
+        int difference = targetCount - currentTaskCount;
+//        ApplicationDefinition appDefinition = ((ApplicationEventData) response.getCause()).getApplicationDefinition();
+//        ProductSection details = OVFUtils.getProductionSectionFromOvfType(appDefinition, taskType);
+        if (difference == 0) {
+            response.setPerformed(true);
+            response.setPossibleToAdapt(false);
+            response.setAdaptationDetails("Unable to adapt, the Task count is already at the target value");
+            return response;
+        }
+//        if (appDefinition != null && details != null) {
+//            if (targetCount < details.getLowerBound() || targetCount > details.getUpperBound()) {
+//                response.setPerformed(true);
+//                response.setPossibleToAdapt(false);
+//                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
+//                return response;
+//            }
 //        }
-////        if (appDefinition != null && details != null) {
-////            if (targetCount < details.getLowerBound() || targetCount > details.getUpperBound()) {
-////                response.setPerformed(true);
-////                response.setPossibleToAdapt(false);
-////                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
-////                return response;
-////            }
-////        }
-//        if (difference > 0) { //add tasks
-//            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";TASK_COUNT=" + difference);
-//        } else { //less that zero so remove Tasks
+        if (difference > 0) { //add tasks
+            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";TASK_COUNT=" + difference);
+        } else { //less that zero so remove Tasks
+            //TODO sort the removal of tasks
 //            List<Integer> tasksPossibleToRemove = getActuator().getTaskIdsAvailableToRemove(appId, deploymentId);
 //            //Note: the 0 - difference is intended to make the number positive
 //            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";Tasks_TO_REMOVE=" + getTasksToRemove(tasksPossibleToRemove, 0 - difference));
-//        }
+        }
         return response;
     }
     
@@ -491,6 +492,9 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected double getTotalPowerUsage(String applicationName, String deploymentId) {
         double answer = 0.0;
         List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        if (tasks == null) {
+            return answer;
+        }
         for (CurrentUsageRecord record : modeller.getCurrentEnergyForApplication(tasks)) {
             answer = answer + record.getPower();
         }
@@ -525,7 +529,17 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected double getAveragePowerUsage(String applicationName, String deploymentId, String taskType) {
         //TODO note task type is not considered here
         ArrayList<ApplicationOnHost> application = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        if (application == null) {
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
+                        "The calculation of the average power of a task was unable to find the application");
+            return 0.0;
+        }
         HashSet<CurrentUsageRecord> appPowerRecord = modeller.getCurrentEnergyForApplication(application);
+        if (appPowerRecord == null) { 
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
+                        "The calculation of the average power of a task was unable to find the application power record");
+            return 0.0;
+        }
         double count = (double) appPowerRecord.size();
         double power = 0;
         for (CurrentUsageRecord appPower : appPowerRecord) {
@@ -534,6 +548,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             }
         }
         if (power == 0 || count == 0) {
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
+                        "The calculation of the average power of a task saw a zero value");
             return 0.0;
         }
         return power / count;
