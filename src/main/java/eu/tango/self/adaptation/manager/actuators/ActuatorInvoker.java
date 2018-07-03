@@ -83,9 +83,9 @@ public interface ActuatorInvoker {
      *
      * @param applicationName The name of the application
      * @param deploymentId The deployment ID
-     * @param taskType The task type to instantiate
+     * @param taskParams additional task parameters such as task type
      */
-    public void addResource(String applicationName, String deploymentId, String taskType);
+    public void addResource(String applicationName, String deploymentId, String taskParams);
 
     /**
      * This deletes a task/resource from an application
