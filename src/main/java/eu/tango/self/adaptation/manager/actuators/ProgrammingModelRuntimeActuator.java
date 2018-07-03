@@ -151,14 +151,29 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void addResource(String applicationName, String deploymentId, String taskType) {
+    /**
+     * This adds a task/resource of a given type to named deployment.
+     *
+     * @param applicationName The name of the application
+     * @param masterJobId The deployment id/job id. In compss the identifier of a job
+     * is called the masterJobId
+     * @param taskParams additional task parameters such as task type
+     */
+    public void addResource(String applicationName, String masterJobId, String taskParams) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> CREATE SLURM-Cluster default <singularity_image>"
-        String masterNode = ""; 
-        String masterJobId = "";
-        String singularityImage = "";
-        //TODO get this information here from somewhere!!!
+        String masterNode = getMasterNode(masterJobId);
+        String singularityImage = Response.getAdaptationDetail(taskParams, "SINGULARITY_IMAGE");
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE SLURM-Cluster default " + singularityImage);
+    }
+    
+    /**
+     * This gets the master node for a given job
+     * @param JobId The masterJobId for the compss task
+     * @return The master node of the named job
+     */
+    private String getMasterNode(String jobId) {
+        //TODO get this information here from compss!!!
+        return "";
     }
 
     @Override
