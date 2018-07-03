@@ -204,13 +204,34 @@ public class Response implements Comparable<Response> {
      * @return The value of the adaptation detail else null.
      */
     public String getAdaptationDetail(String key) {
-        String[] args = adaptationDetails.split(";");
+        return getAdaptationDetail(adaptationDetails, key);
+    }
+    
+    /**
+     * Given the key value of the adaption detail this returns its value.
+     *
+     * @param details The parameters to parse through to get a specific detail
+     * @param key The key name for the actuation parameter
+     * @return The value of the adaptation detail else null.
+     */
+    public static String getAdaptationDetail(String details, String key) {
+        String[] args = details.split(";");
         for (String arg : args) {
             if (arg.split("=")[0].trim().equalsIgnoreCase(key)) {
                 return arg.split("=")[1].trim();
             }
         }
         return null;
+    }    
+    
+    /**
+     * Indicates if an adaptation detail with a given key value exists or not
+     * @param details The parameters to parse through to get a specific detail
+     * @param key The key name for the actuation parameter
+     * @return If the adaptation detail is present or not
+     */
+    public static boolean hasAdaptationDetail(String details, String key) {
+        return getAdaptationDetail(details, key) != null && !getAdaptationDetail(details, key).isEmpty();
     }
     
     /**
@@ -220,7 +241,7 @@ public class Response implements Comparable<Response> {
      */
     public boolean hasAdaptationDetail(String key) {
         return getAdaptationDetail(key) != null && !getAdaptationDetail(key).isEmpty();
-    }    
+    }     
 
     /**
      * This sets additional information about the adaptation, that might be
