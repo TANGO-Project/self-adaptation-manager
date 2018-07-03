@@ -132,7 +132,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     }
 
     @Override
-    public ApplicationDefinition getApplication(String name, String deploymentId) {
+    public ApplicationDefinition getApplication(String name, String masterJobId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -147,7 +147,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     }
 
     @Override
-    public void hardKillApp(String applicationName, String deploymentId) {
+    public void hardKillApp(String applicationName, String masterJobId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -168,21 +168,18 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     
     /**
      * This gets the master node for a given job
-     * @param JobId The masterJobId for the compss task
+     * @param masterJobId The job id for the compss task
      * @return The master node of the named job
      */
-    private String getMasterNode(String jobId) {
+    private String getMasterNode(String masterJobId) {
         //TODO get this information here from compss!!!
         return "";
     }
 
     @Override
-    public void deleteResource(String applicationName, String deployment, String taskID) {
+    public void deleteResource(String applicationName, String masterJobId, String nodeToDelete) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> REMOVE SLURM-Cluster <node_to_delete>"
-        String masterNode = ""; 
-        String masterJobId = "";
-        String nodeToDelete = "";
-        //TODO get this information here from somewhere!!!
+        String masterNode = getMasterNode(masterJobId);
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE SLURM-Cluster " + nodeToDelete);
     }
     
