@@ -92,9 +92,9 @@ public interface ActuatorInvoker {
      *
      * @param applicationName The name of the application
      * @param deploymentId The id of the deployment instance of the task
-     * @param taskID The id of the task to delete
+     * @param resourceId The id of the task/resource to delete
      */
-    public void deleteResource(String applicationName, String deploymentId, String taskID);    
+    public void deleteResource(String applicationName, String deploymentId, String resourceId);    
  
     /**
      * This scales a task type to a set amount of tasks

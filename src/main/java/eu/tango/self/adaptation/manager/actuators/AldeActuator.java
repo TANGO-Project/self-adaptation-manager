@@ -537,10 +537,10 @@ public class AldeActuator extends AbstractActuator {
     }
 
     @Override
-    public void deleteResource(String applicationName, String deployment, String taskID) {
+    public void deleteResource(String applicationName, String deployment, String resourceId) {
         try {
             int executionId = client.getExecutionInstance(deployment).getExecutionId();
-            client.removeResource(executionId, taskID);
+            client.removeResource(executionId, resourceId);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
