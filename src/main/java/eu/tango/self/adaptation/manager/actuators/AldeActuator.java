@@ -504,7 +504,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public List<ApplicationOnHost> getTasksOnHost(String host) {
         if (parent != null) {
-            return parent.getTasksOnHost(host);
+            return appendQoSInformation(parent.getTasksOnHost(host));
         }
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -512,9 +512,21 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public List<ApplicationOnHost> getTasks() {
         if (parent != null) {
-            return parent.getTasks();
+            return appendQoSInformation(parent.getTasks());
         }
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    /**
+     * This for a given set of applications obtains the QoS information from the ALDE
+     * @param applications The list of applications to get information for
+     * @return The list of applications with QoS information attached
+     */
+    public List<ApplicationOnHost> appendQoSInformation(List<ApplicationOnHost> applications) {
+        for (ApplicationOnHost application : applications) {
+            application.setProperties(client.getApplicationProperties(application.getId()));
+        }
+        return applications;
     }
 
     @Override

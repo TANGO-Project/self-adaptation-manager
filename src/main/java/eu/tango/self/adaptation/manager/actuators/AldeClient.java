@@ -437,6 +437,16 @@ public class AldeClient {
     }
     
     /**
+     * Given a slurm job id this method returns the jobs QoS properties
+     * @param slurmJobId The job id to get the QoS information for
+     * @return The Json representation of these properties
+     */
+    public JSONObject getApplicationProperties(int slurmJobId) {
+        //TODO generte the query that finds this information
+        return new JSONObject();
+    }
+    
+    /**
      * This shuts down a host and migrates work away from it 
      * @param hostname the host to shutdown
      * @throws IOException
