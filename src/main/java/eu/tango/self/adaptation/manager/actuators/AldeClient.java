@@ -469,6 +469,7 @@ public class AldeClient {
      * @throws IOException
      */
     public void addResource(int executionId, String resource) throws IOException {
+                Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing a ALDE add resource action");           
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
@@ -482,6 +483,7 @@ public class AldeClient {
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
+            System.out.println(params);            
             httpClient.execute(request);
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when adding resources", ex);

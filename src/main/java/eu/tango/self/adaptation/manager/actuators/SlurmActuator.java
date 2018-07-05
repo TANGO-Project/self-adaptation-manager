@@ -299,6 +299,7 @@ public class SlurmActuator extends AbstractActuator {
 
     @Override
     public void addResource(String applicationName, String deploymentId, String taskType) {
+        Logger.getLogger(SlurmActuator.class.getName()).log(Level.INFO, "Executing a SLURM add resource action");  
         int oldCount = getNodeCount(deploymentId);
         if (oldCount > 0) { //checks to make sure the count of nodes was detected correctly
             execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount + 1));
@@ -307,6 +308,7 @@ public class SlurmActuator extends AbstractActuator {
 
     @Override
     public void deleteResource(String applicationName, String deploymentId, String taskID) {
+        Logger.getLogger(SlurmActuator.class.getName()).log(Level.INFO, "Executing a SLURM remove resource action");          
         int oldCount = getNodeCount(deploymentId);
         if (oldCount > 2) {
             execCmd("scontrol update JobId=" + deploymentId + "NumNodes=" + (oldCount - 1));
