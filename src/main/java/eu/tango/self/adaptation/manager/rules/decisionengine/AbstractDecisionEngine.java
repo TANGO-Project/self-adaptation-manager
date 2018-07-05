@@ -438,7 +438,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
         //TODO implement this here
         ArrayList<String> answer = new ArrayList<>();
-        answer.add("test");
+        answer.add("TASK_TYPE=\"test\"");
         return answer;
     }
 

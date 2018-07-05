@@ -129,7 +129,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
                     //This sends the compss command through the ALDE
                     alde.actuate(response);
                 } else { //Generically add more nodes to the job
-                    slurm.actuate(response);
+                    alde.actuate(response);
                 }
                 break;
             case RESELECT_ACCELERATORS:
@@ -145,12 +145,12 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void addResource(String applicationName, String deploymentId, String taskType) {
-        slurm.addResource(applicationName, deploymentId, taskType);
+        alde.addResource(applicationName, deploymentId, taskType);
     }
 
     @Override
     public void deleteResource(String applicationName, String deployment, String taskID) {
-        slurm.deleteResource(applicationName, deployment, taskID);
+        alde.deleteResource(applicationName, deployment, taskID);
     }
 
     @Override
