@@ -307,7 +307,7 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     @Override
-    public void deleteResource(String applicationName, String deploymentId, String taskID) {
+    public void removeResource(String applicationName, String deploymentId, String taskID) {
         Logger.getLogger(SlurmActuator.class.getName()).log(Level.INFO, "Executing a SLURM remove resource action");          
         int oldCount = getNodeCount(deploymentId);
         if (oldCount > 2) {
@@ -502,7 +502,7 @@ public class SlurmActuator extends AbstractActuator {
                 addResource(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
                 break;
             case REMOVE_TASK:
-                deleteResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
+                removeResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);

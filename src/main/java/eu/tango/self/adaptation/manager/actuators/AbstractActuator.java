@@ -101,7 +101,7 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
             }
         } else { //Remove tasks
             for (String taskId : tasksToRemove.split(",")) {
-                deleteResource(applicationId, deploymentId, taskId.trim());
+                removeResource(applicationId, deploymentId, taskId.trim());
             }
         }
     }

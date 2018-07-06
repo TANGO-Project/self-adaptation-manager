@@ -114,7 +114,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
                 addResource(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
                 break;
             case REMOVE_TASK:
-                deleteResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
+                removeResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);
@@ -177,7 +177,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     }
 
     @Override
-    public void deleteResource(String applicationName, String masterJobId, String nodeToDelete) {
+    public void removeResource(String applicationName, String masterJobId, String nodeToDelete) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> REMOVE SLURM-Cluster <node_to_delete>"
         String masterNode = getMasterNode(masterJobId);
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE SLURM-Cluster " + nodeToDelete);

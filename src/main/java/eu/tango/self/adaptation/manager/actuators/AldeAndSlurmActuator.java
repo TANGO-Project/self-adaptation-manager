@@ -149,8 +149,8 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     }
 
     @Override
-    public void deleteResource(String applicationName, String deployment, String taskID) {
-        alde.deleteResource(applicationName, deployment, taskID);
+    public void removeResource(String applicationName, String deployment, String taskID) {
+        alde.removeResource(applicationName, deployment, taskID);
     }
 
     @Override
