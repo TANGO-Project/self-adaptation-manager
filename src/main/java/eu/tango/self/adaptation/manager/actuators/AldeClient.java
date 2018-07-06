@@ -492,8 +492,7 @@ public class AldeClient {
             HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);    
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
-            request.setEntity(params);
-            System.out.println(params);            
+            request.setEntity(params);      
             httpClient.execute(request);
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when adding resources", ex);
@@ -513,7 +512,7 @@ public class AldeClient {
          * http://127.0.0.1:5000/api/v1/executions/197 -d'{"remove_resource": SOME_STRING_HERE}'
          */
         JSONObject json = new JSONObject();
-        json.put("remove_resource", resource);
+        json.put("remove_resource", "test");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Removing resources from the application {0}", executionId);           
             HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
@@ -523,7 +522,7 @@ public class AldeClient {
             httpClient.execute(request);
             // handle response here...
         } catch (Exception ex) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when removing resources", ex);
         }     
     }
     
