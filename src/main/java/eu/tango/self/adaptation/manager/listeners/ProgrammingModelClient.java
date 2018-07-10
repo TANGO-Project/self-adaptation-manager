@@ -25,8 +25,13 @@ import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromXMLFile;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,8 +47,11 @@ import org.json.JSONObject;
  */
 public class ProgrammingModelClient {
 
-    private String monitoringFile = "COMPSs_state.xml";
-
+    //The usual directory for this is: "~/.COMPSs/EmulateRemote_04/monitor/COMPSs_state.xml"
+    private String filePattern = "EmulateRemote_[0-9]+";
+    private String monitoringDirectory = System.getProperty("user.home") + "/.COMPSs/";
+    private String monitoringFile = "/monitor/COMPSs_state.xml";
+    
     /**
      * This provides the client commands through the programming model:
      *
@@ -70,7 +78,7 @@ public class ProgrammingModelClient {
      */
     public List<CompssResource> getCompssResources() {
         try {
-            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject items = readJsonFromXMLFile(getCurrentMonitoringFile());
             JSONObject compssState = items.getJSONObject("COMPSsState");  
             JSONObject resourceInfo = compssState.getJSONObject("ResourceInfo");
             return CompssResource.getCompssResouce(resourceInfo);
@@ -93,7 +101,7 @@ public class ProgrammingModelClient {
     public List<Host> getCompssHostList() {
         List<Host> answer = new ArrayList<>();
         try {
-            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject items = readJsonFromXMLFile(getCurrentMonitoringFile());
             JSONObject compssState = items.getJSONObject("COMPSsState");             
             JSONObject resourceInfo = compssState.getJSONObject("ResourceInfo");
             List<CompssResource> resourceListing = CompssResource.getCompssResouce(resourceInfo);
@@ -125,7 +133,7 @@ public class ProgrammingModelClient {
      */
     public List<CompssImplementation> getCompssImplementation() {
         try {
-            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject items = readJsonFromXMLFile(getCurrentMonitoringFile());
             JSONObject compssState = items.getJSONObject("COMPSsState");            
             JSONObject coresInfo = compssState.getJSONObject("CoresInfo");            
             return CompssImplementation.getCompssImplementation(coresInfo);
@@ -134,5 +142,29 @@ public class ProgrammingModelClient {
         }
         return new ArrayList<>();
     }
+    
+    private String getCurrentMonitoringFile() {
+        String answer = "";
+        File[] files = new File(monitoringDirectory).listFiles(filter);
+
+        Arrays.sort(files, new Comparator<File>(){
+            @Override
+            public int compare(File f1, File f2)
+            {
+                return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
+            } });
+        //get the newest folder if it exists
+        for (File file : files) {
+            return file.getAbsoluteFile() + monitoringFile;
+        }
+        return answer;
+    }
+    
+    FileFilter filter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.isDirectory() && pathname.getName().matches(filePattern);
+        }
+        };
 
 }
