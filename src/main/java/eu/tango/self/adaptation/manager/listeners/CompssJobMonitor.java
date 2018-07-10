@@ -18,15 +18,14 @@
  */
 package eu.tango.self.adaptation.manager.listeners;
 
-import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
-import eu.tango.energymodeller.types.energyuser.Host;
+import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
+import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The aim of this class is to integrate with the programming model runtime so
@@ -35,22 +34,11 @@ import java.util.logging.Logger;
  */
 public class CompssJobMonitor extends AbstractJobMonitor {
 
-    private HashSet<Host> idleHosts = new HashSet<>();
-    private HashSet<Host> failingHosts = new HashSet<>();
-    private HashSet<Host> drainingHosts = new HashSet<>();
-    private double lastPowerCap = Double.NaN;
-    private HashSet<ApplicationOnHost> runningJobs = null;
-    private ProgrammingModelClient datasource = new ProgrammingModelClient();
-    private static final String APP_STARTED = "APP_STARTED";
-    private static final String APP_FINISHED = "APP_FINISHED";
+    private final ProgrammingModelClient datasource = new ProgrammingModelClient();
     private static final String IDLE_HOST = "IDLE_HOST";
-    private static final String POWER_CAP = "POWER_CAP"; 
-    private static final String SUSPENDED_JOB = "+SUSPENDED_JOB";
-    private static final String PENDING_JOB = "+PENDING_JOB";
-    private static final String ACCELERATED = "+ACCELERATED";
-    private static final String CLOSE_TO_DEADLINE = "CLOSE_TO_DEADLINE";
-    private static final String HOST_DRAIN = "HOST_DRAIN";
     private static final String HOST_FAILURE = "HOST_FAILURE";    
+    private static final String FRAME_RATE = "FRAME_RATE";    
+    private static final String TASK_COMPLETION_RATE = "TASK_COMPLETION_RATE";    
 
     public CompssJobMonitor() { 
     }
@@ -65,22 +53,58 @@ public class CompssJobMonitor extends AbstractJobMonitor {
     @Override
     protected ArrayList<EventData> detectEvent(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
-        if (containsTerm(limits, IDLE_HOST)) {
-            //answer.addAll(detectRecentIdleHost());
+        ArrayList<SLATerm> criteria = limits.getQosCriteria();
+        List<CompssImplementation> jobs = datasource.getCompssImplementation();
+        for (SLATerm term : criteria) {
+            answer.addAll(detectEvent(term, jobs));   
         }
-        if (containsTerm(limits, APP_STARTED) || containsTerm(limits, APP_FINISHED)) {
-            //answer.addAll(detectAppStartAndEnd(containsTerm(limits, APP_STARTED), containsTerm(limits, APP_FINISHED)));
-        }
-        if (containsTerm(limits, IDLE_HOST + PENDING_JOB)) {
-            //answer.addAll(detectIdleHostsWithPendingJobs());
-        }
-        if (containsTerm(limits, CLOSE_TO_DEADLINE)) {
-            //answer.addAll(detectCloseToDeadlineJobs());
-        }
-        if (containsTerm(limits, HOST_FAILURE)) {
-            //answer.addAll(detectHostFailure(true));
-        }        
         return answer;
-    }    
+    }
+    
+    /**
+     * This detects changes in processing rates to generate events, such as framerate
+     * @param term The term to compare
+     * @return The list of events within the system, such as framerate drops
+     */
+    private ArrayList<EventData> detectEvent(SLATerm term, List<CompssImplementation> jobs) {
+        ArrayList<EventData> answer = new ArrayList<>();
+        EventData event;
+        double currentValue;       
+        for (CompssImplementation job : jobs) {
+            switch (term.getAgreementTerm()) {
+                case FRAME_RATE:
+                case TASK_COMPLETION_RATE:
+                case "MeanExecutionTime":                    
+                    currentValue = job.getAverageTime();                    
+                break;
+                case "MinExecutionTime":
+                    currentValue = job.getMinTime();                      
+                break;
+                case "MaxExecutionTime":
+                    currentValue = job.getMaxTime();                      
+                break;
+		case "ExecutedCount":
+                    currentValue = job.getExecutionCount();                      
+                break;
+                default: //Unrecognised term, so continue
+                    continue;
+            }           
+            if (term.isBreached(currentValue)) {
+                event = new ApplicationEventData(
+                    TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                    currentValue, //measured value
+                    term.getGuaranteedValue(), //guaranteed value 
+                    term.getSeverity(), //breach type
+                    term.getGuaranteeOperator(), //operator
+                    job.getName(), //application name
+                    job.getName(), //TODO application id
+                    term.getAgreementTerm(), // guaranteed id
+                    term.getAgreementTerm() //agreement term
+                );
+                answer.add(event);
+            }
+        }
+        return answer;
+    }   
     
 }
