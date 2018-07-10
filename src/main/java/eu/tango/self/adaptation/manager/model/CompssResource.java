@@ -79,13 +79,17 @@ public class CompssResource extends AldeJsonObjectWrapper {
          * The code below parse a compss resource from an xml originating source
          */
         if (items.has("Resource")) {
-            JSONArray resources = items.getJSONArray("Resource");
-            for (int i = 0; i < resources.length();i++) {
-                if (resources.getJSONObject(i) instanceof JSONObject) {
-                    JSONObject compssResource = resources.getJSONObject(i);
-                    answer.add(new CompssResource(compssResource.getString("id"), compssResource));
+            if (items.get("Resource") instanceof JSONArray) {
+                JSONArray resources = items.getJSONArray("Resource");
+                for (int i = 0; i < resources.length();i++) {
+                    if (resources.getJSONObject(i) instanceof JSONObject) {
+                        JSONObject compssResource = resources.getJSONObject(i);
+                        answer.add(new CompssResource(compssResource.getString("id"), compssResource));
+                    }
                 }
             }
+            JSONObject compssResource = items.getJSONObject("Resource");
+            answer.add(new CompssResource(compssResource.getString("id"), compssResource));
             return answer;
         }
         return answer;
