@@ -93,6 +93,48 @@ public class CompssResource extends AldeJsonObjectWrapper {
             return answer;
         }
         return answer;
-    }    
+    }
+    
+    public String getState() {
+        if (json.has("Status")) {
+            return json.getString("Status");
+        }           
+        return "";
+    }
+
+    public int getCoreCount() {
+        if (json.has("TotalCPUComputingUnits")) {
+            return json.getInt("TotalCPUComputingUnits");
+        }           
+        return 0;
+    }
+    
+    public int getGpuCount() {
+        if (json.has("TotalGPUComputingUnits")) {
+            return json.getInt("TotalGPUComputingUnits");
+        }           
+        return 0;
+    }
+    
+    public int getFpgaCount() {
+        if (json.has("TotalFPGAComputingUnits")) {
+            return json.getInt("TotalFPGAComputingUnits");
+        }           
+        return 0;
+    }
+    
+    public double getMemorySize() {
+        if (json.has("Memory")) {
+            return json.getDouble("Memory");
+        }           
+        return 0;
+    }
+    
+    public double getDiskSize() {
+        if (json.has("Disk")) {
+            return json.getDouble("Disk");
+        }           
+        return 0;
+    }
     
 }

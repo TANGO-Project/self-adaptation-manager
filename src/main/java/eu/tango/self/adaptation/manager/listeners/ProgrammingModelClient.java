@@ -18,8 +18,11 @@
  */
 package eu.tango.self.adaptation.manager.listeners;
 
+import eu.tango.energymodeller.types.energyuser.Accelerator;
 import eu.tango.energymodeller.types.energyuser.Host;
+import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromFile;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
+import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromXMLFile;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
 import java.io.IOException;
@@ -39,7 +42,7 @@ import org.json.JSONObject;
  */
 public class ProgrammingModelClient {
 
-    private String baseUri = "http://localhost:5000/api/v1/";
+    private String monitoringFile = "COMPSs_state.xml";
 
     /**
      * This provides the client commands through the programming model:
@@ -67,9 +70,10 @@ public class ProgrammingModelClient {
      */
     public List<CompssResource> getCompssResources() {
         try {
-            //TODO determine how the Json file will be passed
-            JSONObject items = readJsonFromUrl(baseUri + "executions", null);
-            return CompssResource.getCompssResouce(items);
+            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject compssState = items.getJSONObject("COMPSsState");  
+            JSONObject resourceInfo = compssState.getJSONObject("ResourceInfo");
+            return CompssResource.getCompssResouce(resourceInfo);
         } catch (IOException | JSONException ex) {
             Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
@@ -89,14 +93,24 @@ public class ProgrammingModelClient {
     public List<Host> getCompssHostList() {
         List<Host> answer = new ArrayList<>();
         try {
-            //TODO determine how the Json file will be passed
-            JSONObject items = readJsonFromUrl(baseUri + "executions", null);
-            List<CompssResource> resourceListing = CompssResource.getCompssResouce(items);
+            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject compssState = items.getJSONObject("COMPSsState");             
+            JSONObject resourceInfo = compssState.getJSONObject("ResourceInfo");
+            List<CompssResource> resourceListing = CompssResource.getCompssResouce(resourceInfo);
             for (CompssResource resource : resourceListing) {
-                answer.add(
-                        new Host(Integer.parseInt(
+                Host host = new Host(Integer.parseInt(
                                 resource.getHostname().replaceAll("[^0-9]", "")), 
-                                resource.getHostname()));
+                                resource.getHostname());
+                host.setDiskGb((resource.getDiskSize() < 0 ? 0 : resource.getDiskSize()));
+                host.setCoreCount(resource.getCoreCount());
+                if (resource.getGpuCount() > 0) {
+                    host.addAccelerator(new Accelerator("gpu", resource.getGpuCount(), Accelerator.AcceleratorType.GPU));
+                }
+                if (resource.getFpgaCount() > 0) {
+                    host.addAccelerator(new Accelerator("fpga", resource.getGpuCount(), Accelerator.AcceleratorType.FPGA));
+                }
+                host.setState(resource.getState());
+                answer.add(host);
             }
             
         } catch (IOException | JSONException ex) {
@@ -111,9 +125,10 @@ public class ProgrammingModelClient {
      */
     public List<CompssImplementation> getCompssImplementation() {
         try {
-            //TODO determine how the Json file will be passed
-            JSONObject items = readJsonFromUrl(baseUri + "executions", null);
-            return CompssImplementation.getCompssImplementation(items);
+            JSONObject items = readJsonFromXMLFile(monitoringFile);
+            JSONObject compssState = items.getJSONObject("COMPSsState");            
+            JSONObject coresInfo = compssState.getJSONObject("CoresInfo");            
+            return CompssImplementation.getCompssImplementation(coresInfo);
         } catch (IOException | JSONException ex) {
             Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
