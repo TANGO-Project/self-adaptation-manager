@@ -20,14 +20,11 @@ package eu.tango.self.adaptation.manager.listeners;
 
 import eu.tango.energymodeller.types.energyuser.Accelerator;
 import eu.tango.energymodeller.types.energyuser.Host;
-import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromFile;
-import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromXMLFile;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,8 +44,13 @@ import org.json.JSONObject;
  */
 public class ProgrammingModelClient {
 
-    //The usual directory for this is: "~/.COMPSs/EmulateRemote_04/monitor/COMPSs_state.xml"
-    private String filePattern = "EmulateRemote_[0-9]+";
+    /**
+     * An example of the monitoring file to obtain is: 
+     * "~/.COMPSs/EmulateRemote_04/monitor/COMPSs_state.xml"
+     * 
+     * The 04 in EmulateRemote_04 is part of an incrementing number, it has been 
+     * chosen to take the latest folder in the compss monitor directory.
+     */
     private String monitoringDirectory = System.getProperty("user.home") + "/.COMPSs/";
     private String monitoringFile = "/monitor/COMPSs_state.xml";
     
@@ -143,6 +145,11 @@ public class ProgrammingModelClient {
         return new ArrayList<>();
     }
     
+    /**
+     * This obtains the current monitoring file that is in use. It is represented
+     * by the latest folder in the compss directory (~/.COMPSs/).
+     * @return 
+     */
     private String getCurrentMonitoringFile() {
         String answer = "";
         File[] files = new File(monitoringDirectory).listFiles(filter);
@@ -160,10 +167,14 @@ public class ProgrammingModelClient {
         return answer;
     }
     
+    /**
+     * This filter is for directories. The most relevant program to query is the
+     * most resent one.
+     */
     FileFilter filter = new FileFilter() {
         @Override
         public boolean accept(File pathname) {
-            return pathname.isDirectory() && pathname.getName().matches(filePattern);
+            return pathname.isDirectory();
         }
         };
 
