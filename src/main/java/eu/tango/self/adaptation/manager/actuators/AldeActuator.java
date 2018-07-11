@@ -518,6 +518,25 @@ public class AldeActuator extends AbstractActuator {
     }
     
     /**
+     * This gets the list of any additional application on host instances associated
+     * with a master task.
+     * @param master The master task which owns the additional instances
+     * @return The list of ApplicationOnHost for the parent application
+     */
+    public List<ApplicationOnHost> getAdditionalApplicationOnHost(ApplicationOnHost master) {
+        List<ApplicationOnHost> answer = new ArrayList<>();
+        ApplicationExecutionInstance instance = client.getExecutionInstance(master.getId() + "");
+        if (instance.getExtraSlurmId() != null) {
+            if (parent != null) {
+                for (String appId : instance.getExtraSlurmId().split(" ")) {
+                    answer.addAll(appendQoSInformation(parent.getTasks(master.getName(), appId)));
+                }
+            }            
+        }
+        return answer;
+    }
+    
+    /**
      * This for a given set of applications obtains the QoS information from the ALDE
      * @param applications The list of applications to get information for
      * @return The list of applications with QoS information attached

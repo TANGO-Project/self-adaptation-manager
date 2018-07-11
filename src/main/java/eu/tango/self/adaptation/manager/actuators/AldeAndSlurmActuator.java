@@ -23,6 +23,7 @@ import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,8 +85,20 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public List<ApplicationOnHost> getTasks(String applicationName, String deploymentId) {
-        return alde.appendQoSInformation(slurm.getTasks(applicationName, deploymentId));
-    }    
+        //The intial list as provided by slurm with appended info from the ALDE
+        List<ApplicationOnHost> answer = alde.appendQoSInformation(slurm.getTasks(applicationName, deploymentId));
+        List<ApplicationOnHost> additional = new ArrayList<>();
+        /**
+         * The ALDE/Compss adds new tasks under a new slurm job id this mechanism below 
+         * finds these new jobs and returns them under the same request for information.
+         */
+        for (ApplicationOnHost app : answer) {
+            //Add into the list any additional instances who's parent id has been specified.
+            additional.addAll(alde.getAdditionalApplicationOnHost(app));
+        }
+        answer.addAll(additional);
+        return answer;
+    }     
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
