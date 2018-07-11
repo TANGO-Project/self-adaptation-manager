@@ -82,6 +82,15 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     }
     
     /**
+     * This gets the slurm job id of any additional execution caused by scaling
+     * @return The slurm job id of any additional execution
+     */
+    public String getExtraSlurmId() {
+        return getString("extra_slurm_job_id");   
+    }
+        
+    
+    /**
      * This gets the executions Status
      * @return The Status string of the execution
      */    
@@ -146,6 +155,6 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
             }
         }
         return null;
-    }      
+    }
     
 }
