@@ -453,6 +453,12 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
         List<Integer> answer = new ArrayList<>();
         List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
+        if (tasks.isEmpty()) {
+            //If the energy modeller isn't running try the actuator instead.
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
+                    "Querying task list from actuator instead of the energy modeller");   
+            tasks = actuator.getTasks(applicationName, deploymentId);
+        }
         for (ApplicationOnHost task : tasks) {
             //Treat host id as unique id of task/application on a host
             answer.add(task.getAllocatedTo().getId());
