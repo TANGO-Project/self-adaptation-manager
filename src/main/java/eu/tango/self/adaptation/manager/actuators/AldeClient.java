@@ -391,7 +391,7 @@ public class AldeClient {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
-         * http://127.0.0.1:5000/api/v1/executions/197 -d'{"status": CANCEL}'
+         * http://127.0.0.1:5000/api/v1/executions/197 -d'{"status": "CANCEL"}'
          */
         JSONObject json = new JSONObject();
         json.put("status", "CANCEL");
