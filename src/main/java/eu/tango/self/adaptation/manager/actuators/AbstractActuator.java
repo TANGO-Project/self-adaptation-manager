@@ -112,7 +112,7 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
         List<ApplicationOnHost> answer = new ArrayList<>();
         int deployid = Integer.parseInt(deploymentId);
         for (ApplicationOnHost application : unFilteredAnswer) {
-            if (application.getName().equals(applicationName) &&
+            if ((application.getName() == null || application.getName().equals(applicationName)) &&
                     application.getId() == deployid) {
                 answer.add(application);
             }
