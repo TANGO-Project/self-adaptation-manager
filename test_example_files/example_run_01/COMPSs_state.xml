@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/home_nfs/home_ejarquej/installations/2.3.1/COMPSs/xml/monitor/monitor.xsl"?>
+<COMPSsState>
+	<TasksInfo>
+		<Application id="0">
+			<TotalCount>24</TotalCount>
+			<InProgress>0</InProgress>
+			<Completed>24</Completed>
+		</Application>
+	</TasksInfo>
+	<CoresInfo>
+		<Core id="0">
+			<Impl id="0">
+				<Signature>multiplyBlocks(BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T)NULL</Signature>
+				<MeanExecutionTime>109</MeanExecutionTime>
+				<MinExecutionTime>66</MinExecutionTime>
+				<MaxExecutionTime>244</MaxExecutionTime>
+				<ExecutedCount>22</ExecutedCount>
+			</Impl>
+			<Impl id="1">
+				<Signature>multiplyBlocks_GPU(BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T)NULL</Signature>
+				<MeanExecutionTime>6521</MeanExecutionTime>
+				<MinExecutionTime>6362</MinExecutionTime>
+				<MaxExecutionTime>6681</MaxExecutionTime>
+				<ExecutedCount>2</ExecutedCount>
+			</Impl>
+		</Core>
+	</CoresInfo>
+	<ResourceInfo>
+		<Resource id="ns50">
+			<TotalCPUComputingUnits>16</TotalCPUComputingUnits>
+			<TotalGPUComputingUnits>2</TotalGPUComputingUnits>
+			<TotalFPGAComputingUnits>0</TotalFPGAComputingUnits>
+			<TotalOTHERComputingUnits>0</TotalOTHERComputingUnits>
+			<Memory>-1.0</Memory>
+			<Disk>-1.0</Disk>
+			<Status>Running</Status>
+			<Actions>
+			</Actions>
+		</Resource>
+	</ResourceInfo>
+	<Statistics>
+		<Statistic>
+			<Key>Accumulated Cost</Key>
+			<Value>0.0</Value>
+		</Statistic>
+	</Statistics>
+</COMPSsState>
