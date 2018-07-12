@@ -137,4 +137,12 @@ public class CompssResource extends AldeJsonObjectWrapper {
         return 0;
     }
     
+    public boolean isIdle() {
+        if (json.has("Actions")) {
+            //If the array is empty it returns as the empty string
+            return json.get("Actions").equals("");
+        }
+        return true; //well undetermined.
+    }
+    
 }
