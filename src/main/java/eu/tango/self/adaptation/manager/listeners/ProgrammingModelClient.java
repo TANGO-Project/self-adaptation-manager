@@ -55,6 +55,17 @@ public class ProgrammingModelClient {
     private String monitoringFile = "/monitor/COMPSs_state.xml";
     
     /**
+     * This filter is for directories. The most relevant program to query is the
+     * most resent one.
+     */
+    FileFilter filter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.isDirectory();
+        }
+        };    
+    
+    /**
      * This provides the client commands through the programming model:
      *
      * https://github.com/TANGO-Project/programming-model-and-runtime When the
@@ -119,7 +130,12 @@ public class ProgrammingModelClient {
                 if (resource.getFpgaCount() > 0) {
                     host.addAccelerator(new Accelerator("fpga", resource.getGpuCount(), Accelerator.AcceleratorType.FPGA));
                 }
+                //compss considers a host in the "running" state to be available
+                host.setAvailable(resource.getState().trim().equalsIgnoreCase("Running"));
                 host.setState(resource.getState());
+                if (resource.isIdle()) {
+                    host.setState("IDLE");
+                }
                 answer.add(host);
             }
             
@@ -166,16 +182,31 @@ public class ProgrammingModelClient {
         }
         return answer;
     }
-    
+
+    public String getMonitoringDirectory() {
+        return monitoringDirectory;
+    }
+
+    public String getMonitoringFile() {
+        return monitoringFile;
+    }
+
     /**
-     * This filter is for directories. The most relevant program to query is the
-     * most resent one.
+     * This allows the compss home directory to be set. i.e. ~/.COMPSs
+     * @param monitoringDirectory The directory to monitor for the correct files
      */
-    FileFilter filter = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
-        };
+    public void setMonitoringDirectory(String monitoringDirectory) {
+        this.monitoringDirectory = monitoringDirectory;
+    }
+
+    /**
+     * THe monitoring file to obtain usually something like: "/monitor/COMPSs_state.xml"
+     * @param monitoringFile The monitoring file to parse for compss output data
+     */
+    public void setMonitoringFile(String monitoringFile) {
+        this.monitoringFile = monitoringFile;
+    }
+    
+    
 
 }
