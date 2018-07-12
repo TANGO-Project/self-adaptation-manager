@@ -442,7 +442,7 @@ public class AldeClient {
      * @return The Json representation of these properties
      */
     public JSONObject getApplicationProperties(int slurmJobId) {
-        //TODO generte the query that finds this information
+        //TODO generate the query that finds this information
         return new JSONObject();
     }
     
