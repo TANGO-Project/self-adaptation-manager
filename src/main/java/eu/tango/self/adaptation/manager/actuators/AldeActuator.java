@@ -529,7 +529,7 @@ public class AldeActuator extends AbstractActuator {
         if (instance.getExtraSlurmId() != null) {
             if (parent != null) {
                 for (String appId : instance.getExtraSlurmId().split(" ")) {
-                    answer.addAll(appendQoSInformation(parent.getTasks(master.getName(), appId)));
+                    answer.addAll(appendQoSInformation(parent.getTasks(null, appId)));
                 }
             }            
         }

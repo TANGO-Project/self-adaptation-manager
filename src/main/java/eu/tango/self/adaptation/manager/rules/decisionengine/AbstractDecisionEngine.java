@@ -23,7 +23,6 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
-import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -452,13 +451,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     protected List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
         List<Integer> answer = new ArrayList<>();
-        List<ApplicationOnHost> tasks = modeller.getApplication(applicationName, Integer.parseInt(deploymentId));
-        if (tasks.isEmpty()) {
-            //If the energy modeller isn't running try the actuator instead.
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING,
-                    "Querying task list from actuator instead of the energy modeller");   
-            tasks = actuator.getTasks(applicationName, deploymentId);
-        }
+        List<ApplicationOnHost> tasks = actuator.getTasks(applicationName, deploymentId);
         for (ApplicationOnHost task : tasks) {
             //Treat host id as unique id of task/application on a host
             answer.add(task.getAllocatedTo().getId());
@@ -475,10 +468,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The task given the id values specified.
      */    
     protected ApplicationOnHost getTask(String name, String deploymentId, int taskId) {
-        /**
-         * The energy modeller's app id is a number
-         */
-        List<ApplicationOnHost> tasks = modeller.getApplication(name, Integer.parseInt(deploymentId));
+        List<ApplicationOnHost> tasks = actuator.getTasks(name, deploymentId);
         for (ApplicationOnHost task : tasks) {
             if ((task.getName().trim().equals(name.trim()))
                     && (task.getId() + "").equals(deploymentId.trim())) {
