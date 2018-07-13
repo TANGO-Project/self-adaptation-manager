@@ -137,6 +137,29 @@ public class CompssResource extends AldeJsonObjectWrapper {
         return 0;
     }
     
+    /**
+     * This lists the actions that are currently running for the compss resource.
+     * @return The list of actions that are currently running, the empty list if
+     * none are found.
+     */
+    public List<String> getCurrentActions() {
+        ArrayList<String> answer = new ArrayList<>();
+        if (json.has("Actions") && json.get("Actions") instanceof JSONObject) {
+            JSONObject actions = json.getJSONObject("Actions");
+            JSONArray action = actions.getJSONArray("Action");
+            for(int i = 0; i < action.length() ; i++) {
+                answer.add(action.getString(i));
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * This indicates if the compss resource is either busy or idle.
+     * @return If the comps resource is idle. If the input json doesn't have
+     * an actinos list then it is assumed to be idle. Though in normal conditions
+     * the field should be present even if it is the empty string.
+     */
     public boolean isIdle() {
         if (json.has("Actions")) {
             //If the array is empty it returns as the empty string

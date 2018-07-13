@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.listeners;
 
 import eu.tango.energymodeller.types.energyuser.Accelerator;
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromXMLFile;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
@@ -143,7 +144,48 @@ public class ProgrammingModelClient {
             Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, "parse error", ex);
         }
         return answer;
-    }    
+    }
+    
+    /**
+     * This lists the tasks that are currently running in the compss environment
+     * @return The list of currently running tasks
+     */
+    public List<ApplicationOnHost> getCompssTasksList() {
+        List<ApplicationOnHost> answer = new ArrayList<>();
+        try {
+            JSONObject items = readJsonFromXMLFile(getCurrentMonitoringFile());
+            JSONObject compssState = items.getJSONObject("COMPSsState");             
+            JSONObject resourceInfo = compssState.getJSONObject("ResourceInfo");
+            List<CompssResource> resourceListing = CompssResource.getCompssResouce(resourceInfo);
+            for (CompssResource resource : resourceListing) {
+                Host host = new Host(Integer.parseInt(
+                                resource.getHostname().replaceAll("[^0-9]", "")), 
+                                resource.getHostname());
+                host.setDiskGb((resource.getDiskSize() < 0 ? 0 : resource.getDiskSize()));
+                host.setCoreCount(resource.getCoreCount());
+                if (resource.getGpuCount() > 0) {
+                    host.addAccelerator(new Accelerator("gpu", resource.getGpuCount(), Accelerator.AcceleratorType.GPU));
+                }
+                if (resource.getFpgaCount() > 0) {
+                    host.addAccelerator(new Accelerator("fpga", resource.getGpuCount(), Accelerator.AcceleratorType.FPGA));
+                }
+                //compss considers a host in the "running" state to be available
+                host.setAvailable(resource.getState().trim().equalsIgnoreCase("Running"));
+                host.setState(resource.getState());
+                if (resource.isIdle()) {
+                    host.setState("IDLE");
+                }
+                for(String action : resource.getCurrentActions()) {
+                    ApplicationOnHost app = new ApplicationOnHost(Integer.parseInt(action.replaceAll("[^0-9]", "")), action, host);
+                    answer.add(app);
+                }
+            }
+            
+        } catch (IOException | JSONException ex) {
+            Logger.getLogger(ProgrammingModelClient.class.getName()).log(Level.SEVERE, "parse error", ex);
+        }
+        return answer;
+    }
 
     /**
      * This lists the various different versions of workers that are available.

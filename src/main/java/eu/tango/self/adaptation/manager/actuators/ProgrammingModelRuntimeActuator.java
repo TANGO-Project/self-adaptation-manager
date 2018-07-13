@@ -20,10 +20,12 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
+import eu.tango.self.adaptation.manager.listeners.ProgrammingModelClient;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +42,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.2.5//COMPSs//compssenv";
+    private ProgrammingModelClient client = new ProgrammingModelClient();
 
     public ProgrammingModelRuntimeActuator() {
         try {
@@ -133,17 +136,30 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     @Override
     public ApplicationDefinition getApplication(String name, String masterJobId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ApplicationDefinition answer = new ApplicationDefinition(name, masterJobId);
+        /**
+         * Maybe set
+            SLALimits slaLimits;
+            ArrayList<FiringCriteria> adaptationRules
+         */
+        return answer;
     }
 
     @Override
     public List<ApplicationOnHost> getTasksOnHost(String host) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<ApplicationOnHost> answer = new ArrayList<>();
+        List<ApplicationOnHost> allTasks = getTasks();
+        for (ApplicationOnHost task : allTasks) {
+            if (task.getAllocatedTo().getHostName().equals(host)) {
+                answer.add(task);
+            }
+        }
+        return answer;
     }
 
     @Override
     public List<ApplicationOnHost> getTasks() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return client.getCompssTasksList();
     }
 
     @Override
@@ -159,6 +175,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
      * is called the masterJobId
      * @param taskParams additional task parameters such as task type
      */
+    @Override
     public void addResource(String applicationName, String masterJobId, String taskParams) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> CREATE SLURM-Cluster default <singularity_image>"
         String masterNode = getMasterNode(masterJobId);

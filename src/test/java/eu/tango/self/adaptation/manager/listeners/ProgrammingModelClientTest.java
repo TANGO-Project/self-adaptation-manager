@@ -18,9 +18,11 @@
  */
 package eu.tango.self.adaptation.manager.listeners;
 
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -100,6 +102,66 @@ public class ProgrammingModelClientTest {
         for (CompssImplementation item : result) {
             System.out.println(item);
         }
+    }
+
+    /**
+     * Test of getCompssTasksList method, of class ProgrammingModelClient.
+     */
+    @Test
+    public void testGetCompssTasksList() {
+        System.out.println("getCompssTasksList");
+        ProgrammingModelClient instance = new ProgrammingModelClient();
+        instance.setMonitoringDirectory("./test_example_files");
+        instance.setMonitoringFile("/COMPSs_state_running.xml");              
+        List<ApplicationOnHost> expResult = new ArrayList<>();
+        List<ApplicationOnHost> result = instance.getCompssTasksList();
+        assert(result.size() == 2);
+    }
+
+    /**
+     * Test of getMonitoringDirectory method, of class ProgrammingModelClient.
+     */
+    @Test
+    public void testGetMonitoringDirectory() {
+        System.out.println("getMonitoringDirectory");
+        ProgrammingModelClient instance = new ProgrammingModelClient();
+        String expResult = System.getProperty("user.home") + "/.COMPSs/";    
+        String result = instance.getMonitoringDirectory();
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of getMonitoringFile method, of class ProgrammingModelClient.
+     */
+    @Test
+    public void testGetMonitoringFile() {
+        System.out.println("getMonitoringFile");
+        ProgrammingModelClient instance = new ProgrammingModelClient();
+        String expResult = "/monitor/COMPSs_state.xml";
+        String result = instance.getMonitoringFile();
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of setMonitoringDirectory method, of class ProgrammingModelClient.
+     */
+    @Test
+    public void testSetMonitoringDirectory() {
+        System.out.println("setMonitoringDirectory");
+        String monitoringDirectory = System.getProperty("user.home") + "/.COMPSs/";
+        ProgrammingModelClient instance = new ProgrammingModelClient();
+        instance.setMonitoringDirectory(monitoringDirectory);
+    }
+
+    /**
+     * Test of setMonitoringFile method, of class ProgrammingModelClient.
+     */
+    @Test
+    public void testSetMonitoringFile() {
+        System.out.println("setMonitoringFile");
+        String monitoringFile = "/monitor/COMPSs_state.xml";
+        ProgrammingModelClient instance = new ProgrammingModelClient();
+        instance.setMonitoringFile(monitoringFile);
     }
     
 }
