@@ -22,12 +22,11 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.CompssResource;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -112,10 +111,12 @@ public class ProgrammingModelClientTest {
         System.out.println("getCompssTasksList");
         ProgrammingModelClient instance = new ProgrammingModelClient();
         instance.setMonitoringDirectory("./test_example_files");
-        instance.setMonitoringFile("/COMPSs_state_running.xml");              
-        List<ApplicationOnHost> expResult = new ArrayList<>();
+        instance.setMonitoringFile("/COMPSs_state_running.xml");
         List<ApplicationOnHost> result = instance.getCompssTasksList();
         assert(result.size() == 2);
+        for (ApplicationOnHost item : result) {
+            System.out.println(item);
+        }
     }
 
     /**
