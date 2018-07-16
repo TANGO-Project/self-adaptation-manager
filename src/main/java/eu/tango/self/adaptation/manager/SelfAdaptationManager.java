@@ -22,12 +22,13 @@ import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.WattsUpMeterDataSourceAdaptor;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
 import eu.tango.self.adaptation.manager.actuators.AldeAndSlurmActuator;
+import eu.tango.self.adaptation.manager.actuators.ProgrammingModelRuntimeActuator;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
+import eu.tango.self.adaptation.manager.listeners.CompssJobMonitor;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.listeners.RestEventMonitor;
 import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
-import eu.tango.self.adaptation.manager.rules.AbstractEventAssessor;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.ThresholdEventAssessor;
 import java.io.File;
@@ -36,15 +37,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-
 /**
  * This is the main backbone of the self adaptation manager.
  */
 public class SelfAdaptationManager {
 
-    private ArrayList<EventListener> listeners = new ArrayList<>();
-    private ActuatorInvoker actuator = null;
     private EventAssessor eventAssessor = null;
+    private boolean isHPCEnvironment = true;
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private static final String DEFAULT_EVENT_ASSESSOR_PACKAGE
             = "eu.tango.self.adaptation.manager.rules";
@@ -55,7 +54,7 @@ public class SelfAdaptationManager {
     /**
      * This creates a new instance of the self-adaptation manager.
      */
-    public SelfAdaptationManager() {
+    public SelfAdaptationManager() {       
         try {
             PropertiesConfiguration config;
             if (new File(CONFIG_FILE).exists()) {
@@ -70,10 +69,36 @@ public class SelfAdaptationManager {
             String datasourceStr = config.getString("self.adaptation.manager.environment.monitor.datasource", "CollectdDataSourceAdaptor");
             config.setProperty("self.adaptation.manager.environment.monitor.datasource", datasourceStr);
             setDataSource(datasourceStr);
+            //This environment parameter is not written to disk, only read and reconfigures if value is set
+            isHPCEnvironment = config.getBoolean("self.adaptation.manager.isHPC", isHPCEnvironment); 
+            config.setProperty("self.adaptation.manager.isHPC", isHPCEnvironment);
         } catch (ConfigurationException ex) {
-            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "Error loading the configuration of the Self adaptation manager", ex);
         }
         setEventAssessor(eventAssessorName);
+        ActuatorInvoker actuator;
+        ArrayList<EventListener> listeners;
+        //Add the actuator
+        if (isHPCEnvironment) {
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "Self-Adaptation Manager for HPC environments");            
+            actuator = new AldeAndSlurmActuator(datasource);
+            listeners = createHPCListeners();
+        } else {
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "Self-Adaptation Manager for Compss environments");
+            actuator = new ProgrammingModelRuntimeActuator();
+            listeners = createRemoteUsecaseListeners();
+        }
+        eventAssessor.setActuator(actuator);
+        //Add the listeners
+        eventAssessor.setListeners(listeners);
+    }
+    
+    /**
+     * This creates the listeners needed for the HPC usecase
+     * @return The listeners for the HPC environment
+     */
+    private ArrayList<EventListener> createHPCListeners() {
+        ArrayList<EventListener> listeners = new ArrayList<>();
         EventListener listener;
         //Add the environment monitor
         listener = new EnvironmentMonitor(datasource);
@@ -90,13 +115,36 @@ public class SelfAdaptationManager {
         //Add the REST Interface monitor
         listener = RestEventMonitor.getInstance();
         listener.setEventAssessor(eventAssessor);
-        listeners.add(listener);        
-        //Add the actuator
-        actuator = new AldeAndSlurmActuator(datasource);
-        eventAssessor.setActuator(actuator);
-        eventAssessor.setListeners(listeners);
+        listeners.add(listener);
+        return listeners;
     }
-
+    
+    /**
+     * This creates the listeners needed for the remote processing usecase
+     * @return The listeners for the remote processing use case environment
+     */    
+    private ArrayList<EventListener> createRemoteUsecaseListeners() {
+        ArrayList<EventListener> listeners = new ArrayList<>();
+        EventListener listener;
+        //Add the environment monitor
+        listener = new EnvironmentMonitor(datasource);
+        listener.setEventAssessor(eventAssessor);    
+        listeners.add(listener);
+        //Add the compss job monitor
+        listener = new CompssJobMonitor();
+        listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);
+        //Add the clock monitor
+        listener = ClockMonitor.getInstance();
+        listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);
+        //Add the REST interface monitor
+        listener = RestEventMonitor.getInstance();
+        listener.setEventAssessor(eventAssessor);
+        listeners.add(listener);  
+        return listeners;
+    }    
+    
     /**
      * This allows the event assessor to be set. Event assessors are used to
      * decide the which form of adaptation to take.
@@ -115,12 +163,12 @@ public class SelfAdaptationManager {
                         "The event assessor class was not found: " + eventAssessorName, ex);
                 eventAssessor = new ThresholdEventAssessor();
             }
-            Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.WARNING, "The decision engine specified was not found");
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "The decision engine specified was not found");
         } catch (InstantiationException | IllegalAccessException ex) {
             if (eventAssessor == null) {
                 eventAssessor = new ThresholdEventAssessor();
             }
-            Logger.getLogger(AbstractEventAssessor.class.getName()).log(Level.WARNING, "The setting of the decision engine did not work", ex);
+            Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "The setting of the decision engine did not work", ex);
         }
     }
     
