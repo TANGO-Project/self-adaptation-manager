@@ -18,9 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
-import eu.tango.self.adaptation.manager.listeners.ProgrammingModelClient;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -42,7 +42,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.2.5//COMPSs//compssenv";
-    private ProgrammingModelClient client = new ProgrammingModelClient();
+    private CompssDatasourceAdaptor client = new CompssDatasourceAdaptor();
 
     public ProgrammingModelRuntimeActuator() {
         try {
@@ -159,7 +159,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     @Override
     public List<ApplicationOnHost> getTasks() {
-        return client.getCompssTasksList();
+        return client.getHostApplicationList();
     }
 
     @Override
@@ -185,11 +185,16 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     
     /**
      * This gets the master node for a given job
-     * @param masterJobId The job id for the compss task
+     * @param applicationName The application name
      * @return The master node of the named job
      */
-    private String getMasterNode(String masterJobId) {
+    private String getMasterNode(String applicationName) {
         //TODO get this information here from compss!!!
+        for (ApplicationOnHost resouce : client.getHostApplicationList()) {
+            if (resouce.getName().contains(applicationName)) {
+                return resouce.getAllocatedTo().getHostName();
+            }
+        }
         return "";
     }
 

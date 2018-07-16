@@ -18,8 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.listeners;
 
+import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.compsstype.CompssImplementation;
 import eu.tango.energymodeller.types.energyuser.Host;
-import eu.tango.self.adaptation.manager.model.CompssImplementation;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CompssJobMonitor extends AbstractJobMonitor {
 
-    private final ProgrammingModelClient datasource = new ProgrammingModelClient();
+    private final CompssDatasourceAdaptor datasource = new CompssDatasourceAdaptor();
     private static final String IDLE_HOST = "IDLE_HOST";
     private static final String HOST_FAILURE = "HOST_FAILURE";    
     private static final String ACCELERATED = "+ACCELERATED";    
@@ -139,7 +140,7 @@ public class CompssJobMonitor extends AbstractJobMonitor {
      */
     private HashSet<Host> getIdleHosts() {
         HashSet<Host> answer = new HashSet<>();
-        List<Host> hosts = datasource.getCompssHostList();
+        List<Host> hosts = datasource.getHostList();
         for (Host item : hosts) {
             if (item.getState().trim().equalsIgnoreCase("IDLE")) {
                 answer.add(item);
@@ -155,7 +156,7 @@ public class CompssJobMonitor extends AbstractJobMonitor {
      */
     private HashSet<Host> getHostInState(String state) {
         HashSet<Host> answer = new HashSet<>();
-        List<Host> hosts = datasource.getCompssHostList();
+        List<Host> hosts = datasource.getHostList();
         for (Host host : hosts) {
             if (host.getState().equals(state)) {
                 answer.add(host);
