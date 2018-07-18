@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.listeners;
 
 import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.compsstype.CompssImplementation;
+import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
@@ -39,13 +40,16 @@ import java.util.concurrent.TimeUnit;
 public class CompssJobMonitor extends AbstractJobMonitor {
 
     private final CompssDatasourceAdaptor datasource = new CompssDatasourceAdaptor();
+    private static final String APP_STARTED = "APP_STARTED";
+    private static final String APP_FINISHED = "APP_FINISHED";    
     private static final String IDLE_HOST = "IDLE_HOST";
     private static final String HOST_FAILURE = "HOST_FAILURE";    
     private static final String ACCELERATED = "+ACCELERATED";    
     private static final String FRAME_RATE = "FRAME_RATE";    
     private static final String TASK_COMPLETION_RATE = "TASK_COMPLETION_RATE";
     private HashSet<Host> idleHosts = new HashSet<>();
-    private HashSet<Host> failingHosts = new HashSet<>();    
+    private HashSet<Host> failingHosts = new HashSet<>();
+    private HashSet<ApplicationOnHost> runningJobs = null;    
 
     public CompssJobMonitor() { 
     }
@@ -70,7 +74,10 @@ public class CompssJobMonitor extends AbstractJobMonitor {
         }
         if (containsTerm(limits, HOST_FAILURE)) {
             answer.addAll(detectHostFailure());
-        }        
+        }
+        if (containsTerm(limits, APP_STARTED) || containsTerm(limits, APP_FINISHED)) {
+            answer.addAll(detectAppStartAndEnd(containsTerm(limits, APP_STARTED), containsTerm(limits, APP_FINISHED)));
+        }
         return answer;
     }
     
@@ -209,6 +216,70 @@ public class CompssJobMonitor extends AbstractJobMonitor {
             }
         }
         return answer;
-    }   
+    }
+    
+   /**
+     * This detects recently finished jobs
+     *
+     * @return The list of events indicating which jobs had finished.
+     */
+    private ArrayList<EventData> detectAppStartAndEnd(boolean startedJobs, boolean finishedJobs) {
+        ArrayList<EventData> eventsList = new ArrayList<>();
+        if (runningJobs == null) {
+            /**
+             * This checks the startup case, where detection doesn't want to act
+             * just because the SAM started.
+             */
+            runningJobs = new HashSet<>(datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.RUNNING));
+            return eventsList;
+        }
+        //The job status, prevents jobs that have just started and not been allocated creating a starting event 
+        List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.RUNNING);
+        HashSet<ApplicationOnHost> firstRound = new HashSet<>(runningJobs);
+        HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);
+        HashSet<ApplicationOnHost> recentStarted = new HashSet<>(secondRound);
+        recentStarted.removeAll(firstRound); //Remove all jobs that are already running
+        HashSet<ApplicationOnHost> recentFinished = new HashSet<>(firstRound);
+        recentFinished.removeAll(secondRound); //Remove all jobs that are still running
+        //Ensure the sets are disjoint, this helps protect against any errors
+        recentFinished.removeAll(recentStarted);
+        recentStarted.removeAll(recentFinished);
+        if (finishedJobs) {
+            for (ApplicationOnHost finished : recentFinished) {
+                //return the recently finished applications.
+                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        finished.getName(),
+                        finished.getId() + "",
+                        APP_FINISHED,
+                        APP_FINISHED);
+                event.setSignificantOnOwn(true);
+                eventsList.add(event);                
+            }
+        }
+        if (startedJobs) {
+            for (ApplicationOnHost started : recentStarted) {
+                //return the recently finished applications.
+                EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
+                        0.0,
+                        0.0,
+                        EventData.Type.WARNING,
+                        EventData.Operator.EQ,
+                        started.getName(),
+                        started.getId() + "",
+                        APP_STARTED,
+                        APP_STARTED);
+                event.setSignificantOnOwn(true);
+                eventsList.add(event);
+            }
+
+        }
+        //Ensures the list of currently running jobs is updated.
+        runningJobs = new HashSet<>(currentRoundAppList);
+        return eventsList;
+    }    
     
 }
