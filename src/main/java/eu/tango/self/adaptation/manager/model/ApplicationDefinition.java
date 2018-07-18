@@ -34,11 +34,15 @@ public class ApplicationDefinition {
     private String name;
     private int aldeAppId = -1;
     private String deploymentId;
+    private ApplicationType applicationType;
+    private int priority;
     private SLALimits slaLimits;
     private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
     private JSONArray executables;
     private JSONArray configurations;
-      
+       
+    public enum ApplicationType { RIGID, MOULDABLE, CHECKPOINTABLE, MALLEABLE}
+    
     /**
      * The main constructor for an application definition
      * @param name The name of the application
@@ -122,12 +126,63 @@ public class ApplicationDefinition {
     }    
 
     /**
+     * This gets the applications type, either not defined i.e. null or
+     * RIGID, MOULDABLE, CHECKPOINTABLE, MALLEABLE. It defines how the application
+     * may be adapted.
+     * @return the application type
+     */
+    public ApplicationType getApplicationType() {
+        return applicationType;
+    }
+
+    /**
+     * This sets the applications type, either not defined i.e. null or
+     * RIGID, MOULDABLE, CHECKPOINTABLE, MALLEABLE. It defines how the application
+     * may be adapted.
+     * @param applicationType the applicationType to set
+     */
+    public void setApplicationType(ApplicationType applicationType) {
+        this.applicationType = applicationType;
+    }
+
+    /**
+     * This gets the priority value for the application
+     * @return The priority of the application
+     */
+    public int getPriority() {
+        return priority;
+    }
+
+    /**
+     * This sets a job priority value for the application
+     * @param priority The priority value to set
+     */
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+    
+    /**
      * This gets the list of sla limits associated with an application, if one
      * of these criteria are breached then an SLA event violation occurs.
      * @return The list of sla limits associated with the application
      */
     public SLALimits getSlaLimits() {
         return slaLimits;
+    }
+    
+    /**
+     * This adds an term to the application's SLA constraints
+     * @param term The term to add to the application, if null no item will be added.
+     * If getSLALimits returns null a new SLALimits object will be created.
+     */
+    public void addSlaLimit(SLATerm term) {
+        if (term == null) {
+            return;
+        }
+        if (slaLimits == null) {
+            slaLimits = new SLALimits();
+        }
+        slaLimits.addQoSCriteria(term);
     }
 
     /**

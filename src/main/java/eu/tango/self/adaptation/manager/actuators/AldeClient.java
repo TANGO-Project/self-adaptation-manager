@@ -24,7 +24,9 @@ import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
+import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.model.Testbed;
+import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,11 +74,11 @@ public class AldeClient {
         }
     }
 
-        /**
-         * This lists all applications that are deployable by the ALDE
-         *
-         * @return The list of applications known to the ALDE
-         */
+    /**
+     * This lists all applications that are deployable by the ALDE
+     *
+     * @return The list of applications known to the ALDE
+     */
     public List<ApplicationDefinition> getApplicationDefinitions() {
         ArrayList<ApplicationDefinition> answer = new ArrayList<>();
         try {
@@ -90,6 +92,7 @@ public class AldeClient {
                     app.setAldeAppId(object.getInt("id"));
                     app.setExecutables(object.getJSONArray("executables"));
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
+                    app = getApplicationQoSConstraints(app, object);
                     answer.add(app);
                 }
             }
@@ -169,6 +172,74 @@ public class AldeClient {
 
         }
         Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application was not found via its execution instance.");
+        return null;
+    }
+
+    /**
+     * This obtains from the application's json representation the QoS constraint
+     * information
+     * @param app The application definition object to add information to
+     * @param json The json object to parse
+     * @return The application definition object with the QoS information attached
+     */
+    private ApplicationDefinition getApplicationQoSConstraints(ApplicationDefinition app, JSONObject json) {
+        /**
+         * This method from the ALDE extracts the following QoS information:
+         *
+         * application_type = db.Column(db.String) max_power =
+         * db.Column(db.Float) max_power_units = db.Column(db.String) max_energy
+         * = db.Column(db.Float) max_energy_units = db.Column(db.String)
+         * priority = db.Column(db.Integer) deadline = db.Column(db.Integer)
+         * scaling_upper_bound = db.Column(db.Integer) scaling_lower_bound =
+         * db.Column(db.Integer)
+         *
+         */
+        if (json.has("application_type")) {
+            app.setApplicationType(ApplicationDefinition.ApplicationType.valueOf(json.getString("application_type")));
+        }
+        if (json.has("priority")) {
+            app.setPriority(json.getInt("priority"));
+        }
+        app.addSlaLimit(getTermFromApplication("deadline", json)); //int
+        app.addSlaLimit(getTermFromApplication("max_energy", json)); //double
+        // TODO consider max_energy_units - string
+        app.addSlaLimit(getTermFromApplication("max_power", json)); //double
+        //TODO consider max_power_units - string
+        app.addSlaLimit(getTermFromApplication("scaling_lower_bound", json)); //int
+        app.addSlaLimit(getTermFromApplication("scaling_upper_bound", json)); //int
+        return app;
+    }
+
+    /**
+     * This gets from an application definition the QoS constraints for the application
+     * @param qosTermToFind The QoS term to find in the json object
+     * @param json The json definition of the application
+     * @return The SLA term to be added to the application definition
+     */
+    private SLATerm getTermFromApplication(String qosTermToFind, JSONObject json) {
+        if (json.has(qosTermToFind)) {
+            Object object = json.get(qosTermToFind);
+            EventData.Operator operator;
+            if (qosTermToFind.contains("max") || qosTermToFind.contains("upper")) {
+                operator = EventData.Operator.LTE;
+            } else { //min or lower cases
+                operator = EventData.Operator.GTE;
+            }
+            if (object instanceof Double) {
+                return new SLATerm(qosTermToFind,
+                        json.getDouble(qosTermToFind),
+                        EventData.Type.SLA_BREACH,
+                        operator,
+                        qosTermToFind);
+            }
+            if (object instanceof Integer) {
+                return new SLATerm(qosTermToFind,
+                        json.getInt(qosTermToFind),
+                        EventData.Type.SLA_BREACH,
+                        operator,
+                        qosTermToFind);
+            }
+        }
         return null;
     }
 
@@ -396,7 +467,7 @@ public class AldeClient {
         JSONObject json = new JSONObject();
         json.put("status", "CANCEL");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Cancelling application {0}", executionId);           
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Cancelling application {0}", executionId);
             HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
@@ -429,13 +500,13 @@ public class AldeClient {
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
             httpClient.execute(request);
-            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing application with configuration id {0}", configurationId); 
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing application with configuration id {0}", configurationId);
             // handle response here...
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     /**
      * Given a slurm job id this method returns the jobs QoS properties
      * @param slurmJobId The job id to get the QoS information for
@@ -445,9 +516,9 @@ public class AldeClient {
         //TODO generate the query that finds this information
         return new JSONObject();
     }
-    
+
     /**
-     * This shuts down a host and migrates work away from it 
+     * This shuts down a host and migrates work away from it
      * @param hostname the host to shutdown
      * @throws IOException
      */
@@ -456,9 +527,9 @@ public class AldeClient {
          * The command that this code replicates: curl -X PATCH -H'Content-type: ....
          * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
          */
-        throw new UnsupportedOperationException("Not supported yet.");        
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     /**
      * This starts a host
      * @param hostname the host to start
@@ -469,9 +540,9 @@ public class AldeClient {
          * The command that this code replicates: curl -X PATCH -H'Content-type: ....
          * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
          */
-        throw new UnsupportedOperationException("Not supported yet.");           
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     /**
      * This adds resource to a running executable
      * @param executionId The execution id to add resource to it
@@ -479,7 +550,7 @@ public class AldeClient {
      * @throws IOException
      */
     public void addResource(int executionId, String resource) throws IOException {
-                Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing a ALDE add resource action");           
+        Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Executing a ALDE add resource action");
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
@@ -488,17 +559,17 @@ public class AldeClient {
         JSONObject json = new JSONObject();
         json.put("add_resource", "test");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Adding resources to the application {0}", executionId);           
-            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);    
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Adding resources to the application {0}", executionId);
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
-            request.setEntity(params);      
+            request.setEntity(params);
             httpClient.execute(request);
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when adding resources", ex);
-        }          
+        }
     }
-    
+
     /**
      * This removes resources from a running executable
      * @param executionId The execution id to remove resource from
@@ -514,7 +585,7 @@ public class AldeClient {
         JSONObject json = new JSONObject();
         json.put("remove_resource", "test");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Removing resources from the application {0}", executionId);           
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Removing resources from the application {0}", executionId);
             HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
@@ -523,8 +594,8 @@ public class AldeClient {
             // handle response here...
         } catch (Exception ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when removing resources", ex);
-        }     
+        }
     }
-    
+
     
 }

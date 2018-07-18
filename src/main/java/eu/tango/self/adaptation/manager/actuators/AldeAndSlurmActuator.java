@@ -69,6 +69,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             answer.setConfigurations(aldeAnswer.getConfigurationsAsJson());
             answer.setExecutables(aldeAnswer.getExecutablesAsJson());
             answer.setAldeAppId(aldeAnswer.getAldeAppId());
+            answer.setSlaLimits(aldeAnswer.getSlaLimits());
         }
         return answer;
     }
