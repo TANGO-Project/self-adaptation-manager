@@ -142,4 +142,13 @@ public class SLATerm {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "Guarantee Id: " + guaranteeid + 
+    " Value: " + guaranteedValue + 
+    " Severity: " + severity + 
+    " Equality: " + guaranteeOperator + 
+    " Agreement Term: " + agreementTerm;
+    }
+
 }

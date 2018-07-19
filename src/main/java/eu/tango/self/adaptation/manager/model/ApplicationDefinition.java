@@ -516,5 +516,16 @@ public class ApplicationDefinition {
          */
         return deploymentId.equals("-1");
     }
+
+    @Override
+    public String toString() {
+        return "Name: " + name + " ID: " + aldeAppId + " Deployment ID: " + deploymentId
+                + " Application Type: " + applicationType
+                + " Priority: " + priority
+                + " hasLimits: " + (slaLimits != null)
+                + " Rules Size: " + adaptationRules.size()
+                + " Executables Count: " + getExecutablesCount()
+                + " Configurations Count: " + getConfigurationsCount();
+    }
     
 }
