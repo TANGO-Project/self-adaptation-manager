@@ -18,6 +18,7 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.self.adaptation.manager.io.JsonUtils;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
@@ -30,6 +31,8 @@ import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -53,6 +56,20 @@ public class AldeClient {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private String baseUri = "http://localhost:5000/api/v1/";
+    /**
+     * The metric name doesn't match the property name from the ALDE, so this
+     * translates the metric into a term recognised by the monitoring infrastructure.
+     */
+    private static final Map<String, String> translateToMetric
+            = new HashMap<>();
+    
+    static {
+        translateToMetric.put("deadline", "DEADLINE");
+        translateToMetric.put("max_energy", "ENERGY");
+        translateToMetric.put("max_power", "POWER");
+        translateToMetric.put("scaling_lower_bound", "scaling_lower_bound");
+        translateToMetric.put("scaling_upper_bound", "scaling_upper_bound");
+    }
 
     public AldeClient() {
         try {
@@ -94,6 +111,7 @@ public class AldeClient {
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
                     app = getApplicationQoSConstraints(app, object);
                     answer.add(app);
+                    System.out.println("Application Definition: " + app);
                 }
             }
         } catch (IOException ex) {
@@ -194,19 +212,19 @@ public class AldeClient {
          * db.Column(db.Integer)
          *
          */
-        if (json.has("application_type")) {
+        if (JsonUtils.hasAndIsNotNull(json, "application_type")) {
             app.setApplicationType(ApplicationDefinition.ApplicationType.valueOf(json.getString("application_type")));
         }
-        if (json.has("priority")) {
+        if (JsonUtils.hasAndIsNotNull(json, "priority")) {
             app.setPriority(json.getInt("priority"));
         }
-        app.addSlaLimit(getTermFromApplication("deadline", json)); //int
-        app.addSlaLimit(getTermFromApplication("max_energy", json)); //double
+        app.addSlaLimit(getTermFromApplication(app.getName(), "deadline", json)); //int
+        app.addSlaLimit(getTermFromApplication(app.getName(), "max_energy", json)); //double
         // TODO consider max_energy_units - string
-        app.addSlaLimit(getTermFromApplication("max_power", json)); //double
+        app.addSlaLimit(getTermFromApplication(app.getName(), "max_power", json)); //double
         //TODO consider max_power_units - string
-        app.addSlaLimit(getTermFromApplication("scaling_lower_bound", json)); //int
-        app.addSlaLimit(getTermFromApplication("scaling_upper_bound", json)); //int
+        app.addSlaLimit(getTermFromApplication(app.getName(), "scaling_lower_bound", json)); //int
+        app.addSlaLimit(getTermFromApplication(app.getName(), "scaling_upper_bound", json)); //int
         return app;
     }
 
@@ -216,7 +234,7 @@ public class AldeClient {
      * @param json The json definition of the application
      * @return The SLA term to be added to the application definition
      */
-    private SLATerm getTermFromApplication(String qosTermToFind, JSONObject json) {
+    private SLATerm getTermFromApplication(String applicationName, String qosTermToFind, JSONObject json) {
         if (json.has(qosTermToFind)) {
             Object object = json.get(qosTermToFind);
             EventData.Operator operator;
@@ -225,19 +243,23 @@ public class AldeClient {
             } else { //min or lower cases
                 operator = EventData.Operator.GTE;
             }
+            /**
+             * Application level QoS Metrics should follow the pattern:
+             * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>
+             */
             if (object instanceof Double) {
-                return new SLATerm(qosTermToFind,
+                return new SLATerm("App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind),
                         json.getDouble(qosTermToFind),
                         EventData.Type.SLA_BREACH,
                         operator,
-                        qosTermToFind);
+                        "App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind));
             }
             if (object instanceof Integer) {
-                return new SLATerm(qosTermToFind,
+                return new SLATerm("App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind),
                         json.getInt(qosTermToFind),
                         EventData.Type.SLA_BREACH,
                         operator,
-                        qosTermToFind);
+                        "App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind));
             }
         }
         return null;
@@ -596,6 +618,5 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when removing resources", ex);
         }
     }
-
-    
+  
 }

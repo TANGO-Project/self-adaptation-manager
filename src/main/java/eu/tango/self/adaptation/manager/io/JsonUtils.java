@@ -145,6 +145,16 @@ public abstract class JsonUtils {
         BufferedReader rd = new BufferedReader(fileReader);
         String xml = readAll(rd);
         return XML.toJSONObject(xml);               
-    }     
+    }
+    
+    /**
+     * This tests to see if a field exists and is not null
+     * @param json The json to get the information for
+     * @param field The field to test to see if it exists
+     * @return If the field exists and is not null
+     */
+    public static boolean hasAndIsNotNull(JSONObject json, String field) {
+        return json.has(field) && !json.isNull(field);
+    } 
     
 }
