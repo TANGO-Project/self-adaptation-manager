@@ -514,7 +514,7 @@ public class ApplicationDefinition {
          * The deployment id should be -1 if not deployed. i.e. defined only by
          * the ALDE for example, ready to deploy.
          */
-        return deploymentId.equals("-1");
+        return !deploymentId.equals("-1");
     }
 
     @Override
