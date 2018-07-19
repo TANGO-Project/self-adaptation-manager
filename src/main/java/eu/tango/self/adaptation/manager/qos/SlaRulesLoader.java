@@ -212,8 +212,7 @@ public class SlaRulesLoader {
             if (applimits != null) {
                 limits.addQoSCriteria(applimits.getQosCriteria());
             }
-            return;
-        }
+        }      
     }    
     
     /**
