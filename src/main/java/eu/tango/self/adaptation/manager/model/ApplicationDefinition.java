@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This class covers the application definition
@@ -37,6 +38,7 @@ public class ApplicationDefinition {
     private ApplicationType applicationType;
     private int priority;
     private SLALimits slaLimits;
+    private JSONObject properties; //helps better describe the application
     private ArrayList<FiringCriteria> adaptationRules = new ArrayList<>();
     private JSONArray executables;
     private JSONArray configurations;
@@ -62,6 +64,7 @@ public class ApplicationDefinition {
         this.deploymentId = toClone.deploymentId;
         this.slaLimits = toClone.slaLimits;
         this.adaptationRules = toClone.adaptationRules;
+        this.properties = toClone.properties;
         this.executables = toClone.executables;
         this.configurations = toClone.configurations;
     }
@@ -160,6 +163,128 @@ public class ApplicationDefinition {
     public void setPriority(int priority) {
         this.priority = priority;
     }
+    
+    /**
+     * @return the properties
+     */
+    public JSONObject getProperties() {
+        return properties;
+    }
+
+    /**
+     * @param properties the properties to set
+     */
+    public void setProperties(JSONObject properties) {
+        this.properties = properties;
+    }
+    
+    /**
+     * Adds a string based property to the application definition. It allows 
+     * properties to be added which can then change how any decision is made 
+     * when performing adaptation. i.e. QoS parameters
+     * @param key The key for the property
+     * @param value The value for the property
+     */
+    public void addProperty(String key, String value) {
+        if (value == null) {
+            return;
+        }      
+        if (properties == null) {
+            properties = new JSONObject();
+        } 
+        properties.put(key, value);
+    }
+    
+     /**
+     * Adds a string based property to the application definition. It allows 
+     * properties to be added which can then change how any decision is made 
+     * when performing adaptation. i.e. QoS parameters
+     * @param key The key for the property
+     * @param value The value for the property
+     */
+    public void addProperty(String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (properties == null) {
+            properties = new JSONObject();
+        }
+        properties.put(key, value);
+    }   
+    
+    /**
+     * This gets the string representation of a named property
+     * @param key The key value of the property to return
+     * @return The string representation of a named property
+     */
+    public String getPropertyAsString(String key) {
+        if (properties == null) {
+            return null;
+        }
+        if (properties.get(key) instanceof String) {
+            return properties.getString(key);
+        }
+        //Backup option to use toString method
+        return properties.get(key).toString();
+    }
+ 
+    /**
+     * This gets the integer representation of a named property
+     * @param key The key value of the property to return
+     * @return The integer representation of a named property
+     */
+    public Integer getPropertyAsInt(String key) {
+        if (properties == null) {
+            return null;
+        }
+        if (properties.get(key) instanceof String) {
+            return properties.getInt(key);
+        }
+        //Backup option to use toString method
+        return properties.getInt(key);
+    }       
+    
+    /**
+     * This gets the double representation of a named property
+     * @param key The key value of the property to return
+     * @return The double representation of a named property
+     */
+    public Double getPropertyAsDouble(String key) {
+        if (properties == null) {
+            return null;
+        }
+        if (properties.get(key) instanceof String) {
+            return properties.getDouble(key);
+        }
+        //Backup option to use toString method
+        return properties.getDouble(key);
+    }    
+    
+    /**
+     * This gets the object based representation of a named property
+     * @param key The key value of the property to return
+     * @return The string representation of a named property. Null if no properties
+     * are set
+     */
+    public Object getProperty(String key) {
+        if (properties == null) {
+            return null;
+        }        
+        return properties.get(key);
+    }
+    
+    /**
+     * This indicates if this application on a host has a particular key value
+     * pair stored
+     * @param key The key to search for
+     * @return If a value is stored for a given property.
+     */
+    public boolean hasProperty(String key) {
+        if (properties == null) {
+            return false;
+        }
+        return properties.has(key);
+    }    
     
     /**
      * This gets the list of sla limits associated with an application, if one

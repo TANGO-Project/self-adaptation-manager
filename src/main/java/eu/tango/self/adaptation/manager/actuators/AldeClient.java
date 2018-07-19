@@ -32,9 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -204,27 +204,37 @@ public class AldeClient {
         /**
          * This method from the ALDE extracts the following QoS information:
          *
-         * application_type = db.Column(db.String) max_power =
-         * db.Column(db.Float) max_power_units = db.Column(db.String) max_energy
-         * = db.Column(db.Float) max_energy_units = db.Column(db.String)
-         * priority = db.Column(db.Integer) deadline = db.Column(db.Integer)
-         * scaling_upper_bound = db.Column(db.Integer) scaling_lower_bound =
-         * db.Column(db.Integer)
+         * application_type = db.Column(db.String) 
+         * max_power = db.Column(db.Float) 
+         * max_power_units = db.Column(db.String) 
+         * max_energy = db.Column(db.Float) 
+         * max_energy_units = db.Column(db.String)
+         * priority = db.Column(db.Integer) 
+         * deadline = db.Column(db.Integer)
+         * scaling_upper_bound = db.Column(db.Integer) 
+         * scaling_lower_bound = db.Column(db.Integer)
          *
          */
         if (JsonUtils.hasAndIsNotNull(json, "application_type")) {
             app.setApplicationType(ApplicationDefinition.ApplicationType.valueOf(json.getString("application_type")));
+            app.addProperty("application_type", json.getString("application_type"));
         }
         if (JsonUtils.hasAndIsNotNull(json, "priority")) {
             app.setPriority(json.getInt("priority"));
+            app.addProperty("priority", json.getInt("priority"));            
         }
         app.addSlaLimit(getTermFromApplication(app.getName(), "deadline", json)); //int
+        app.addProperty("deadline", json.get("deadline"));
         app.addSlaLimit(getTermFromApplication(app.getName(), "max_energy", json)); //double
+        app.addProperty("max_energy", json.get("max_energy"));
         // TODO consider max_energy_units - string
         app.addSlaLimit(getTermFromApplication(app.getName(), "max_power", json)); //double
+        app.addProperty("max_power", json.get("max_power"));
         //TODO consider max_power_units - string
         app.addSlaLimit(getTermFromApplication(app.getName(), "scaling_lower_bound", json)); //int
+        app.addProperty("scaling_lower_bound", json.get("scaling_lower_bound"));
         app.addSlaLimit(getTermFromApplication(app.getName(), "scaling_upper_bound", json)); //int
+        app.addProperty("scaling_upper_bound", json.get("scaling_upper_bound"));
         return app;
     }
 
@@ -535,8 +545,9 @@ public class AldeClient {
      * @return The Json representation of these properties
      */
     public JSONObject getApplicationProperties(int slurmJobId) {
-        //TODO generate the query that finds this information
-        return new JSONObject();
+        ApplicationExecutionInstance instance = getExecutionInstance(slurmJobId + "");
+        ApplicationDefinition definition = getApplicationDefinition(instance);
+        return definition.getProperties();
     }
 
     /**
