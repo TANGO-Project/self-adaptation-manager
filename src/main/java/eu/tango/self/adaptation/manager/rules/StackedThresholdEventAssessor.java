@@ -198,18 +198,20 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
     }
 
     /**
-     * This examines the OVF for rules associated with the application. If any
-     * exist then they will be added to the list of rules used for this event
+     * This examines the application definition for rules associated with the application. 
+     * If any exist then they will be added to the list of rules used for this event
      * assessor.
      *
      * @param event The event to look for firing rules for
      * @return The firing criteria that are from the application.
      */
-    private ArrayList<FiringCriteria> getFiringCriteriaFromOVF(EventData event) {
+    private ArrayList<FiringCriteria> getFiringCriteriaFromApp(EventData event) {
         if (event instanceof ApplicationEventData) {
         ApplicationDefinition appDef = ((ApplicationEventData) event).getApplicationDefinition();
         return FiringCriteria.getFiringCriteriaFromApplication(appDef);
-        } else return null;
+        } else { 
+            return null;
+        }
     }
 
     /**
@@ -222,7 +224,7 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
      */
     private ArrayList<FiringCriteria> getMatchingFiringCriteria(EventData event) {
         ArrayList<FiringCriteria> answer = new ArrayList<>();
-        for (FiringCriteria rule : getFiringCriteriaFromOVF(event)) {
+        for (FiringCriteria rule : getFiringCriteriaFromApp(event)) {
             if (rule.shouldFire(event)) {
                 
                 answer.add(rule);
