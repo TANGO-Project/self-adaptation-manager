@@ -47,7 +47,9 @@ public class SLALimits {
     }
     
     public void addQoSCriteria(Collection<SLATerm> criteria) {
-        qosCriteria.addAll(criteria);
+        if (criteria != null) {
+            qosCriteria.addAll(criteria);
+        }
     }    
 
     public void removeQoSCriteria(SLATerm criteria) {

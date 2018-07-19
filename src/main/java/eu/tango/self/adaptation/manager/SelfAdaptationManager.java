@@ -29,6 +29,7 @@ import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.listeners.EventListener;
 import eu.tango.self.adaptation.manager.listeners.RestEventMonitor;
 import eu.tango.self.adaptation.manager.listeners.SlurmJobMonitor;
+import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.EventAssessor;
 import eu.tango.self.adaptation.manager.rules.ThresholdEventAssessor;
 import java.io.File;
@@ -82,6 +83,7 @@ public class SelfAdaptationManager {
         if (isHPCEnvironment) {
             Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "Self-Adaptation Manager for HPC environments");            
             actuator = new AldeAndSlurmActuator(datasource);
+            SlaRulesLoader.getInstance().setUseEventsAndRulesFromAlde(true);
             listeners = createHPCListeners();
         } else {
             Logger.getLogger(SelfAdaptationManager.class.getName()).log(Level.WARNING, "Self-Adaptation Manager for Compss environments");

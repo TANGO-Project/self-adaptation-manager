@@ -18,7 +18,9 @@
  */
 package eu.tango.self.adaptation.manager.qos;
 
+import eu.tango.self.adaptation.manager.actuators.AldeClient;
 import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
+import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import java.io.File;
@@ -41,6 +43,8 @@ public class SlaRulesLoader {
     private static final String RULES_FILE_END = ".csv";
     private static final String RULES_FILE = RULES_FILE_START + RULES_FILE_END;    
     private SLALimits limits;
+    private AldeClient client;
+    //Cached application specific limits as recorded on disk
     private HashMap<String, SLALimits> appSpecificLimits = new HashMap<>();
 
     /**
@@ -62,6 +66,10 @@ public class SlaRulesLoader {
         return SingletonHolder.INSTANCE;
     }    
     
+    /**
+     * Private constructor for SLA rules loader, this class should be loaded as
+     * a singleton instance.
+     */
     private SlaRulesLoader() {
         try {
             PropertiesConfiguration config;
@@ -82,7 +90,7 @@ public class SlaRulesLoader {
         }
         limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);
     }
-
+    
     /**
      * This returns the SLA limits for all terms
      * @return 
@@ -110,6 +118,9 @@ public class SlaRulesLoader {
      */
     public void reloadLimits() {
         limits = SLALimits.loadFromDisk(workingDir + RULES_FILE);
+        if (useEventsAndRulesFromAlde()) {
+            appendRulesFromAlde();
+        }
         appSpecificLimits.clear();
     }       
     
@@ -177,12 +188,79 @@ public class SlaRulesLoader {
         }
         if (appSpecificLimits.containsKey(applicationName)) {
             SLALimits appAnswer = appSpecificLimits.get(applicationName);
-            answer.addQoSCriteria(appAnswer.getQosCriteria());
+            answer.addQoSCriteria(appAnswer.getQosCriteria());           
         }
+        answer = appendRulesFromAlde(applicationName, answer);         
         //This adds the gloabal set of limits for a given application
         answer.addQoSCriteria(getLimits().getQosCriteria());
         return answer;
+    }
+    
+    /**
+     * This appends additional rules as read from the ALDE to an applications
+     * QoS event criteria
+     * @param applicationName The application to get information for
+     * @param input The existing SLA limits
+     * @return The appended SLA limits for the application
+     */
+    private void appendRulesFromAlde() {
+        if (client == null || limits == null) {
+            return;
+        }
+        for (ApplicationDefinition app : client.getApplicationDefinitions()) {
+            SLALimits applimits = app.getSlaLimits();
+            if (applimits != null) {
+                limits.addQoSCriteria(applimits.getQosCriteria());
+            }
+            return;
+        }
     }    
+    
+    /**
+     * This appends additional rules as read from the ALDE to an applications
+     * QoS event criteria
+     * @param applicationName The application to get information for
+     * @param input The existing SLA limits
+     * @return The appended SLA limits for the application
+     */
+    private SLALimits appendRulesFromAlde(String applicationName, SLALimits input) {
+        if (client == null || applicationName == null || input == null) {
+            return input;
+        }
+        for (ApplicationDefinition app : client.getApplicationDefinitions()) {
+            if (app.getName().equals(applicationName)) {
+                input.addQoSCriteria(app.getSlaLimits().getQosCriteria());
+                return input;
+            }
+        }
+        return input;
+    }
+    
+    /**
+     * This indicates if the ALDE should be queried for rules and events regarding
+     * applications
+     * @return true only if the ALDE should be contacted to obtain rules and event
+     * information.
+     */
+    public boolean useEventsAndRulesFromAlde() {
+        return client != null;
+    }
+    
+    /**
+     * This indicates if the ALDE should be queried for rules and events regarding
+     * applications
+     * @param useAldeRules True means the ALDE will be contacted otherwise false.
+     */
+    public void setUseEventsAndRulesFromAlde(boolean useAldeRules) {
+        client = (useAldeRules ? new AldeClient() : null);
+        if (useAldeRules) {
+            appendRulesFromAlde();
+        }
+        System.out.println("TERMS Loaded in From ALDE");
+        for (SLATerm term : limits.getQosCriteria()) {
+            System.out.println(term);
+        }
+    }
     
     
 }
