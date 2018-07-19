@@ -256,10 +256,6 @@ public class SlaRulesLoader {
         if (useAldeRules) {
             appendRulesFromAlde();
         }
-        System.out.println("TERMS Loaded in From ALDE");
-        for (SLATerm term : limits.getQosCriteria()) {
-            System.out.println(term);
-        }
     }
     
     

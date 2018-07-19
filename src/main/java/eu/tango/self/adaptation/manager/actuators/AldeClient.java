@@ -111,7 +111,6 @@ public class AldeClient {
                     app.setConfigurations(object.getJSONArray("execution_configurations"));
                     app = getApplicationQoSConstraints(app, object);
                     answer.add(app);
-                    System.out.println("Application Definition: " + app);
                 }
             }
         } catch (IOException ex) {
