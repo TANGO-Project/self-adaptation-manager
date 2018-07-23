@@ -64,9 +64,9 @@ public class AldeClient {
             = new HashMap<>();
     
     static {
-        translateToMetric.put("deadline", "DEADLINE");
-        translateToMetric.put("max_energy", "ENERGY");
-        translateToMetric.put("max_power", "POWER");
+        translateToMetric.put("deadline", "app_deadline");
+        translateToMetric.put("max_energy", "app_energy");
+        translateToMetric.put("max_power", "app_power");
         translateToMetric.put("scaling_lower_bound", "scaling_lower_bound");
         translateToMetric.put("scaling_upper_bound", "scaling_upper_bound");
     }
@@ -248,27 +248,29 @@ public class AldeClient {
             Object object = json.get(qosTermToFind);
             EventData.Operator operator;
             if (qosTermToFind.contains("max") || qosTermToFind.contains("upper")) {
-                operator = EventData.Operator.LTE;
+                operator = EventData.Operator.GT;
             } else { //min or lower cases
-                operator = EventData.Operator.GTE;
+                operator = EventData.Operator.LT;
             }
             /**
              * Application level QoS Metrics should follow the pattern:
              * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>
+             * Power follows the pattern however of:
+             * app_power:compss:* or app_power:compss::100, using regular expression
              */
             if (object instanceof Double) {
-                return new SLATerm("App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind),
+                return new SLATerm("APP:" + translateToMetric.get(qosTermToFind) + ":" + applicationName + ":*",
                         json.getDouble(qosTermToFind),
                         EventData.Type.SLA_BREACH,
                         operator,
-                        "App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind));
-            }
+                        "APP:" + translateToMetric.get(qosTermToFind) + ":" + applicationName + ":*");
+            } //app_power:my_app::7293
             if (object instanceof Integer) {
-                return new SLATerm("App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind),
+                return new SLATerm("APP:" + translateToMetric.get(qosTermToFind) + ":" + applicationName+ ":*",
                         json.getInt(qosTermToFind),
                         EventData.Type.SLA_BREACH,
                         operator,
-                        "App:" + applicationName + ":*:" + translateToMetric.get(qosTermToFind));
+                        "APP:" + translateToMetric.get(qosTermToFind) + ":" + applicationName + ":*");
             }
         }
         return null;

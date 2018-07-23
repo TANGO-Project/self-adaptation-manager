@@ -23,6 +23,7 @@ import eu.tango.energymodeller.datasourceclient.CollectDNotificationHandler;
 import eu.tango.energymodeller.datasourceclient.CollectdDataSourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.HostDataSource;
 import eu.tango.energymodeller.datasourceclient.HostMeasurement;
+import eu.tango.energymodeller.datasourceclient.Measurement;
 import eu.tango.energymodeller.datasourceclient.MetricValue;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcollectd.agent.api.Notification;
@@ -180,33 +182,34 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                  */
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length < 3 || termStr.length > 4) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly!", termStr);
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly in app_power!", termStr);
                     continue;
                 }
                 String appName = termStr[1];
-                String appId = termStr[2];
+                String deployId = termStr[2];
                 String agreementTerm = termStr[0]; //i.e. app_power
                 //TODO why is host optional and not used at all??
-                EventData event = detectAppEvent(term, agreementTerm, appName, appId);
+                EventData event = detectAppEvent(term, agreementTerm, appName, deployId);
                 if (event != null) {
                     answer.add(event);
                 }                
-            } else if (term.getAgreementTerm().contains("APP:")) {
+            } 
+            if (term.getAgreementTerm().contains("APP:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 /**
                  * Application based data should follow the format:
                  *
                  * APP:<APP_NAME>:<DEPLOYMENT_ID>:<METRIC>:[HOST_OPTIONAL]
                  */
-                if (termStr.length < 3 || termStr.length > 4) {
-                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly!", termStr);
+                if (termStr.length < 4 || termStr.length > 5) {
+                    Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "The term {0} failed to parse correctly in APP!", termStr);
                     continue;
-                }
-                String appName = termStr[1];
-                String appId = termStr[2];
-                String agreementTerm = termStr[3];
+                }              
+                String appName = termStr[2];
+                String deployId = termStr[3];
+                String agreementTerm = termStr[1];
                 //TODO why is host optional and not used at all??
-                EventData event = detectAppEvent(term, agreementTerm, appName, appId);
+                EventData event = detectAppEvent(term, agreementTerm, appName, deployId);
                 if (event != null) {
                     answer.add(event);
                 }
@@ -245,6 +248,10 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      * @return The SLA breach events if it occurs, otherwise null
      */
     private ApplicationEventData detectAppEvent(SLATerm term, String agreementTerm, String applicationId, String deploymentId) {
+        if (agreementTerm.startsWith("APP:")) {
+            //Trims away identifier for application event
+            agreementTerm = agreementTerm.replaceAll("APP:", "");
+        }
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         int deployId = -1;
         /**
@@ -278,9 +285,9 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 value = measurement.getMetric(agreementTerm);                
                 currentValue = value.getValue();
             }
-            if (deployId == -1 && !measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+").isEmpty()) {
+            HashSet<MetricValue> values = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + "::[0-9]*+");
+            if (deployId == -1 && !values.isEmpty()) {
                 //app_power:compss:* or app_power:compss:100, using regular expression
-                HashSet<MetricValue> values = measurement.getMetricByRegularExpression(agreementTerm + ":" + applicationId + ":[0-9]*+"); 
                 //The collection is expected to be of size 1, the matching pattern is quite specific
                 value = (MetricValue) values.toArray()[0];
                 currentValue = value.getValue();
@@ -307,7 +314,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             }
         }
         return null;
-    }
+    }    
 
     /**
      * Detects any QoS term breaches
@@ -388,7 +395,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         for (String termname : namesList) {
             store.add(termname);
         }
-        store.save();
+        store.saveMemoryConservative();
     }
 
     /**
