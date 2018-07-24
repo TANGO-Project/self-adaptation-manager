@@ -21,7 +21,6 @@ package eu.tango.self.adaptation.manager.rules.decisionengine;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.energyuser.comparators.HostIdlePower;
-import eu.tango.self.adaptation.manager.rules.AbstractEventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
