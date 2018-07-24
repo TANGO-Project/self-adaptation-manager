@@ -24,7 +24,9 @@ import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.JobPriority;
+import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.JobTypeAndPriority;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -33,6 +35,8 @@ import java.util.List;
  */
 public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
 
+    private Comparator<ApplicationOnHost> sortMechanism = new JobTypeAndPriority();
+    
     /**
      * Selects a task on the host to perform the actuation against. This selects the
      * task that was last launched to act against.
@@ -78,7 +82,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
             return response;
         }
         //General case
-        Collections.sort(tasks, new JobPriority());
+        Collections.sort(tasks, sortMechanism);
         Collections.reverse(tasks);
         response.setTaskId(tasks.get(0).getId() + "");
         return response;        
