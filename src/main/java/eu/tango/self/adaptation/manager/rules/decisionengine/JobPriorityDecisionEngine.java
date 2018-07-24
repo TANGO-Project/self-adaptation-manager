@@ -19,7 +19,9 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.energyuser.comparators.HostIdlePower;
+import eu.tango.self.adaptation.manager.rules.AbstractEventAssessor;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
@@ -28,6 +30,8 @@ import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.JobType
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This ranks jobs by their priority value and then by the last task created.
@@ -35,7 +39,10 @@ import java.util.List;
  */
 public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
 
-    private Comparator<ApplicationOnHost> sortMechanism = new JobTypeAndPriority();
+    private Comparator<ApplicationOnHost> jobRanking = new JobTypeAndPriority();
+    private Comparator<Host> hostRanking = new HostIdlePower();
+    private static final String DEFAULT_JOB_RANKING_PACKAGE = "eu.tango.self.adaptation.manager.rules.decisionengine.comparators";
+    private static final String DEFAULT_HOST_RANKING_PACKAGE = "eu.tango.energymodeller.types.energyuser.comparators";
     
     /**
      * Selects a task on the host to perform the actuation against. This selects the
@@ -82,7 +89,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
             return response;
         }
         //General case
-        Collections.sort(tasks, sortMechanism);
+        Collections.sort(tasks, jobRanking);
         Collections.reverse(tasks);
         response.setTaskId(tasks.get(0).getId() + "");
         return response;        
@@ -91,7 +98,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
     @Override
     protected Response selectHostToAdapt(Response response) {
         //Could also rank by Max Power or flops per Watt
-        return selectHostToAdapt(response, new HostIdlePower());
+        return selectHostToAdapt(response, hostRanking);
     }  
 
     /**
@@ -178,5 +185,88 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
         }
         return answer;
     }
+
+    /**
+     * This allows the decision engines job sort mechanism to be obtained
+     * @return the ranking mechanism for jobs
+     */    
+    public Comparator<ApplicationOnHost> getJobRanking() {
+        return jobRanking;
+    }
+
+    /**
+     * This allows the decision engines job sort mechanism to be set
+     * @param jobRanking the ranking mechanism for jobs
+     */    
+    public void setJobRanking(Comparator<ApplicationOnHost> jobRanking) {
+        this.jobRanking = jobRanking;
+    }
+    
+    /**
+     * This allows the decision engine's job ranking mechanism to be set. It allows
+     * the ranking mechanism for jobs to be swapped out.
+     *
+     * @param rankingMechanism The name of the sort order to set
+     */
+    public final void setJobRanking(String rankingMechanism) {
+        try {
+            if (!rankingMechanism.startsWith(DEFAULT_JOB_RANKING_PACKAGE)) {
+                rankingMechanism = DEFAULT_JOB_RANKING_PACKAGE + "." + rankingMechanism;
+            }
+            jobRanking = (Comparator<ApplicationOnHost>) (Class.forName(rankingMechanism).newInstance());
+        } catch (ClassNotFoundException ex) {
+            if (jobRanking == null) {
+                jobRanking = new JobPriority();
+            }
+            Logger.getLogger(JobPriorityDecisionEngine.class.getName()).log(Level.WARNING, "The job ranking was not found");
+        } catch (InstantiationException | IllegalAccessException ex) {
+            if (jobRanking == null) {
+                jobRanking = new JobPriority();
+            }
+            Logger.getLogger(JobPriorityDecisionEngine.class.getName()).log(Level.WARNING, "The setting of job ranking did not work", ex);
+        }
+    }
+
+    /**
+     * This allows the decision engines host sort mechanism to be obtained
+     * @return the ranking mechanism for hosts
+     */   
+    public Comparator<Host> getHostRanking() {
+        return hostRanking;
+    }    
+    
+    /**
+     * This allows the decision engines host sort mechanism to be set
+     * @param hostRanking the ranking mechanism for hosts
+     */
+    
+    public void setHostRanking(Comparator<Host> hostRanking) {
+        this.hostRanking = hostRanking;
+    }
+    
+    /**
+     * This allows the decision engine's host ranking mechanism to be set. It allows
+     * the ranking mechanism for hosts to be swapped out.
+     *
+     * @param rankingMechanism The name of the sort order to set
+     */
+    public final void setHostRanking(String rankingMechanism) {
+        try {
+            if (!rankingMechanism.startsWith(DEFAULT_HOST_RANKING_PACKAGE)) {
+                rankingMechanism = DEFAULT_HOST_RANKING_PACKAGE + "." + rankingMechanism;
+            }
+            hostRanking = (Comparator<Host>) (Class.forName(rankingMechanism).newInstance());
+        } catch (ClassNotFoundException ex) {
+            if (hostRanking == null) {
+                hostRanking = new HostIdlePower();
+            }
+            Logger.getLogger(JobPriorityDecisionEngine.class.getName()).log(Level.WARNING, "The host ranking specified was not found");
+        } catch (InstantiationException | IllegalAccessException ex) {
+            if (hostRanking == null) {
+                hostRanking = new HostIdlePower();
+            }
+            Logger.getLogger(JobPriorityDecisionEngine.class.getName()).log(Level.WARNING, "The setting of the host ranking did not work", ex);
+        }
+    }    
     
 }

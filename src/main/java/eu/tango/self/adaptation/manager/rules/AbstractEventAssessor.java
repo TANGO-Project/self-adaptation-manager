@@ -24,6 +24,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import eu.tango.self.adaptation.manager.rules.decisionengine.DecisionEngine;
+import eu.tango.self.adaptation.manager.rules.decisionengine.JobPriorityDecisionEngine;
 import eu.tango.self.adaptation.manager.rules.decisionengine.RandomDecisionEngine;
 import eu.tango.self.adaptation.manager.rules.loggers.EventHistoryLogger;
 import eu.tango.self.adaptation.manager.rules.loggers.ResponseHistoryLogger;
@@ -88,6 +89,18 @@ public abstract class AbstractEventAssessor implements EventAssessor {
             decisionEngineName = config.getString("self.adaptation.manager.decision.engine", decisionEngineName);
             config.setProperty("self.adaptation.manager.decision.engine", decisionEngineName);
             setDecisionEngine(decisionEngineName);
+            if (decisionEngine instanceof JobPriorityDecisionEngine) {
+                if (config.containsKey("self.adaptation.manager.decision.engine.ranking.jobs")) {
+                    ((JobPriorityDecisionEngine)decisionEngine).setJobRanking(config.getString("self.adaptation.manager.decision.engine.ranking.jobs", "JobTypeAndPriority"));             
+                } else {
+                    config.setProperty("self.adaptation.manager.decision.engine.ranking.jobs", "JobTypeAndPriority");
+                }
+                if (config.containsKey("self.adaptation.manager.decision.engine.ranking.hosts")) {
+                    ((JobPriorityDecisionEngine)decisionEngine).setHostRanking(config.getString("self.adaptation.manager.decision.engine.ranking.hosts", "HostIdlePower"));             
+                } else {
+                    config.setProperty("self.adaptation.manager.decision.engine.ranking.hosts", "HostIdlePower");
+                }
+            }
             logging = config.getBoolean("self.adaptation.manager.logging", logging);
             config.setProperty("self.adaptation.manager.logging", logging);
             if (logging) {
