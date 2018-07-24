@@ -31,7 +31,7 @@ public class JobPriority implements Comparator<ApplicationOnHost>, Serializable 
 
     @Override
     public int compare(ApplicationOnHost o1, ApplicationOnHost o2) {
-        int answer = o1.getPropertyAsString("priority").compareTo(o2.getPropertyAsString("priority"));
+        int answer = o1.getPropertyAsInteger("priority").compareTo(o2.getPropertyAsInteger("priority"));
         if (answer == 0) { //If equal then apply a second order sort
         //ranks by job id in reverse order! thus should equate to age
             return Integer.valueOf(o2.getId()).compareTo(o1.getId());
