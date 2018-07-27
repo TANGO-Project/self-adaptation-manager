@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import java.util.Map;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,7 +44,7 @@ public abstract class AldeJsonObjectWrapper {
      * @param key The key to obtain from the json object
      * @return The string represented by a given key
      */    
-    protected String getString(String key) {
+    public String getString(String key) {
         if (json.has(key) && !json.isNull(key)) {
             return json.getString(key);
         }
@@ -58,10 +59,10 @@ public abstract class AldeJsonObjectWrapper {
     public double getDouble(String key) {
         try {
             if (json.has(key) && !json.isNull(key)) {
-                return (double) json.getDouble(key);
+                return json.getDouble(key);
             }
         }catch (JSONException ex) {
-            //This happens in cases where the integer doesn't parse correctly
+            //This happens in cases where the double doesn't parse correctly
         }        
         //the default assumption is zero.
         return 0;       
@@ -70,21 +71,21 @@ public abstract class AldeJsonObjectWrapper {
     /**
      * This gets the int representation of a given key value
      * @param key The key to obtain from the json object
-     * @return The double represented by a given key
+     * @return The int represented by a given key
      */     
     public int getInt(String key) {
         try {
             //Tests to see if the excutable_id belongs to a compiled application
             if (json.has(key) && !json.isNull(key)) {
-                return (int) json.getInt(key);
+                return json.getInt(key);
             }
         }catch (JSONException ex) {
             //This happens in cases where the integer doesn't parse correctly
         }
         //the default assumption is zero.
         return 0;       
-    }        
-  
+    }
+ 
     @Override
     public String toString() {
         return json.toString();
@@ -119,6 +120,6 @@ public abstract class AldeJsonObjectWrapper {
         String jsonStr = this.json.toString();
         Map<String, Object> map = gson.fromJson(jsonStr, new TypeToken<Map<String, Object>>(){}.getType());
         return map;
-    }      
+    }  
     
 }

@@ -77,7 +77,7 @@ public class ApplicationExecutable extends AldeJsonObjectWrapper {
      */
     public int getConfigurationsApplicationId() {
         if (json.has("application_id")) {
-            return (int) json.getInt("application_id");
+            return json.getInt("application_id");
         }
         //the default assumption is zero.
         return 0;        

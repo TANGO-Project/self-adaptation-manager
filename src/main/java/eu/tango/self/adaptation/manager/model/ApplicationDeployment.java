@@ -55,7 +55,7 @@ public class ApplicationDeployment extends AldeJsonObjectWrapper {
      */
     public int getExecutableId() {
         if (json.has("executable_id")) {
-            return (int) json.getInt("executable_id");
+            return json.getInt("executable_id");
         }
         //the default assumption is zero.
         return 0;        
@@ -67,7 +67,7 @@ public class ApplicationDeployment extends AldeJsonObjectWrapper {
      */
     public int getTestbedId() {
         if (json.has("testbed_id")) {
-            return (int) json.getInt("testbed_id");
+            return json.getInt("testbed_id");
         }
         //the default assumption is zero.
         return 0;
