@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.actuators;
 import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
+import eu.tango.self.adaptation.manager.io.HostnameDetection;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
@@ -41,7 +42,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
-    private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.2.5//COMPSs//compssenv";
+    private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.3.1//COMPSs//compssenv";
     private CompssDatasourceAdaptor client = new CompssDatasourceAdaptor();
 
     public ProgrammingModelRuntimeActuator() {
@@ -109,6 +110,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
             if (response.getDeploymentId() == null || response.getDeploymentId().isEmpty()) {
                 response.setPerformed(true);
                 response.setPossibleToAdapt(false);
+                Logger.getLogger(ProgrammingModelRuntimeActuator.class.getName()).log(Level.INFO, "DeploymentID not set correctly!");
                 return;
             }
         }
@@ -178,9 +180,15 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     @Override
     public void addResource(String applicationName, String masterJobId, String taskParams) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> CREATE SLURM-Cluster default <singularity_image>"
-        String masterNode = getMasterNode(masterJobId);
-        String singularityImage = Response.getAdaptationDetail(taskParams, "SINGULARITY_IMAGE");
-        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE SLURM-Cluster default " + singularityImage);
+        /**
+         * Example command: adapt_compss_resources ns54 EmulateRemote_01 CREATE Direct ns51 default
+         */
+        masterJobId = client.getCurrentMonitoringJobId();
+        String masterNode = getMasterNode();
+//        String nodeToAdd = Response.getAdaptationDetail(taskParams, "NODE_TO_ADD");
+        String nodeToAdd = "ns51"; //TODO fix this temporary test here
+        System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE Direct " + nodeToAdd + " default");
+        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE Direct " + nodeToAdd + " default");
     }
     
     /**
@@ -188,21 +196,20 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
      * @param applicationName The application name
      * @return The master node of the named job
      */
-    private String getMasterNode(String applicationName) {
-        //TODO get this information here from compss!!!
-        for (ApplicationOnHost resouce : client.getHostApplicationList()) {
-            if (resouce.getName().contains(applicationName)) {
-                return resouce.getAllocatedTo().getHostName();
-            }
-        }
-        return "";
+    private String getMasterNode() {
+        return HostnameDetection.getHostname();
     }
 
     @Override
     public void removeResource(String applicationName, String masterJobId, String nodeToDelete) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> REMOVE SLURM-Cluster <node_to_delete>"
-        String masterNode = getMasterNode(masterJobId);
-        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE SLURM-Cluster " + nodeToDelete);
+        /**
+         * Example Command: adapt_compss_resources ns54 EmulateRemote_01 REMOVE Direct ns51
+         */
+        masterJobId = client.getCurrentMonitoringJobId();
+        String masterNode = getMasterNode(); //TODO fix node deletion info see ns below
+        System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct ns" + nodeToDelete);
+        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct ns" + nodeToDelete);
     }
     
 }
