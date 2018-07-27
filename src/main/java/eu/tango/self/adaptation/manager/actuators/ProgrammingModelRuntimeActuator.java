@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
 import eu.tango.self.adaptation.manager.io.HostnameDetection;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
@@ -27,6 +28,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +45,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.3.1//COMPSs//compssenv";
+    private String permittedHosts = "ns51,ns52,ns53,ns54,ns55,ns56,ns57";
     private CompssDatasourceAdaptor client = new CompssDatasourceAdaptor();
 
     public ProgrammingModelRuntimeActuator() {
@@ -56,10 +59,12 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
             }
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
             compssRuntime = config.getString("self.adaptation.manager.compss.runtime", compssRuntime);
+            permittedHosts = config.getString("self.adaptation.manager.compss.runtime.permittedhosts", permittedHosts);
             if (!compssRuntime.endsWith("/")) {
                 compssRuntime = compssRuntime + "/";
             }
             config.setProperty("self.adaptation.manager.compss.runtime", compssRuntime);
+            config.setProperty("self.adaptation.manager.compss.runtime.permittedhosts", permittedHosts);
         } catch (ConfigurationException ex) {
             Logger.getLogger(ProgrammingModelRuntimeActuator.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
@@ -163,6 +168,20 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     public List<ApplicationOnHost> getTasks() {
         return client.getHostApplicationList();
     }
+    
+    @Override
+    public List<ApplicationOnHost> getTasks(String applicationName, String deploymentId) {
+        List<ApplicationOnHost> unFilteredAnswer = getTasks();
+        List<ApplicationOnHost> answer = new ArrayList<>();
+        int deployid = Integer.parseInt(deploymentId);
+        for (ApplicationOnHost application : unFilteredAnswer) {
+            if ((application.getName() == null || application.getName().equals(applicationName)) &&
+                    application.getId() == deployid) {
+                answer.add(application);
+            }
+        }        
+        return answer;
+    }    
 
     @Override
     public void hardKillApp(String applicationName, String masterJobId) {
@@ -185,8 +204,25 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
          */
         masterJobId = client.getCurrentMonitoringJobId();
         String masterNode = getMasterNode();
-//        String nodeToAdd = Response.getAdaptationDetail(taskParams, "NODE_TO_ADD");
-        String nodeToAdd = "ns51"; //TODO fix this temporary test here
+        String nodeToAdd = "";
+        HashSet<String> activeHosts = new HashSet<>();
+        for (Host host : client.getHostList()) {
+            //Obtain the first idle host already added to COMPSS
+            if (host.getState().equals("IDLE")) {
+                nodeToAdd = (nodeToAdd.isEmpty() ? host.getHostName() : nodeToAdd);
+            } else {
+                activeHosts.add(nodeToAdd);
+            }
+        }
+        //If a host isn't available pick one from the none active hosts not added to COMPSS already
+        if (nodeToAdd.isEmpty()) {
+            for(String host : permittedHosts.split(",")) {
+                if (!activeHosts.contains(host)) {
+                    nodeToAdd = host;
+                    break;
+                }
+            }
+        }
         System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE Direct " + nodeToAdd + " default");
         execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " CREATE Direct " + nodeToAdd + " default");
     }
@@ -201,15 +237,30 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     }
 
     @Override
-    public void removeResource(String applicationName, String masterJobId, String nodeToDelete) {
+    public void removeResource(String applicationName, String masterJobId, String taskId) {
         //Command: "adapt_compss_resources <master_node> <master_job_id> REMOVE SLURM-Cluster <node_to_delete>"
         /**
          * Example Command: adapt_compss_resources ns54 EmulateRemote_01 REMOVE Direct ns51
          */
         masterJobId = client.getCurrentMonitoringJobId();
-        String masterNode = getMasterNode(); //TODO fix node deletion info see ns below
-        System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct ns" + nodeToDelete);
-        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct ns" + nodeToDelete);
+        String masterNode = getMasterNode();
+        String nodeToDelete = getNodeToDelete(taskId); //task id == host id
+        System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct " + nodeToDelete);
+        execCmd("adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct " + nodeToDelete);
+    }
+    
+    /**
+     * This translates task id into hostname
+     * @param taskId The task id to delete
+     * @return The hostname to remove
+     */
+    private String getNodeToDelete(String taskId) {
+        for (Host host : client.getHostList()) {
+            if((host.getId() + "").equals(taskId)) {
+                return host.getHostName();
+            }
+        }
+        return "";
     }
     
 }
