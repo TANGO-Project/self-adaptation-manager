@@ -61,6 +61,10 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
     public double getAverageEnergy() {
         return totalEnergy / recordCount;
     }
+    
+    public double getAveragePower() {
+        return getAverageEnergy() / getAverageTime();
+    }
 
     public double getTotalTime() {
         return totalTime;
@@ -76,6 +80,10 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
 
     public double getEnergyUsedVsReference() {
         return energyUsedVsReference;
+    }
+    
+    public double getAveragePowerUsageVsReference() {
+        return getEnergyUsedVsReference() / getDurationVsReference();
     }
 
     public void setConfigName(String configName) {

@@ -298,8 +298,7 @@ public class AldeActuator extends AbstractActuator {
             referenceScore = ranked.get(0).getDurationVsReference();
         } else if (rank.equals(RankCriteria.POWER)) {
             ranked.sort(new PowerComparator());
-            //TODO should use power consumption as reference
-            referenceScore = ranked.get(0).getEnergyUsedVsReference();
+            referenceScore = ranked.get(0).getAveragePowerUsageVsReference();
         } else { //The default is by energy consumption
             ranked.sort(new EnergyComparator());
             referenceScore = ranked.get(0).getEnergyUsedVsReference();
