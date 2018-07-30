@@ -20,8 +20,8 @@ package eu.tango.self.adaptation.manager.rules;
 
 import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
-import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
+import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.FiringCriteria;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.File;
@@ -225,8 +225,7 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
     private ArrayList<FiringCriteria> getMatchingFiringCriteria(EventData event) {
         ArrayList<FiringCriteria> answer = new ArrayList<>();
         for (FiringCriteria rule : getFiringCriteriaFromApp(event)) {
-            if (rule.shouldFire(event)) {
-                
+            if (rule.shouldFire(event)) {            
                 answer.add(rule);
             }
         }
