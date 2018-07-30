@@ -207,10 +207,16 @@ public class CompssJobMonitor extends AbstractJobMonitor {
                     term.getGuaranteedValue(), //guaranteed value 
                     term.getSeverity(), //breach type
                     term.getGuaranteeOperator(), //operator
-                    job.getName(), //application name
-                    job.getName(), //TODO application id
+                    datasource.getCurrentMonitoringJobId().replaceAll("[_0-9]", ""), //application name
+                    datasource.getCurrentMonitoringJobId().replaceAll("[^0-9]", ""), //application id
                     term.getAgreementTerm(), // guaranteed id
                     term.getAgreementTerm() //agreement term
+                    /**
+                     * TODO consider if compss implementation data should be added 
+                     * to the agreement term.
+                     * i.e. job.getName() identifies the Compss implementation 
+                     * at fault, not the job itself.
+                     */
                 );
                 answer.add(event);
             }
