@@ -179,7 +179,7 @@ public class AldeActuator extends AbstractActuator {
                 }     
                 break;
             default:
-                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recoginised by this adaptor");
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recognised by this adaptor");
                 break;
         }
         response.setPerformed(true);

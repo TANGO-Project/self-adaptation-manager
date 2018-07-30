@@ -582,7 +582,7 @@ public class SlurmActuator extends AbstractActuator {
                 }
                 break;
             default:
-                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recoginised by this adaptor");
+                Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recognised by this adaptor");
                 break;
         }
         response.setPerformed(true);
