@@ -23,6 +23,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
+import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -286,29 +287,32 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Task Type: {0} Task Count: {1}", new Object[]{taskType, response.getAdaptationDetail("TASK_COUNT")});
         int targetCount = Integer.parseInt(response.getAdaptationDetail("TASK_COUNT"));
         int difference = targetCount - currentTaskCount;
-//        ApplicationDefinition appDefinition = ((ApplicationEventData) response.getCause()).getApplicationDefinition();
-//        ProductSection details = OVFUtils.getProductionSectionFromOvfType(appDefinition, taskType);
+        ApplicationDefinition appDefinition = getActuator().getApplication(appId, deploymentId);
         if (difference == 0) {
             response.setPerformed(true);
             response.setPossibleToAdapt(false);
             response.setAdaptationDetails("Unable to adapt, the Task count is already at the target value");
             return response;
         }
-//        if (appDefinition != null && details != null) {
-//            if (targetCount < details.getLowerBound() || targetCount > details.getUpperBound()) {
-//                response.setPerformed(true);
-//                response.setPossibleToAdapt(false);
-//                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
-//                return response;
-//            }
-//        }
+        if (appDefinition != null) {
+            if (targetCount < appDefinition.getPropertyAsDouble("scaling_lower_bound") || 
+                    targetCount > appDefinition.getPropertyAsDouble("scaling_upper_bound")) {
+                response.setPerformed(true);
+                response.setPossibleToAdapt(false);
+                response.setAdaptationDetails("Unable to adapt, the target was out of acceptable bounds");
+                return response;
+            }
+        }
         if (difference > 0) { //add tasks
             response.setAdaptationDetails("TASK_TYPE=" + taskType + ";TASK_COUNT=" + difference);
         } else { //less that zero so remove Tasks
-            //TODO sort the removal of tasks
-//            List<Integer> tasksPossibleToRemove = getActuator().getTaskIdsAvailableToRemove(appId, deploymentId);
-//            //Note: the 0 - difference is intended to make the number positive
-//            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";Tasks_TO_REMOVE=" + getTasksToRemove(tasksPossibleToRemove, 0 - difference));
+            List<ApplicationOnHost> tasksPossibleToRemove = getActuator().getTasks(appId, deploymentId);
+            List<Integer> taskIdsPossbileToRemove = new ArrayList<>(); 
+            for (ApplicationOnHost taskPossibleToRemove : tasksPossibleToRemove) {
+                taskIdsPossbileToRemove.add(taskPossibleToRemove.getId());
+            }
+            //Note: the 0 - difference is intended to make the number positive
+            response.setAdaptationDetails("TASK_TYPE=" + taskType + ";Tasks_TO_REMOVE=" + getTasksToRemove(taskIdsPossbileToRemove, 0 - difference));
         }
         return response;
     }
@@ -435,7 +439,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The ids that can be used to scale the named deployment
      */
     public List<String> getTaskTypesAvailableToAdd(String applicationName, String deploymentId) {
-        //TODO implement this here
+        //TODO implement task types available to add here
         ArrayList<String> answer = new ArrayList<>();
         answer.add("TASK_TYPE=\"test\"");
         return answer;
