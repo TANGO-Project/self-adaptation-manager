@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -86,9 +87,64 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
      * @return The slurm job id of any additional execution
      */
     public String getExtraSlurmId() {
-        return getString("extra_slurm_job_id");   
+        /**
+         * The style follows the pattern:
+         * "children": [
+            {
+              "execution_configuration_id": null,
+              "execution_type": "SINGULARITY:PM",
+              "id": 377,
+              "output": null,
+              "parent_id": 376,
+              "slurm_sbatch_id": "",
+              "status": "RUNNING"
+            },
+            {
+              "execution_configuration_id": null,
+              "execution_type": "SINGULARITY:PM",
+              "id": 378,
+              "output": null,
+              "parent_id": 376,
+              "slurm_sbatch_id": "",
+              "status": "RUNNING"
+            }
+          ],
+         */
+        if (containsKey("children")) {
+            String answer = "";
+            for (ApplicationExecutionInstance app : getChildInstances()) {
+                answer = answer + (answer.isEmpty() ? app.getSlurmId() : ":" + app.getSlurmId());
+            }
+            return answer;
+        }
+        return ""; //Not expected to reach this statement
     }
-        
+    
+    /**
+     * This gets any additional execution instances that have been used in order
+     * to expand the current execution.
+     * @return 
+     */
+    public ArrayList<ApplicationExecutionInstance> getChildInstances() {
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        if (getKeyType("children").equals(JSONArray.class)) {
+            //The list case
+            JSONArray array = getJsonArray("children");
+            if (array != null) {
+                for(int i = 0; i < array.length();i++) {
+                    answer.add(new ApplicationExecutionInstance(array.getJSONObject(i)));
+                }
+            }
+        } else if (getKeyType("children").equals(JSONObject.class)) {        
+            //The single item case
+            JSONObject item = getJsonObject("children");
+            if (item != null) {
+                answer.add(new ApplicationExecutionInstance(item));
+            }
+            return answer;
+        }
+        return answer;
+    }
     
     /**
      * This gets the executions Status

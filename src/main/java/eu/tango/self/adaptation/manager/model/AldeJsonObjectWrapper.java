@@ -85,7 +85,61 @@ public abstract class AldeJsonObjectWrapper {
         //the default assumption is zero.
         return 0;       
     }
- 
+
+    /**
+     * This gets the int representation of a given key value
+     * @param key The key to obtain from the json object
+     * @return The int represented by a given key
+     */     
+    public Class<?> getKeyType(String key) {
+        try {
+            //Tests to see if the excutable_id belongs to a compiled application
+            if (json.has(key) && !json.isNull(key)) {
+                return json.get(key).getClass();
+            }
+        }catch (JSONException ex) {
+            //This happens in cases where there is a parse error
+        }
+        //the default assumption is null.
+        return null;       
+    }    
+    
+    /**
+     * This gets the Json array representation of a given key value
+     * @param key The key to obtain from the underlying json object
+     * @return The json array represented by a given key
+     */     
+    public JSONArray getJsonArray(String key) {
+        try {
+            //Tests to see if the excutable_id belongs to a compiled application
+            if (json.has(key) && !json.isNull(key) && json.get(key) instanceof JSONArray) {
+                return json.getJSONArray(key);
+            }
+        }catch (JSONException ex) {
+            //This happens in cases where the json array doesn't parse correctly
+        }
+        //the default assumption is null
+        return null;       
+    }     
+    
+    /**
+     * This gets the Json object representation of a given key value
+     * @param key The key to obtain from the underlying json object
+     * @return The json object represented by a given key
+     */     
+    public JSONObject getJsonObject(String key) {
+        try {
+            //Tests to see if the excutable_id belongs to a compiled application
+            if (json.has(key) && !json.isNull(key) && json.get(key) instanceof JSONObject) {
+                return json.getJSONObject(key);
+            }
+        }catch (JSONException ex) {
+            //This happens in cases where the json object doesn't parse correctly
+        }
+        //the default assumption is null
+        return null;       
+    }   
+  
     @Override
     public String toString() {
         return json.toString();
