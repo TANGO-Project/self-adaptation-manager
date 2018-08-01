@@ -227,7 +227,7 @@ public class SlaRulesLoader {
             return input;
         }
         for (ApplicationDefinition app : client.getApplicationDefinitions()) {
-            if (app.getName().equals(applicationName)) {
+            if (app.getName().equals(applicationName) && app.getSlaLimits() != null) {
                 input.addQoSCriteria(app.getSlaLimits().getQosCriteria());
                 return input;
             }
