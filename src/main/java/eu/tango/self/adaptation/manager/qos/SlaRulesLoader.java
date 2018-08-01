@@ -208,7 +208,6 @@ public class SlaRulesLoader {
             return;
         }
         for (ApplicationDefinition app : client.getApplicationDefinitions()) {
-//            System.out.println("Application Definition: " + app);
             SLALimits applimits = app.getSlaLimits();
             if (applimits != null) {
                 limits.addQoSCriteria(applimits.getQosCriteria());
@@ -254,13 +253,7 @@ public class SlaRulesLoader {
     public void setUseEventsAndRulesFromAlde(boolean useAldeRules) {
         client = (useAldeRules ? new AldeClient() : null);
         if (useAldeRules) {
-            System.out.println("PRE: " + limits.getQosCriteria().size());
             appendRulesFromAlde();
-            System.out.println("POST: " + limits.getQosCriteria().size());
-        }
-        System.out.print("TERMS Loaded in From ALDE");
-        for (SLATerm term : limits.getQosCriteria()) {
-            System.out.println(term);
         }
     }
     
