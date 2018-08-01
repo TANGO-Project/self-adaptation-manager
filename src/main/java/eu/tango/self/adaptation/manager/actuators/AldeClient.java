@@ -30,9 +30,9 @@ import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -101,8 +101,7 @@ public class AldeClient {
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "applications");
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     ApplicationDefinition app = new ApplicationDefinition(object.getString("name"), null);
@@ -113,6 +112,8 @@ public class AldeClient {
                     answer.add(app);
                 }
             }
+        } catch (ConnectException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Connection refused to ALDE!");
         } catch (IOException ex) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -287,8 +288,7 @@ public class AldeClient {
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "applications/" + applicationId + "/execution_configurations");
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     answer.add(new ApplicationConfiguration(object));
@@ -331,8 +331,7 @@ public class AldeClient {
             }
             JSONObject apps = readJsonFromUrl(baseUri + "executions", params);
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     answer.add(new ApplicationExecutionInstance(object));
@@ -404,8 +403,7 @@ public class AldeClient {
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "testbeds");
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     answer.add(new Testbed(object));
@@ -450,8 +448,7 @@ public class AldeClient {
              */
             JSONObject apps = readJsonFromUrl(baseUri + "deployments");
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     answer.add(new ApplicationDeployment(object));
@@ -473,8 +470,7 @@ public class AldeClient {
         try {
             JSONObject apps = readJsonFromUrl(baseUri + "gpus");
             JSONArray objects = apps.getJSONArray("objects");
-            for (Iterator iterator = objects.iterator(); iterator.hasNext();) {
-                Object next = iterator.next();
+            for (Object next : objects) {
                 if (next instanceof JSONObject) {
                     JSONObject object = (JSONObject) next;
                     answer.add(new Gpu(object));
