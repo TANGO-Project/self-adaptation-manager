@@ -231,7 +231,11 @@ public class Response implements Comparable<Response> {
      * @return If the adaptation detail is present or not
      */
     public static boolean hasAdaptationDetail(String details, String key) {
-        return getAdaptationDetail(details, key) != null && !getAdaptationDetail(details, key).isEmpty();
+        String adaptationDetail = getAdaptationDetail(details, key);
+        if (adaptationDetail != null) {
+            return !adaptationDetail.isEmpty();
+        }
+        return false;
     }
     
     /**
