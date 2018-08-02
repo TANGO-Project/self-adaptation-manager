@@ -138,16 +138,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case SCALE_TO_N_TASKS:
             case ADD_TASK:
             case REMOVE_TASK:
-                /**
-                 * Task type information indicates that it is an ALDE based adaptation
-                 * otherwise slurm adds more nodes to the job. 
-                 */
-                if (response.hasAdaptationDetail("TASK_TYPE")) {
-                    //This sends the compss command through the ALDE
-                    alde.actuate(response);
-                } else { //Generically add more nodes to the job
-                    alde.actuate(response);
-                }
+                alde.actuate(response); //Note: Slurm is an option as well
                 break;
             case RESELECT_ACCELERATORS:
                 alde.setParent(this);
