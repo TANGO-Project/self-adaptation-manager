@@ -151,6 +151,11 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
          */
         return answer;
     }
+    
+    @Override
+    protected String getTaskDeploymentId(Response response) {
+        return client.getCurrentMonitoringJobId();
+    }    
 
     @Override
     public List<ApplicationOnHost> getTasksOnHost(String host) {
@@ -202,7 +207,6 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         /**
          * Example command: adapt_compss_resources ns54 EmulateRemote_01 CREATE Direct ns51 default
          */
-        masterJobId = client.getCurrentMonitoringJobId();
         String masterNode = getMasterNode();
         String nodeToAdd = "";
         HashSet<String> activeHosts = new HashSet<>();
@@ -242,7 +246,6 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         /**
          * Example Command: adapt_compss_resources ns54 EmulateRemote_01 REMOVE Direct ns51
          */
-        masterJobId = client.getCurrentMonitoringJobId();
         String masterNode = getMasterNode();
         String nodeToDelete = getNodeToDelete(taskId); //task id == host id
         System.out.println("RUNNING COMMAND: adapt_compss_resources " + masterNode + " " + masterJobId + " REMOVE Direct " + nodeToDelete);
