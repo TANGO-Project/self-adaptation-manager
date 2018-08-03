@@ -32,9 +32,9 @@ import java.util.logging.Logger;
  */
 public class SLALimits {
 
-    private static final String APP_POWER = "APP_POWER";
+    private static final String APP_POWER = "app_power";
     private static final String TOTAL_POWER = "TOTAL_POWER"; //for the cluster
-    private static final String HOST_POWER = "HOST_POWER";
+    private static final String HOST_POWER = "power_value";
     private final ArrayList<SLATerm> qosCriteria = new ArrayList<>();
 
     public SLALimits() {
@@ -63,10 +63,13 @@ public class SLALimits {
      * @return the power
      */
     public Double getAppPower() {
-        //TODO check semantics of this in use, per application??
         double power = 0;
         for (SLATerm qosCriteria1 : qosCriteria) {
-            //TODO consider named application??
+            /**
+             * Naming structure should be: app_power:app_name:app_id i.e. app_power:compss:*
+             * This gets the first item from the QoS criteria, which should 
+             * relate to the application, given the way the rules are loaded
+             */
             if (qosCriteria1.getAgreementTerm().contains(APP_POWER)) {
                 return qosCriteria1.getGuaranteedValue();
             }
