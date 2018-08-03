@@ -66,6 +66,10 @@ public class CompssJobMonitor extends AbstractJobMonitor {
         ArrayList<EventData> answer = new ArrayList<>();
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
         List<CompssImplementation> jobs = datasource.getCompssImplementation();
+        if (datasource.getRunningTaskCount() == 0) {
+            //No applications are running so there can't be any application based events
+            return answer;
+        }
         for (SLATerm term : criteria) {
             answer.addAll(detectEvent(term, jobs));   
         }
