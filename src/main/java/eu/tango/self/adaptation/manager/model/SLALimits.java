@@ -32,7 +32,9 @@ import java.util.logging.Logger;
  */
 public class SLALimits {
 
-    private static final String POWER = "POWER";
+    private static final String APP_POWER = "APP_POWER";
+    private static final String TOTAL_POWER = "TOTAL_POWER"; //for the cluster
+    private static final String HOST_POWER = "HOST_POWER";
     private final ArrayList<SLATerm> qosCriteria = new ArrayList<>();
 
     public SLALimits() {
@@ -57,12 +59,15 @@ public class SLALimits {
     }
 
     /**
+     * This gets the power limit for individual applications
      * @return the power
      */
-    public Double getPower() {
+    public Double getAppPower() {
+        //TODO check semantics of this in use, per application??
         double power = 0;
         for (SLATerm qosCriteria1 : qosCriteria) {
-            if (qosCriteria1.getAgreementTerm().equals(POWER)) {
+            //TODO consider named application??
+            if (qosCriteria1.getAgreementTerm().contains(APP_POWER)) {
                 return qosCriteria1.getGuaranteedValue();
             }
         }
@@ -70,15 +75,33 @@ public class SLALimits {
     }
 
     /**
-     * @param power the power to set
+     * This gets the power limit for individual physical hosts
+     * @return the power
      */
-    public void setPower(double power) {
+    public Double getHostPower() {
+        double power = 0;
         for (SLATerm qosCriteria1 : qosCriteria) {
-            if (qosCriteria1.getAgreementTerm().equals(POWER)) {
-                qosCriteria1.setGuaranteedValue(power);
+            //TODO consider named host??
+            if (qosCriteria1.getAgreementTerm().contains(HOST_POWER)) {
+                return qosCriteria1.getGuaranteedValue();
             }
         }
-    }
+        return power;
+    }    
+    
+    /**
+     * This gets the power limit across all physical hosts
+     * @return the power
+     */
+    public Double getTotalPower() {
+        double power = 0;
+        for (SLATerm qosCriteria1 : qosCriteria) {
+            if (qosCriteria1.getAgreementTerm().equals(TOTAL_POWER)) {
+                return qosCriteria1.getGuaranteedValue();
+            }
+        }
+        return power;
+    }       
 
     /**
      * This performs a check to see if the settings file is empty or not. It
