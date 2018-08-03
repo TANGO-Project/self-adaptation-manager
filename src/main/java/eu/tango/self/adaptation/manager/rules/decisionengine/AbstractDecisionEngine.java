@@ -230,8 +230,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         double averagePower = getAveragePowerUsage(response.getApplicationId(), response.getDeploymentId(), taskType);
         Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Avg power = {0}", averagePower);
         //The current total measured power consumption
-        double totalMeasuredPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
-        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredPower);
+        double totalMeasuredAppPower = getTotalPowerUsage(response.getApplicationId(), response.getDeploymentId());
+        Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Total power = {0}", totalMeasuredAppPower);
         double totalAdditionalPower = averagePower * count;
         //TODO Adjust this: Task types are not implemented so this bit has been commented out
 //        List<String> taskTypes = getTaskTypesAvailableToAdd(response.getApplicationId(),
@@ -246,22 +246,23 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
 //            }
 //            return false;
 //        }
-        if (totalAdditionalPower == 0 || totalMeasuredPower == 0) {
+        if (totalAdditionalPower == 0 || totalMeasuredAppPower == 0) {
             //Skip if the measured power values don't make any sense.
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{totalAdditionalPower, totalMeasuredPower});
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.WARNING, "Measured Power Fault: Average Power = {0} Total Power = {1}", new Object[]{totalAdditionalPower, totalMeasuredAppPower});
             return true;
 //            return enoughSpaceForTask(response, taskType);
         }
         String applicationID = response.getApplicationId();
         String deploymentID = response.getDeploymentId();
         SLALimits limits = loader.getSlaLimits(applicationID, deploymentID);
-        if (limits != null && limits.getPower() != null && limits.getPower() != 0) {
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredPower + totalAdditionalPower);
-            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getPower());
-            if (totalMeasuredPower + totalAdditionalPower > limits.getPower()) {
+        if (limits != null && limits.getAppPower() != null && limits.getAppPower() != 0) {
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "New power = {0}", totalMeasuredAppPower + totalAdditionalPower);
+            Logger.getLogger(AbstractDecisionEngine.class.getName()).log(Level.INFO, "Limit of power = {0}", limits.getAppPower());
+            if (totalMeasuredAppPower + totalAdditionalPower > limits.getAppPower()) {
                 return false;
             }
         }
+        //TODO ADD HOST and cluster power/energy estimates??
         //TODO compare any further standard guarantees here that make sense
         return true;
 //        return enoughSpaceForTask(response, taskType);
