@@ -29,12 +29,13 @@ done
 
 echo " "
 echo "completed waiting."
-echo "extracting profile data"
+#Enable next lines in cases where full profiling traces are needed.
+#echo "extracting profile data"
 #Extract profiling data
-./extract_profiling.sh $(cat job.pid)
+#./extract_profiling.sh $(cat job.pid)
 
 #Merge records together
-./merge.sh 
+#./merge.sh 
 
 #Get total energy consumption
 sacct -j $(cat job.pid) --noconvert -n -o "consumedenergy" > energy.out
