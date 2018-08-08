@@ -641,25 +641,29 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             HostEventData event = (HostEventData) response.getCause();
             //An indicator of how big the breach is.
             double scaleFactor = event.getDeviationBetweenRawAndGuarantee();
-            //An indicator of how much the current seleected change will help
+            //An indicator of how much the current selected change will help
             double currentChangeFactor = 0.0;
-            if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST) || response.getActionType().equals(Response.AdaptationType.SHUTDOWN_N_HOSTS)) {
+            if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST) || 
+                    response.getActionType().equals(Response.AdaptationType.SHUTDOWN_N_HOSTS)) {
                 Collections.reverse(hosts); //largest first (i.e. power consumer)               
                 for (Host host : hosts) {
                     if (host.isAvailable()) {
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
                         currentChangeFactor = currentChangeFactor + modeller.getCurrentEnergyForHost(host).getPower();
-                        if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
+                        if (currentChangeFactor >= scaleFactor || 
+                                response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST)) {
                             return response;
                         }
                     }
                 }           
-            } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)  || response.getActionType().equals(Response.AdaptationType.STARTUP_N_HOSTS)) {
+            } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)  || 
+                    response.getActionType().equals(Response.AdaptationType.STARTUP_N_HOSTS)) {
                 for (Host host : hosts) { //smallest first (i.e. power consumer)
                     if (!host.isAvailable()) {
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
                         currentChangeFactor = currentChangeFactor + modeller.getCurrentEnergyForHost(host).getPower();
-                        if (currentChangeFactor >= scaleFactor || response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
+                        if (currentChangeFactor >= scaleFactor || 
+                                response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)) {
                             return response;
                         }
                     }
