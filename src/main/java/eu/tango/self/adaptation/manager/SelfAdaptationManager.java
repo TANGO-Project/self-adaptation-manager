@@ -67,7 +67,7 @@ public class SelfAdaptationManager {
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
             eventAssessorName = config.getString("self.adaptation.manager.event.assessor", eventAssessorName);
             config.setProperty("self.adaptation.manager.event.assessor", eventAssessorName);
-            String datasourceStr = config.getString("self.adaptation.manager.environment.monitor.datasource", "CollectdDataSourceAdaptor");
+            String datasourceStr = config.getString("self.adaptation.manager.environment.monitor.datasource", "CollectDInfluxDbDataSourceAdaptor");
             config.setProperty("self.adaptation.manager.environment.monitor.datasource", datasourceStr);
             setDataSource(datasourceStr);
             //This environment parameter is not written to disk, only read and reconfigures if value is set
