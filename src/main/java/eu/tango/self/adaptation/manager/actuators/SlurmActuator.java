@@ -262,7 +262,7 @@ public class SlurmActuator extends AbstractActuator {
     }
 
     /**
-     * This decreases the walltime of a job
+     * This increases the walltime of a job
      *
      * @param applicationName The application name or identifier
      * @param deploymentId The deployment instance identifier
