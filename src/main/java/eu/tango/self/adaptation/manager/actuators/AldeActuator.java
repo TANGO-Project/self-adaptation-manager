@@ -34,6 +34,7 @@ import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Testbed;
+import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.io.IOException;
@@ -161,14 +162,23 @@ public class AldeActuator extends AbstractActuator {
                     response.setPossibleToAdapt(false);
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
                 }
+            break;
+            case INCREASE_POWER_CAP:
+                increasePowerCap(response);
                 break;
-                case STARTUP_HOST:
+            case REDUCE_POWER_CAP:
+                decreasePowerCap(response);
+                break;
+            case SET_POWER_CAP:
+                setPowerCap(response);                
+            break;
+            case STARTUP_HOST:
                 String host = getHostname(response);
                 if (host != null) {
                     startupHost(host);
                 }
-                break;                
-                case SHUTDOWN_HOST:
+            break;                
+            case SHUTDOWN_HOST:
                 host = getHostname(response);    
                 if (host != null) {
                     shutdownHost(host);
@@ -587,7 +597,7 @@ public class AldeActuator extends AbstractActuator {
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         } 
-    }
+    }   
     
     /**
      * This powers up a host
@@ -602,4 +612,56 @@ public class AldeActuator extends AbstractActuator {
         } 
     }    
 
+    /**
+     * This decreases the cluster level power cap on the infrastructure, by a set amount
+     * @param response The response object that caused the adaptation to be invoked.
+     */
+    public void decreasePowerCap(Response response) {
+        //This uses the internal power capping system
+        double currentPowerCap = SlaRulesLoader.getInstance().getPowerCap();
+        double incremenet = 10;
+        if (response.hasAdaptationDetail("POWER_INCREMENT")) {
+            incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
+        }
+        if (Double.isFinite(currentPowerCap) && currentPowerCap - incremenet > 0) {
+            SlaRulesLoader.getInstance().setPowerCap(currentPowerCap - incremenet);
+        }
+    }
+
+    /**
+     * This increases the cluster level power cap on the infrastructure, by a set amount
+     * @param response The response object that caused the adaptation to be invoked.
+     */
+    public void increasePowerCap(Response response) {
+        //This uses the internal power capping system
+        double currentPowerCap = SlaRulesLoader.getInstance().getPowerCap();
+        double incremenet = 10;
+        if (response.hasAdaptationDetail("POWER_INCREMENT")) {
+            incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
+        }
+        if (Double.isFinite(currentPowerCap)) {
+            SlaRulesLoader.getInstance().modifySlaTerm("HOST:ALL:power", null, currentPowerCap + incremenet);
+        }
+    }
+
+    /**
+     * This sets the cluster level power cap on the infrastructure
+     *
+     * @param response The response object that caused the adaptation to be
+     * invoked.
+     */
+    public void setPowerCap(Response response) {
+        //This uses the internal power capping system        
+        if (response.hasAdaptationDetail("POWER_CAP")) {
+            double powerCap = Double.parseDouble(response.getAdaptationDetail("POWER_CAP"));
+            if (Double.isFinite(powerCap) && powerCap > 0) {
+                SlaRulesLoader.getInstance().modifySlaTerm("HOST:ALL:power", null, powerCap);
+            }
+        } else {
+            response.setPerformed(true);
+            response.setPossibleToAdapt(false);
+            response.setAdaptationDetails("No POWER_CAP value specified");
+        }
+    }     
+    
 }

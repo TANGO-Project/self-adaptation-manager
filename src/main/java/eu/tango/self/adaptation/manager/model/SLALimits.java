@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 public class SLALimits {
 
     private static final String APP_POWER = "app_power";
-    private static final String TOTAL_POWER = "TOTAL_POWER"; //for the cluster
+    private static final String TOTAL_POWER = "HOST:ALL:power"; //for the cluster
     private static final String HOST_POWER = "power_value";
     private final ArrayList<SLATerm> qosCriteria = new ArrayList<>();
 

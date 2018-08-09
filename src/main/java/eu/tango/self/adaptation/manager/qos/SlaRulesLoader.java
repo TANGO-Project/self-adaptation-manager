@@ -23,6 +23,7 @@ import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.model.SLATerm;
+import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -141,6 +142,68 @@ public class SlaRulesLoader {
     public void removeApplicationSpecificLimits(String applicationId, SLALimits limits) {
         appSpecificLimits.remove(applicationId);
     } 
+
+    /**
+     * This tests to see if an sla term exists or not
+     * @param termName The name of the term or terms to find i.e. "HOST:ALL:power"
+     * @param operator The operator such as GT, EQ, LT etc
+     * @return 
+     */
+    public boolean hasSlaTerm(String termName, EventData.Operator operator) {
+        for (SLATerm term : limits.getQosCriteria()) {
+            if (term.getAgreementTerm().equals(termName) && 
+                    (operator == null) || operator.equals(term.getGuaranteeOperator())) {
+                return true;
+            }
+        }
+        return false;
+    }     
+    
+    /**
+     * This sets an existing SLA term to a new value, if multiple terms with the
+     * same name exist then all of them get changed.
+     * @param termName The name of the term or terms to change i.e. "HOST:ALL:power"
+     * @param operator The operator such as GT, EQ, LT etc
+     * @param guaranteedValue The value to set
+     */
+    public void modifySlaTerm(String termName, EventData.Operator operator, double guaranteedValue) {
+        for (SLATerm term : limits.getQosCriteria()) {
+            if (term.getAgreementTerm().equals(termName) && 
+                    (operator == null) || operator.equals(term.getGuaranteeOperator())) {
+                term.setGuaranteedValue(guaranteedValue);
+            }
+        }
+    }
+    
+    /**
+     * This gets the power cap for the limits that are currently loaded
+     * @return the current power cap value for the system as a whole
+     */
+    public double getPowerCap() {
+        for (SLATerm term : limits.getQosCriteria()) {
+            if (term.getAgreementTerm().equals("HOST:ALL:power")) {
+                return term.getGuaranteedValue();
+            }
+        }
+        return -1;
+    }    
+    
+    /**
+     * This sets a power cap for the limits that are currently loaded
+     * @param guaranteedValue The guaranteed value that must not be breached.
+     */
+    public void setPowerCap(double guaranteedValue) {
+        if (hasSlaTerm("HOST:ALL:power", null)) {
+            modifySlaTerm("HOST:ALL:power", null, guaranteedValue);
+        } else {
+            limits.addQoSCriteria(new SLATerm("HOST:ALL:power", 
+                    guaranteedValue, 
+                    EventData.Type.SLA_BREACH, 
+                    EventData.Operator.GT, 
+                    "HOST:ALL:power"));
+        }
+        
+    }
     
     /**
      * This returns the SLA limits for all terms
@@ -208,6 +271,7 @@ public class SlaRulesLoader {
             return;
         }
         for (ApplicationDefinition app : client.getApplicationDefinitions()) {
+            System.out.println("Application Definition: " + app);
             SLALimits applimits = app.getSlaLimits();
             if (applimits != null) {
                 limits.addQoSCriteria(applimits.getQosCriteria());
@@ -253,7 +317,13 @@ public class SlaRulesLoader {
     public void setUseEventsAndRulesFromAlde(boolean useAldeRules) {
         client = (useAldeRules ? new AldeClient() : null);
         if (useAldeRules) {
+            System.out.println("PRE: " + limits.getQosCriteria().size());
             appendRulesFromAlde();
+            System.out.println("POST: " + limits.getQosCriteria().size());
+        }
+        System.out.print("TERMS Loaded in From ALDE");
+        for (SLATerm term : limits.getQosCriteria()) {
+            System.out.println(term);
         }
     }
     

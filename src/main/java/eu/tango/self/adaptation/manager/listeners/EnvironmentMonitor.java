@@ -154,13 +154,19 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private ArrayList<EventData> detectEvent(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
+        List<HostMeasurement> hostmeasurements = datasource.getHostData();
         for (SLATerm term : criteria) {
             /**
              * Structure assumed to be: HOST:ns32:power or HOST:ALL:power
              * Otherwise it simply matches against the agreement term for all
              * hosts
              */
-            if (term.getAgreementTerm().contains("HOST:")) {
+            if (term.getAgreementTerm().equals("HOST:ALL:power")) {
+                HostEventData event = detectTotalPowerConsumption(term, hostmeasurements);
+                if (event != null) {
+                    answer.add(event);
+                }
+            } else if (term.getAgreementTerm().contains("HOST:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 if (termStr.length != 3) {
                     Logger.getLogger(EnvironmentMonitor.class.getName()).log(Level.SEVERE, "A Rule parse error occured");
@@ -216,6 +222,27 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
             }
         }
         return answer;
+    }
+ 
+    /**
+     * This detects power cap events for all physical hosts at once
+     * @param term The term to monitor
+     * @return a host event if it occurs otherwise null.
+     */
+    private HostEventData detectTotalPowerConsumption(SLATerm term, List<HostMeasurement> hostmeasurements) {
+        double power = 0.0;
+        for (HostMeasurement hostmeasurement : hostmeasurements) {
+            power = power + hostmeasurement.getPower(true);
+        }
+        if (!hostmeasurements.isEmpty() && term.isBreached(power)) {
+            return new HostEventData(hostmeasurements.get(0).getClock(), "HOST:ALL:power",
+            power, term.getGuaranteedValue(),
+                    term.getSeverity(),
+                    term.getGuaranteeOperator(),
+                    term.getGuaranteeid(),
+                    term.getAgreementTerm());
+        }
+        return null;
     }
 
     /**
