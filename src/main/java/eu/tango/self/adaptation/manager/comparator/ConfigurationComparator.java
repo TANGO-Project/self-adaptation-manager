@@ -210,13 +210,13 @@ public class ConfigurationComparator {
         for (int i = 0; i < toAverage.size(); i++) {
             String configName = toAverage.getElement(i, 4).trim();
             String energyValue = toAverage.getElement(i, 1).trim();
-            String timeValue = toAverage.getElement(i, 2).trim();
-            if (count.containsKey(configName)) {
+            String timeValue = toAverage.getElement(i, 2).trim();        
+            if (count.containsKey(configName)) { //case where value already exists in the map
                 count.put(configName, count.get(configName) + 1);
                 energy.put(configName, energy.get(configName) + Double.parseDouble(energyValue));
                 time.put(configName, time.get(configName) + Integer.parseInt(timeValue));
-            } else {
-                count.put(configName, 1.0);
+            } else { //doesn't exist case
+                count.put(configName, 1.0); //put first item in list
                 energy.put(configName, Double.parseDouble(energyValue));
                 time.put(configName, Integer.parseInt(timeValue));          
             }
