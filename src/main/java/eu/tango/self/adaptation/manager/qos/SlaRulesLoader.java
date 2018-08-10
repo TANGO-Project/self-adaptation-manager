@@ -151,9 +151,12 @@ public class SlaRulesLoader {
      */
     public boolean hasSlaTerm(String termName, EventData.Operator operator) {
         for (SLATerm term : limits.getQosCriteria()) {
-            if (term.getAgreementTerm().equals(termName) && 
-                    (operator == null) || operator.equals(term.getGuaranteeOperator())) {
-                return true;
+            if (term.getAgreementTerm().equals(termName)) {
+                if (operator == null) {
+                    return true;                
+                } else if (operator.equals(term.getGuaranteeOperator())) {
+                    return true;
+                }
             }
         }
         return false;
