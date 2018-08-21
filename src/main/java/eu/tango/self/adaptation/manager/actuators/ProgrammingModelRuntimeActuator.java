@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
 import eu.tango.energymodeller.datasourceclient.compsstype.CompssImplementation;
+import eu.tango.energymodeller.datasourceclient.compsstype.CompssResource;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
@@ -172,7 +173,23 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         }
         return answer;
     }
+    
+    /**
+     * This gets the list of idle resources
+     * @return This list of compss resources not doing any useful work
+     */
+    public List<CompssResource> getIdleResources() {
+        return client.getIdleResources();
+    }
 
+     /**
+     * This gets the list of idle resources
+     * @return This list of compss resources not doing any useful work
+     */
+    public List<ApplicationOnHost> getIdleResourcesAsDormantApplications() {
+        return client.getIdleResourcesAsDormantApplications();
+    }   
+    
     @Override
     public List<ApplicationOnHost> getTasks() {
         return client.getHostApplicationList();

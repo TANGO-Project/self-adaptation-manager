@@ -476,6 +476,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         if (actuator instanceof ProgrammingModelRuntimeActuator) {
             List<ApplicationOnHost> answer = new ArrayList<>();
             String masterNode = ((ProgrammingModelRuntimeActuator)actuator).getMasterNode();
+            List<ApplicationOnHost> apps = ((ProgrammingModelRuntimeActuator)actuator).getIdleResourcesAsDormantApplications();
+            answer.addAll(apps); //Dormant tasks go first
             for (ApplicationOnHost task : tasks) {
                 if(!task.getAllocatedTo().getHostName().equals(masterNode)) {
                     answer.add(task);

@@ -113,7 +113,7 @@
         <dependency>
 	    <groupId>com.github.TANGO-Project</groupId>
 	    <artifactId>energy-modeller</artifactId>
-	    <version>bc04030269</version>
+	    <version>1d38152048</version>
 	</dependency>
         <dependency>
             <groupId>org.json</groupId>
