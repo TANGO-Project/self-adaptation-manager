@@ -23,6 +23,7 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.usage.CurrentUsageRecord;
 import eu.tango.self.adaptation.manager.actuators.ActuatorInvoker;
+import eu.tango.self.adaptation.manager.actuators.ProgrammingModelRuntimeActuator;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.SLALimits;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
@@ -457,12 +458,34 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected List<Integer> getTaskIdsAvailableToRemove(String applicationName, String deploymentId) {
         List<Integer> answer = new ArrayList<>();
         List<ApplicationOnHost> tasks = actuator.getTasks(applicationName, deploymentId);
+        tasks = limitTaskList(tasks);
         for (ApplicationOnHost task : tasks) {
             //Treat host id as unique id of task/application on a host
             answer.add(task.getAllocatedTo().getId());
         }
         return answer;
-    }    
+    }
+    
+    /**
+     * This removes tasks from the task list for special cases, i.e. master nodes
+     * in the case of compss jobs.
+     * @param tasks The task list to filter
+     * @return The filtered tasks list
+     */
+    private List<ApplicationOnHost> limitTaskList(List<ApplicationOnHost> tasks) {
+        if (actuator instanceof ProgrammingModelRuntimeActuator) {
+            List<ApplicationOnHost> answer = new ArrayList<>();
+            String masterNode = ((ProgrammingModelRuntimeActuator)actuator).getMasterNode();
+            for (ApplicationOnHost task : tasks) {
+                if(!task.getAllocatedTo().getHostName().equals(masterNode)) {
+                    answer.add(task);
+                }
+            }
+            return answer;            
+        } else { //Apply no filtering
+            return tasks;
+        }
+    }
     
     /**
      * This gets a task of a given application, deployment and task id.

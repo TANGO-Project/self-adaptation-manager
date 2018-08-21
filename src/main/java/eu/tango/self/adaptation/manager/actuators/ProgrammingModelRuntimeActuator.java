@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.datasourceclient.CompssDatasourceAdaptor;
+import eu.tango.energymodeller.datasourceclient.compsstype.CompssImplementation;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
@@ -45,6 +46,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
 
     private static final String CONFIG_FILE = "self-adaptation-manager.properties";
     private String compssRuntime = "/home_nfs/home_ejarquej/installations/2.3.1//COMPSs//compssenv";
+    private String defaultMasterNode = "";
     private String permittedHosts = "ns51,ns52,ns53,ns54,ns55,ns56,ns57";
     private CompssDatasourceAdaptor client = new CompssDatasourceAdaptor();
 
@@ -60,11 +62,13 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
             config.setAutoSave(true); //This will save the configuration file back to disk. In case the defaults need setting.
             compssRuntime = config.getString("self.adaptation.manager.compss.runtime", compssRuntime);
             permittedHosts = config.getString("self.adaptation.manager.compss.runtime.permittedhosts", permittedHosts);
+            defaultMasterNode = config.getString("self.adaptation.manager.compss.runtime.masternode", defaultMasterNode);
             if (!compssRuntime.endsWith("/")) {
                 compssRuntime = compssRuntime + "/";
             }
             config.setProperty("self.adaptation.manager.compss.runtime", compssRuntime);
             config.setProperty("self.adaptation.manager.compss.runtime.permittedhosts", permittedHosts);
+            config.setProperty("self.adaptation.manager.compss.runtime.masternode", defaultMasterNode);
         } catch (ConfigurationException ex) {
             Logger.getLogger(ProgrammingModelRuntimeActuator.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
@@ -211,7 +215,10 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         String nodeToAdd = "";
         HashSet<String> activeHosts = new HashSet<>();
         for (Host host : client.getHostList()) {
-            //Obtain the first idle host already added to COMPSS
+            if (host.getHostName().equals(masterNode)) {
+                continue; //Don't pick the master node to add, it should already be running
+            }
+            //Obtain the first idle host already added to COMPSS, this host is likely to have been added then removed.
             if (host.getState().equals("IDLE")) {
                 nodeToAdd = (nodeToAdd.isEmpty() ? host.getHostName() : nodeToAdd);
             } else {
@@ -221,7 +228,7 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
         //If a host isn't available pick one from the none active hosts not added to COMPSS already
         if (nodeToAdd.isEmpty()) {
             for(String host : permittedHosts.split(",")) {
-                if (!activeHosts.contains(host)) {
+                if (!activeHosts.contains(host) && !host.equals(masterNode)) {
                     nodeToAdd = host;
                     break;
                 }
@@ -233,11 +240,14 @@ public class ProgrammingModelRuntimeActuator extends AbstractActuator {
     
     /**
      * This gets the master node for a given job
-     * @param applicationName The application name
      * @return The master node of the named job
      */
-    private String getMasterNode() {
-        return HostnameDetection.getHostname();
+    public String getMasterNode() {
+        if (defaultMasterNode == null || defaultMasterNode.isEmpty()) {
+            return HostnameDetection.getHostname();
+        } else {
+            return defaultMasterNode;
+        }
     }
 
     @Override
