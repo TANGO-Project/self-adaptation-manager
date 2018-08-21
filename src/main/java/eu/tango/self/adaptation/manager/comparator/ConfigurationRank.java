@@ -18,6 +18,12 @@
  */
 package eu.tango.self.adaptation.manager.comparator;
 
+import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * This records the output of the configuration comparison methods, presenting
  * the data in a consistent fashion.
@@ -211,6 +217,50 @@ public class ConfigurationRank implements Comparable<ConfigurationRank> {
     @Override
     public int compareTo(ConfigurationRank o) {
         return Double.valueOf(getAverageEnergy()).compareTo(o.getAverageEnergy());
-    }  
+    }    
+    
+    /**
+     * This filters the results data by its name.
+     * @param toAverage The set of measurements of historic logs.
+     * @param referenceConfig The reference configuration id to compare others against
+     * @return The list of configurations with ranking applied
+     */
+    public static List<ConfigurationRank> getConfigurationRank(List<ApplicationExecutionInstance> toAverage, String referenceConfig) {
+        /**
+         * To Average input row = (name, energy used, time used, job id, config id)
+         * example: (Benchmark,9844,122,3604,cpu)
+         */
+        ArrayList<ConfigurationRank> answer = new ArrayList<>();
+        HashMap<String, Double> count = new HashMap<>(); //count double
+        HashMap<String, Double> energy = new HashMap<>(); //J
+        HashMap<String, Double> time = new HashMap<>(); //s
+        for (ApplicationExecutionInstance instance : toAverage) {
+            String configName = instance.getExecutionConfigurationsId() + "";
+            double energyValue = (double) instance.getEnergy();
+            double timeValue = (double) instance.getDuration();
+            //Skip empty records
+            if (energyValue == 0 || timeValue == 0) {
+                continue;
+            }
+            if (count.containsKey(configName)) { //case where value already exists in the map
+                count.put(configName, count.get(configName) + 1);
+                energy.put(configName, energy.get(configName) + energyValue);
+                time.put(configName, time.get(configName) + timeValue);
+            } else { //doesn't exist case
+                count.put(configName, 1.0); //put first item in list
+                energy.put(configName, energyValue);
+                time.put(configName, timeValue);          
+            }
+        }
+        for (Map.Entry<String, Double> item : count.entrySet()) {
+            double countVal = item.getValue();
+            double energyVal = energy.get(item.getKey());
+            double timeVal = time.get(item.getKey());
+            answer.add(new ConfigurationRank(item.getKey(), countVal, energyVal, timeVal, 
+                    (energyVal/countVal)/(energy.get(referenceConfig)/count.get(referenceConfig)),
+                    (timeVal/countVal)/(time.get(referenceConfig)/count.get(referenceConfig))));
+        }
+        return answer;
+    }    
     
 }

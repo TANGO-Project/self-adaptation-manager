@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.comparator;
 
 import eu.ascetic.ioutils.io.ResultsStore;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ConfigurationComparator {
         }
         return compare(applicationName, referenceConfig, configNames);
     }    
-    
+
     /**
      * This gets the table with the rankings of each configuration
      * @param applicationName The application name
@@ -73,6 +74,59 @@ public class ConfigurationComparator {
                 + "running config instance {1}.", new Object[]{applicationName, referenceConfig});
         return averageAndGroup(data, referenceConfig);
     }
+    
+    /**
+     * This gets the table with the rankings of each configuration
+     * @param referenceConfig The reference configuration for comparison against
+     * @param runs The list of execution instances used to construct the comparison
+     * @param validConfigs This lists the valid configs, so they are picked up from disk and filtered correctly.
+     * @return The complete set of results.
+     */
+    public ArrayList<ConfigurationRank> compare(String referenceConfig, List<ApplicationConfiguration> validConfigs, List<ApplicationExecutionInstance> runs) {
+        ArrayList<String> configNames = new ArrayList<>();
+        for (ApplicationConfiguration validConfig : validConfigs) {
+            configNames.add(validConfig.getConfigurationId() + "");
+        }
+        return compare(referenceConfig, configNames, runs);
+    }      
+    
+    /**
+     * This gets the table with the rankings of each configuration
+     * @param referenceConfig The reference configuration for comparison against
+     * @param validConfigNames This lists the valid config names, so they are picked up from disk and filtered correctly.
+     * @param runs  The list of execution instances used to construct the comparison
+     * @return The complete set of results.
+     */
+    public ArrayList<ConfigurationRank> compare(String referenceConfig, ArrayList<String> validConfigNames, List<ApplicationExecutionInstance> runs) {
+        List<ApplicationExecutionInstance> runsData;
+        //A guard that ensures the referenceConfig is part of the set of data to be filtered.
+        if (!validConfigNames.contains(referenceConfig)) {
+            validConfigNames.add(referenceConfig);
+        }        
+        runsData = filterOnConfigName(runs, validConfigNames);
+        Logger.getLogger(ConfigurationComparator.class.getName()).log(Level.INFO, 
+                "Comparing configurations for the application: against the "
+                + "running config instance {1}.", new Object[]{referenceConfig});
+        return (ArrayList<ConfigurationRank>) ConfigurationRank.getConfigurationRank(runsData, referenceConfig);
+    }
+    
+    /**
+     * This filters the results data to get the data for a given application and
+     * a set of its configurations
+     * @param toFilter The result store to filter
+     * @param validConfigNames The list of valid configuration names to filter
+     * @return 
+     */
+    public static List<ApplicationExecutionInstance> filterOnConfigName(List<ApplicationExecutionInstance> toFilter, 
+            List<String> validConfigNames) {
+        List<ApplicationExecutionInstance> answer = new ArrayList<>();       
+        for (ApplicationExecutionInstance item : toFilter) {
+            if (validConfigNames.contains(item.getExecutionConfigurationsId() + "")) {
+                answer.add(item);
+            }
+        }        
+        return answer;
+    }    
     
     /**
      * This returns the configuration which completes the fastest
@@ -169,7 +223,7 @@ public class ConfigurationComparator {
             }
         }
         return comparisonData;
-    }
+    } 
     
     /**
      * This filters the results data to get the data for a given application and

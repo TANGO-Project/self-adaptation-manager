@@ -171,6 +171,22 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     public String getOutput() {
         return getString("output");
     }
+    
+    /**
+     * This gets the energy consumption of the execution instance
+     * @return The energy consumed while running this execution instance
+     */
+    public int getEnergy() {
+        return getInt("energy_output");
+    }
+    
+    /**
+     * This gets the duration of a completed execution instance
+     * @return The completion time of an execution instance
+     */
+    public int getDuration() {
+        return getInt("runtime_output");
+    }
 
     /**
      * This filters a list of application execution instances by their Status
