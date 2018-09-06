@@ -112,7 +112,7 @@ public class CompssJobMonitor extends AbstractJobMonitor {
         }
         idleHosts = currentIdle;
         return answer;
-    }    
+    } 
     
     /**
      * This takes the list of hosts and detects if one has recently been set to
@@ -200,6 +200,9 @@ public class CompssJobMonitor extends AbstractJobMonitor {
                 break;
 		case "ExecutedCount":
                     currentValue = job.getExecutionCount();                      
+                break;
+                case "ActionCount":
+                    currentValue = datasource.getHostApplicationList().size();
                 break;
                 default: //Unrecognised term, so continue
                     continue;
