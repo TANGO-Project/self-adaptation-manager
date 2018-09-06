@@ -106,7 +106,7 @@ public class ConfigurationComparator {
         runsData = filterOnConfigName(runs, validConfigNames);
         Logger.getLogger(ConfigurationComparator.class.getName()).log(Level.INFO, 
                 "Comparing configurations for the application: against the "
-                + "running config instance {1}.", new Object[]{referenceConfig});
+                + "running config instance {0}.", new Object[]{referenceConfig});
         return (ArrayList<ConfigurationRank>) ConfigurationRank.getConfigurationRank(runsData, referenceConfig);
     }
     
