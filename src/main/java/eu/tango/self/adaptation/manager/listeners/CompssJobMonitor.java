@@ -28,6 +28,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,14 @@ public class CompssJobMonitor extends AbstractJobMonitor {
     private static final String TASK_COMPLETION_RATE = "TASK_COMPLETION_RATE";
     private HashSet<Host> idleHosts = new HashSet<>();
     private HashSet<Host> failingHosts = new HashSet<>();
-    private HashSet<ApplicationOnHost> runningJobs = null;    
+    private HashSet<ApplicationOnHost> runningJobs = null;
+    /**
+     * The next two hashmaps are used to find the average jobs completed, over
+     * a short window. The Compss calculation works for all of time as it is 
+     * un-windowed.
+     */
+    HashMap<String, CompssImplementation> previous = new HashMap<>();
+    HashMap<String, Long> previousTime = new HashMap<>();    
 
     public CompssJobMonitor() { 
     }
@@ -204,6 +212,10 @@ public class CompssJobMonitor extends AbstractJobMonitor {
                 case "ActionCount":
                     currentValue = datasource.getHostApplicationList().size();
                 break;
+                case "RollingAverage": //Job's completion rate since last record
+                    long time = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+                    currentValue = getSpotRunningTime(job, time);
+                break;
                 default: //Unrecognised term, so continue
                     continue;
             }           
@@ -228,6 +240,29 @@ public class CompssJobMonitor extends AbstractJobMonitor {
                 answer.add(event);
             }
         }
+        return answer;
+    }
+    
+    /**
+     * This gets the spot average runtime of an application - compss reports the
+     * average runtime for all time, so this does the time since the last record was passed.
+     * @param item The current compss implementation record undergoing writing to disk
+     * @param time The current time, in milliseconds
+     * @return The rate at which jobs have been processed
+     */
+    private double getSpotRunningTime(CompssImplementation item, long time) {
+        double answer = 0;
+        long currentTime = time / 1000;       
+        Long lastTimeValue = previousTime.get(item.getName());
+        CompssImplementation previousItem = previous.get(item.getName());
+        if (lastTimeValue != null && previousItem != null) {
+            double changeInExecutionCount = item.getExecutionCount() - previousItem.getExecutionCount();
+            long changeInTime = currentTime - lastTimeValue;
+            answer = changeInExecutionCount / changeInTime;
+        }
+        //make a record of the previous item seen
+        previousTime.put(item.getName(), currentTime);
+        previous.put(item.getName(), item);
         return answer;
     }
     
