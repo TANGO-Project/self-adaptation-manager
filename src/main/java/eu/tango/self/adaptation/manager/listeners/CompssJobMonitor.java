@@ -245,7 +245,8 @@ public class CompssJobMonitor extends AbstractJobMonitor {
     
     /**
      * This gets the spot average runtime of an application - compss reports the
-     * average runtime for all time, so this does the time since the last record was passed.
+     * average runtime for all time. This method instead generates the average since 
+     * the last record was seen, thus uses a short window length, to aid responsiveness.
      * @param item The current compss implementation record undergoing writing to disk
      * @param time The current time, in milliseconds
      * @return The rate at which jobs have been processed
