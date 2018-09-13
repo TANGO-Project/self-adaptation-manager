@@ -123,6 +123,23 @@ public class AldeClient {
     /**
      * This gets the application definition of a single application
      *
+     * @param id The id of the application to get
+     * @return The definition of the named application
+     */
+    public ApplicationDefinition getApplicationDefinition(int id) {
+        List<ApplicationDefinition> allApps = getApplicationDefinitions();
+        for (ApplicationDefinition app : allApps) {
+            if (app.getAldeAppId() == id) {
+                return app;
+            }
+        }
+        Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "The application {0} was not found.", id);
+        return null;
+    }    
+    
+    /**
+     * This gets the application definition of a single application
+     *
      * @param name The name of the application to get
      * @return The definition of the named application
      */
