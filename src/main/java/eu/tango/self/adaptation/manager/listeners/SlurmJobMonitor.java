@@ -107,8 +107,8 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
         if (containsTerm(limits, IDLE_HOST + PENDING_JOB)) {
             answer.addAll(detectIdleHostsWithPendingJobs());
         }
-        if (containsTerm(limits, CLOSE_TO_DEADLINE)) {
-            answer.addAll(detectCloseToDeadlineJobs());
+        if (containsTerm(limits, CLOSE_TO_DEADLINE, true)) {
+            answer.addAll(detectCloseToDeadlineJobs(limits));
         }
         if (containsTerm(limits, POWER_CAP)) {
             answer.addAll(detectPowerCapChange(limits));
@@ -375,11 +375,12 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
      * @return The list of events indicating which jobs are nearing their
      * deadline, which would cause them to terminate.
      */
-    private ArrayList<EventData> detectCloseToDeadlineJobs() {
+    private ArrayList<EventData> detectCloseToDeadlineJobs(SLALimits limits) {
         ArrayList<EventData> answer = new ArrayList<>();
         HashSet<ApplicationOnHost> currentRunning = new HashSet<>(datasource.getHostApplicationList());
         for (ApplicationOnHost job : currentRunning) {
-            if (job.getProgress() > 95) { //TODO Make the % completion customizable.
+            double boundary = getApplicationDeadline(limits, job);
+            if (job.getProgress() > boundary) {
                 EventData event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()),
                         0.0,
                         0.0,
@@ -391,6 +392,31 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
                         CLOSE_TO_DEADLINE);
                 event.setSignificantOnOwn(true);
                 answer.add(event);
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * This reads the limits loaded and considers if any specify an application 
+     * deadline limit for the application.
+     * @param limits the list of SLA limits
+     * @param application The application to find the SLA time limit
+     * @return The deadline as percentage of time available to the application
+     */
+    private double getApplicationDeadline(SLALimits limits, ApplicationOnHost application) {
+        double answer = 95.0;
+        SLALimits filtered = SLALimits.filterTerms(limits, application.getName());
+        for (SLATerm term : filtered.getQosCriteria()) {
+            if (term.getAgreementTerm().contains(CLOSE_TO_DEADLINE)) {
+                String[] split = term.getSplitAgreementTerm();
+                if (split.length == 2) {
+                    return Double.parseDouble(split[1]);
+                } else if(split.length == 3) {
+                    if (application.getName().equals(split[1])) {
+                        return Double.parseDouble(split[2]);
+                    }
+                }
             }
         }
         return answer;

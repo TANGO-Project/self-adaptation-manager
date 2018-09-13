@@ -89,6 +89,30 @@ public abstract class AbstractJobMonitor implements EventListener, Runnable {
         }
         return false;
     }
+
+    /**
+     * Checks to see if the SLA rules includes a check for a given condition.
+     * This 
+     *
+     * @param limits The SLA terms
+     * @param termName The name of the SLA term
+     * @param agreementTermisPartial Indicates if the termName should be matched
+     * against partial strings or not. If an agreement term has additional parameters, then
+     * this value can be set to false.
+     * @return If the term is contained or not within the SLA limits set
+     */
+    protected boolean containsTerm(SLALimits limits, String termName, boolean agreementTermisPartial) {
+        if (agreementTermisPartial == false) {
+            //Agreement term must be exactly equal to the value
+            return containsTerm(limits, termName);
+        }
+        for (SLATerm slaTerm : limits.getQosCriteria()) {
+            if (slaTerm.getAgreementTerm().contains(termName)) {
+                return true;
+            }
+        }
+        return false;
+    }    
     
     /**
      * This takes a list of measurements and determines if an SLA breach has
