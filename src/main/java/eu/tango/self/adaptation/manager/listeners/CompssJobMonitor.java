@@ -257,9 +257,9 @@ public class CompssJobMonitor extends AbstractJobMonitor {
         Long lastTimeValue = previousTime.get(item.getName());
         CompssImplementation previousItem = previous.get(item.getName());
         if (lastTimeValue != null && previousItem != null) {
-            double changeInExecutionCount = item.getExecutionCount() - previousItem.getExecutionCount();
+            int changeInExecutionCount = item.getExecutionCount() - previousItem.getExecutionCount();
             long changeInTime = currentTime - lastTimeValue;
-            answer = changeInExecutionCount / changeInTime;
+            answer = ((double) changeInExecutionCount) / changeInTime;
         }
         //make a record of the previous item seen
         previousTime.put(item.getName(), currentTime);

@@ -171,9 +171,10 @@ public class SlaRulesLoader {
      */
     public void modifySlaTerm(String termName, EventData.Operator operator, double guaranteedValue) {
         for (SLATerm term : limits.getQosCriteria()) {
-            if (term.getAgreementTerm().equals(termName) && 
-                    (operator == null) || operator.equals(term.getGuaranteeOperator())) {
-                term.setGuaranteedValue(guaranteedValue);
+            if (term.getAgreementTerm().equals(termName)) {
+                if ((operator == null) || operator.equals(term.getGuaranteeOperator())) {
+                    term.setGuaranteedValue(guaranteedValue);
+                }
             }
         }
     }
