@@ -296,6 +296,10 @@ public class AldeActuator extends AbstractActuator {
         }
         //If there is more than one configuration then one needs to be picked
         ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, appDefintion.getExecutionInstances());        
+        //If the ALDE doesn't have ranking data, use a fall back to using a file on disk.
+        if (ranked == null || ranked.isEmpty()) {
+            ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "", configsToConsider);
+        }
         //If there is no ranking data just pick one
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No Ranking data of the configuration options was available so one was just picked.");
