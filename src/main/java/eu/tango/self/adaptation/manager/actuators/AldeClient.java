@@ -18,13 +18,17 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
+import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.io.JsonUtils;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutable;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
+import eu.tango.self.adaptation.manager.model.Node;
 import eu.tango.self.adaptation.manager.model.SLATerm;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
@@ -90,7 +94,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -411,9 +415,9 @@ public class AldeClient {
     }
 
     /**
-     * This lists all applications that are deployable by the ALDE
+     * This lists all testbeds that are known to the ALDE
      *
-     * @return The list of applications known to the ALDE
+     * @return The list of testbeds known to the ALDE
      */
     public List<Testbed> getTestbeds() {
         ArrayList<Testbed> answer = new ArrayList<>();
@@ -447,6 +451,60 @@ public class AldeClient {
         }
         return null;
     }
+    
+    /**
+     * This lists all nodes that are known to the ALDE
+     *
+     * @return The list of nodes known to the ALDE
+     */
+    public List<Node> getNodes() {
+        ArrayList<Node> answer = new ArrayList<>();
+        try {
+            JSONObject apps = readJsonFromUrl(baseUri + "nodes");
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Object next : objects) {
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(new Node(object));
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return answer;
+    }    
+    
+    /**
+     * This gets a node from its given id value
+     *
+     * @param nodeId The nodes alde id value
+     * @return The json object containing properties of the testbed
+     */
+    public Node getNode(int nodeId) {
+        List<Node> nodes = getNodes();
+        for (Node node : nodes) {
+            if (node.getId() == nodeId) {
+                return node;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * This gets a node from its given id value
+     *
+     * @param nodeName The node id value
+     * @return The json object containing properties of the testbed
+     */
+    public Node getNode(String nodeName) {
+        List<Node> nodes = getNodes();
+        for (Node node : nodes) {
+            if (node.getName().equals(nodeName)) {
+                return node;
+            }
+        }
+        return null;
+    }     
 
     /**
      * This lists all deployments of an applications by the ALDE
@@ -571,10 +629,27 @@ public class AldeClient {
      */
     public void shutdownHost(String hostname) throws IOException {
         /**
-         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": drain, "reason": TANGO SAM requested to drain the node}'
+         *
+         * It is used to call the ALDE to shutdown a host as per 
+         * Holistic scenario 11 (alternative 3)
          */
-        throw new UnsupportedOperationException("Not supported yet.");
+        JSONObject json = new JSONObject();
+        json.put("state", "drain");
+        json.put("reason", "TANGO SAM requested to drain the node");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Shutting down host {0}", hostname);
+            HttpPatch request = new HttpPatch(baseUri + "node/" + getNode(hostname).getId());
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when removing resources", ex);
+        }
     }
 
     /**
@@ -584,10 +659,26 @@ public class AldeClient {
      */
     public void startHost(String hostname) throws IOException {
         /**
-         * The command that this code replicates: curl -X PATCH -H'Content-type: ....
-         * TODO To complete call to ALDE to shutdown a host as per Holistic scenario 11 (alternative 3)
+         * The command that this code replicates: curl -X PATCH -H'Content-type:
+         * application/json'
+         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": drain, "reason": TANGO SAM requested to drain the node}'
+         *
+         * It is used to call the ALDE to shutdown a host as per 
+         * Holistic scenario 11 (alternative 3)
          */
-        throw new UnsupportedOperationException("Not supported yet.");
+        JSONObject json = new JSONObject();
+        json.put("state", "idle");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Setting a host {0} to to idle", hostname);
+            HttpPatch request = new HttpPatch(baseUri + "node/" + getNode(hostname).getId());
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Something went wrong when removing resources", ex);
+        }
     }
 
     /**
