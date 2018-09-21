@@ -597,6 +597,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public void shutdownHost(String hostname) {
         try {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.INFO, "Performing shutdown of host {0}", hostname);
             client.shutdownHost(hostname);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
@@ -610,6 +611,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public void startupHost(String hostname) {
         try {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.INFO, "Performing startup of host {0}", hostname);
             client.startHost(hostname);
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);

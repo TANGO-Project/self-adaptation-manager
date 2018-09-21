@@ -631,7 +631,7 @@ public class AldeClient {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
-         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": drain, "reason": TANGO SAM requested to drain the node}'
+         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": "drain", "reason": TANGO SAM requested to drain the node}'
          *
          * It is used to call the ALDE to shutdown a host as per 
          * Holistic scenario 11 (alternative 3)
@@ -641,7 +641,11 @@ public class AldeClient {
         json.put("reason", "TANGO SAM requested to drain the node");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Shutting down host {0}", hostname);
-            HttpPatch request = new HttpPatch(baseUri + "node/" + getNode(hostname).getId());
+            Node node = getNode(hostname);
+            if (node == null) {
+                Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Unable to detect the resource to drain correctly");
+            }
+            HttpPatch request = new HttpPatch(baseUri + "nodes/" + node.getId());
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
@@ -670,7 +674,11 @@ public class AldeClient {
         json.put("state", "idle");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Setting a host {0} to to idle", hostname);
-            HttpPatch request = new HttpPatch(baseUri + "node/" + getNode(hostname).getId());
+            Node node = getNode(hostname);
+            if (node == null) {
+                Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Unable to detect the resource to make idle correctly");
+            }
+            HttpPatch request = new HttpPatch(baseUri + "nodes/" + node.getId());
             StringEntity params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
