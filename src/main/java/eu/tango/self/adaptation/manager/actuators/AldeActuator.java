@@ -176,12 +176,16 @@ public class AldeActuator extends AbstractActuator {
                 String host = getHostname(response);
                 if (host != null) {
                     startupHost(host);
+                } else {
+                    response.setPossibleToAdapt(false);
                 }
             break;                
             case SHUTDOWN_HOST:
                 host = getHostname(response);    
                 if (host != null) {
                     shutdownHost(host);
+                } else {
+                    response.setPossibleToAdapt(false);
                 }
                 if (response.hasAdaptationDetail("REBOOT")) {
                     int resumeInNseconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
