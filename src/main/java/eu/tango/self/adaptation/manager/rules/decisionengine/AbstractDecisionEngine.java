@@ -348,7 +348,9 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
     protected Response handleUnspecifiedHost(Response response) {
         if (response.getCause() instanceof HostEventData) {
             HostEventData event = (HostEventData) response.getCause();
-            if (event.getHost().equals("*") || event.getHost().isEmpty()) {
+            if (event.getHost().equals("*") || 
+                    event.getHost().contains("ALL") || 
+                    event.getHost().isEmpty()) {
                 response = selectHostToAdapt(response);
             }
         }
@@ -706,7 +708,10 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The new concatenated hosts list
      */
     private String generateHostString(String original, String toAdd) {
-        if (original == null || original.isEmpty()) {
+        if (original == null || original.isEmpty() || 
+                original.contains("*") || 
+                original.contains("ALL")) {
+            //All or * are wildcards, that must be removed
             if (toAdd == null) {
                 return "";
             }
