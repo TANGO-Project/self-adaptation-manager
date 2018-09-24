@@ -183,6 +183,21 @@ public class AldeActuator extends AbstractActuator {
             case SHUTDOWN_HOST:
                 host = getHostname(response);    
                 if (host != null) {
+                    /**
+                     * This is an extension to the call that cancels existing 
+                     * applications on the host, instead of just performing a host
+                     * drain operation.
+                     */
+                    if (response.hasAdaptationDetail("CANCEL_APPS")) {
+                        for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
+                            try {
+                                client.cancelApplication(app.getExecutionId());
+                            } catch (IOException ex) {
+                                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
+                            }
+                        }
+                    }
+                    //This bit peformes the main operation to shutdown the host
                     shutdownHost(host);
                 } else {
                     response.setPossibleToAdapt(false);
