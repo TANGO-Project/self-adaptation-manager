@@ -191,7 +191,9 @@ public class AldeActuator extends AbstractActuator {
                     if (response.hasAdaptationDetail("CANCEL_APPS")) {
                         for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
                             try {
-                                client.cancelApplication(app.getExecutionId());
+                                if (app.getNodes().contains(host)) {
+                                    client.cancelApplication(app.getExecutionId());
+                                }
                             } catch (IOException ex) {
                                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
                             }
@@ -608,6 +610,15 @@ public class AldeActuator extends AbstractActuator {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
     }
+
+    /**
+     * This powers down a host
+     *
+     * @param hostname The host to power down
+     */
+    public void shutdownHostAndCancelApps(String hostname) {
+        shutdownHost(hostname);
+    }     
     
     /**
      * This powers down a host

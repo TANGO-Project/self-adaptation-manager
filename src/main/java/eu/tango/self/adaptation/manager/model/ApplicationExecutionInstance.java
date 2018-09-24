@@ -147,6 +147,31 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     }
     
     /**
+     * This gets the list of nodes assosciated with this application
+     * @return 
+     */
+    public ArrayList<String> getNodes() {
+        ArrayList<String> answer = new ArrayList<>();
+        if (getKeyType("nodes").equals(JSONArray.class)) {
+            //The list case
+            JSONArray array = getJsonArray("nodes");
+            if (array != null) {
+                for(int i = 0; i < array.length();i++) {
+                    answer.add(array.getString(i));
+                }
+            }
+        } else if (getKeyType("nodes").equals(JSONObject.class)) {        
+            //The single item case
+            String item = getString("nodes");
+            if (item != null) {
+                answer.add(item);
+            }
+            return answer;
+        }
+        return answer;
+    }    
+    
+    /**
      * This gets the executions Status
      * @return The Status string of the execution
      */    
