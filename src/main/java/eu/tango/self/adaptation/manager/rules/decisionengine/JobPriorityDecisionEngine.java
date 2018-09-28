@@ -255,7 +255,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
      */
     public final void setHostRanking(String rankingMechanism) {
         try {
-            if (!rankingMechanism.startsWith(DEFAULT_HOST_RANKING_PACKAGE)) {
+            if (!rankingMechanism.startsWith(DEFAULT_HOST_RANKING_PACKAGE) && !rankingMechanism.contains(".")) {
                 rankingMechanism = DEFAULT_HOST_RANKING_PACKAGE + "." + rankingMechanism;
             }
             hostRanking = (Comparator<Host>) (Class.forName(rankingMechanism).newInstance());
