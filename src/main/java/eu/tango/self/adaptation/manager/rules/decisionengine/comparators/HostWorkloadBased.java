@@ -21,6 +21,7 @@ package eu.tango.self.adaptation.manager.rules.decisionengine.comparators;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -46,18 +47,35 @@ public class HostWorkloadBased implements Comparator<Host>, Serializable {
      * @param workload 
      */
     public HostWorkloadBased(List<ApplicationOnHost> workload) {
-        HostWorkload.getHostWorkloadsMap(workload);
+        System.out.println("Seen here workload based");
+        workloadMap = HostWorkload.getHostWorkloadsMap(workload);
     }
 
     @Override
     public int compare(Host o1, Host o2) {
+        mapContainsHostGuard(o1);
+        mapContainsHostGuard(o2);
         //Rank Malable 0 -> Rigid 3 last
         int answer = workloadMap.get(o2).getPriority().compareTo(workloadMap.get(o1).getPriority());
         if (answer == 0) { //If equal then apply a second order sort
             //Ensure smallest queues are cancelled first
-            return workloadMap.get(o1).getQueueLength().compareTo(workloadMap.get(o2).getQueueLength());
+            answer = workloadMap.get(o1).getQueueLength().compareTo(workloadMap.get(o2).getQueueLength());
+            if (answer == 0) {
+                answer = Double.valueOf(o1.getIdlePowerConsumption()).compareTo(
+                    o2.getIdlePowerConsumption());
+            }
         }
         return answer;
+    }
+    
+    /**
+     * This checks to see if the workload map contains a given host
+     * @param host The host to perform the check against
+     */
+    private void mapContainsHostGuard(Host host) {
+        if (!workloadMap.containsKey(host)) {
+            workloadMap.put(host, new HostWorkload(host, new ArrayList<ApplicationOnHost>()));
+        }
     }
 
     /**
