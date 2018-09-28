@@ -24,6 +24,7 @@ import eu.tango.energymodeller.types.energyuser.comparators.HostIdlePower;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
+import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.HostWorkloadBased;
 import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.JobPriority;
 import eu.tango.self.adaptation.manager.rules.decisionengine.comparators.JobTypeAndPriority;
 import java.util.Collections;
@@ -97,6 +98,9 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
     @Override
     protected Response selectHostToAdapt(Response response) {
         //Could also rank by Max Power or flops per Watt
+        if (hostRanking instanceof HostWorkloadBased) {
+            hostRanking = new HostWorkloadBased(getActuator().getTasks());
+        }
         return selectHostToAdapt(response, hostRanking);
     }  
 
