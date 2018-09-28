@@ -19,11 +19,13 @@
 package eu.tango.self.adaptation.manager.rules.decisionengine;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import eu.tango.energymodeller.types.energyuser.comparators.HostIdlePower;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND;
 import static eu.tango.self.adaptation.manager.rules.datatypes.Response.ADAPTATION_DETAIL_NO_ACTUATION_TASK;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -115,7 +117,16 @@ public class PowerRankedDecisionEngine extends AbstractDecisionEngine {
     @Override
     protected Response selectHostToAdapt(Response response) {
         //Could also rank by Max Power or flops per Watt
-        return selectHostToAdapt(response, new HostIdlePower());
+        return selectHostToAdapt(response, getHostRanking());
+    }
+    
+    /**
+     * This provides the ranking mechanism by which this decisions engine ranks
+     * hosts. i.e. by host idle power.
+     * @return The list of hosts to rank against 
+     */
+    public Comparator<Host> getHostRanking() {
+        return new HostIdlePower();
     }    
 
     /**

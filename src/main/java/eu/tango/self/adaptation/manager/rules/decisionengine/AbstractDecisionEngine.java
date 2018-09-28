@@ -346,6 +346,15 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * not a host event
      */
     protected Response handleUnspecifiedHost(Response response) {
+        if (response.getCause() instanceof ApplicationEventData) {
+            //Select the host associated with the application
+            ApplicationEventData event = (ApplicationEventData) response.getCause();
+            ArrayList<Host> hostList = new ArrayList<>();
+            for (ApplicationOnHost app : actuator.getTasks(event.getApplicationId(), event.getApplicationId())) {
+                hostList.add(app.getAllocatedTo());
+            }
+            selectHostToAdapt(response, getHostRanking(), hostList);
+        }
         if (response.getCause() instanceof HostEventData) {
             HostEventData event = (HostEventData) response.getCause();
             if (event.getHost().equals("*") || 
@@ -652,6 +661,8 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
         return answer;
     }
     
+    public abstract Comparator<Host> getHostRanking();    
+    
     /**
      * This applies a sort and then picks the first N relevant hosts to perform 
      * the adaptation for.
@@ -660,8 +671,19 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      * @return The modified response object with a host value set.
      */
     protected Response selectHostToAdapt(Response response, Comparator<Host> sort) {
+        return selectHostToAdapt(response, sort, getHostList(sort));
+    }    
+
+    /**
+     * This applies a sort and then picks the first N relevant hosts to perform 
+     * the adaptation for.
+     * @param response The response object to set a host name for
+     * @param sort The sort to apply, if null will shuffle hosts instead, i.e. random.
+     * @param hosts The list of hosts to apply the sort to ready for selection
+     * @return The modified response object with a host value set.
+     */
+    protected Response selectHostToAdapt(Response response, Comparator<Host> sort, List<Host> hosts) {
         if (response.getCause() instanceof HostEventData) {
-            List<Host> hosts = getHostList(sort);
             if (sort == null) {
                 Collections.shuffle(hosts);
             }
