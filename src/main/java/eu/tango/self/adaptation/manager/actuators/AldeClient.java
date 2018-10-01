@@ -678,6 +678,7 @@ public class AldeClient {
             Node node = getNode(hostname);
             if (node == null) {
                 Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "Unable to detect the resource to make idle correctly");
+                return;
             }
             HttpPatch request = new HttpPatch(baseUri + "nodes/" + node.getId());
             StringEntity params = new StringEntity(json.toString());
