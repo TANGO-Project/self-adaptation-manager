@@ -147,25 +147,23 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     }
     
     /**
-     * This gets the list of nodes assosciated with this application
+     * This gets the list of nodes associated with this application
      * @return 
      */
-    public ArrayList<String> getNodes() {
-        ArrayList<String> answer = new ArrayList<>();
+    public ArrayList<Node> getNodes() {
+        ArrayList<Node> answer = new ArrayList<>();
         if (getKeyType("nodes").equals(JSONArray.class)) {
             //The list case
             JSONArray array = getJsonArray("nodes");
             if (array != null) {
                 for(int i = 0; i < array.length();i++) {
-                    answer.add(array.getString(i));
+                    answer.add(new Node(array.getJSONObject(i)));
                 }
             }
         } else if (getKeyType("nodes").equals(JSONObject.class)) {        
             //The single item case
-            String item = getString("nodes");
-            if (item != null) {
-                answer.add(item);
-            }
+            Node item = new Node(getJsonObject("nodes"));
+            answer.add(item);
             return answer;
         }
         return answer;
