@@ -166,6 +166,10 @@ public class ClockMonitor implements EventListener, Runnable {
      * @param event The event to perform an action for
      */
     public void assessEvent(EventData event) {
+        if (event.getAgreementTerm().startsWith("index=")) {
+            int startOfAgreementTerm = event.getAgreementTerm().indexOf(":") + 1;
+            event.setAgreementTerm(event.getAgreementTerm().substring(startOfAgreementTerm));
+        }
         if (eventAssessor == null) {
             Logger.getLogger(ClockMonitor.class.getName()).log(Level.SEVERE, "No Event Assessor was set, now quitting.");
             ClockMonitor.getInstance().stopListening();
@@ -238,13 +242,22 @@ public class ClockMonitor implements EventListener, Runnable {
                 newJob = true;
             }
             // example cron string "0/5 * * * * ?" i.e .every 5 minutes
-            Trigger trigger = TriggerBuilder
+            Trigger trigger;
+            String triggerName = eventName;
+            int loopCount = 0;
+            do {   
+                if (loopCount > 0) {
+                    triggerName = "index="+ loopCount + ":" + eventName;
+                }       
+                trigger = TriggerBuilder
                     .newTrigger()
-                    .withIdentity(eventName)
+                    .withIdentity(triggerName)
                     .forJob(job)
                     .withSchedule(
                             CronScheduleBuilder.cronSchedule(cronSchedule))
                     .build();
+                loopCount = loopCount + 1;
+            } while (scheduler.checkExists(trigger.getKey()));                
             //Schedule the job, the clock monitor will then wait for a response.
             if (newJob) {
                 scheduler.scheduleJob(job, trigger);
@@ -269,9 +282,9 @@ public class ClockMonitor implements EventListener, Runnable {
         try {
             if (scheduler.isInStandbyMode()) {
                 scheduler.resumeAll();
-            }    
-            if (scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME)) != null) {
-                job = scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME));
+            }
+            job = scheduler.getJobDetail(JobKey.jobKey(CRON_EVENT_NAME));
+            if (job != null) {
                 newJob = false;
             } else {
                 job = JobBuilder.newJob(ClockEventJob.class)
@@ -279,13 +292,22 @@ public class ClockMonitor implements EventListener, Runnable {
                         .build();
                 newJob = true;
             }
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(eventName, CRON_EVENT_NAME) //"Trigger-" + triggerCount
+            //Multiple triggers can be with the same name
+            Trigger trigger;
+            String triggerName = eventName;
+            int loopCount = 0;
+            do {
+                if (loopCount > 0) {
+                    triggerName = "index="+ loopCount + ":" + eventName;
+                }
+                trigger = TriggerBuilder.newTrigger()
+                    .withIdentity(triggerName, CRON_EVENT_NAME)
                     .withDescription(description)
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
                     .startAt(DateBuilder.futureDate(secondsFromNow, DateBuilder.IntervalUnit.SECOND)).forJob(job) // use DateBuilder to create a date in the future
                     .build();
-
+                loopCount = loopCount + 1;
+            } while (scheduler.checkExists(trigger.getKey()));
             //Schedule the job, the clock monitor will then wait for a response.
             Date nextEvent;
             if (newJob) {
