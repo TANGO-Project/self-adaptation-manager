@@ -33,6 +33,7 @@ import eu.tango.self.adaptation.manager.listeners.EnvironmentMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
+import eu.tango.self.adaptation.manager.model.Node;
 import eu.tango.self.adaptation.manager.model.Testbed;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -191,8 +192,12 @@ public class AldeActuator extends AbstractActuator {
                     if (response.hasAdaptationDetail("CANCEL_APPS")) {
                         for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
                             try {
-                                if (app.getNodes().contains(host)) {
-                                    client.cancelApplication(app.getExecutionId());
+                                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling Apps on host: {0}", host);
+                                for (Node node : app.getNodes()) {
+                                    if (node.getName().equals(host)) {
+                                        Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling with id: {0}", app.getExecutionId());
+                                        client.cancelApplication(app.getExecutionId());
+                                    }
                                 }
                             } catch (IOException ex) {
                                 Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
