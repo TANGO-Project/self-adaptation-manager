@@ -60,9 +60,8 @@ public class HostWorkloadBased implements Comparator<Host>, Serializable {
         if (answer == 0) { //If equal then apply a second order sort
             //Ensure smallest queues are cancelled first
             answer = workloadMap.get(o1).getQueueLength().compareTo(workloadMap.get(o2).getQueueLength());
-            if (answer == 0) {
-                answer = Double.valueOf(o1.getIdlePowerConsumption()).compareTo(
-                    o2.getIdlePowerConsumption());
+            if (answer == 0) { //largest power consumption first
+                answer = Double.valueOf(o2.getIdlePowerConsumption()).compareTo(o1.getIdlePowerConsumption());
             }
         }
         return answer;
