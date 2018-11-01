@@ -20,6 +20,7 @@ package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
 import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
@@ -393,6 +394,15 @@ public class SlurmActuator extends AbstractActuator {
      * @param hostname The host to power up
      */
     public void startupHost(String hostname) {
+        //Starts all hosts
+        if (hostname.equals("ALL")) {
+            for(Host host : datasource.getHostList()) {
+                if (!host.isAvailable()) {
+                    execCmd("scontrol update NodeName=" + host.getHostName().trim() + "State=power_up");
+                }
+            }
+            return;
+        }        
         if (hostname.contains(",")) {
             for (String host : hostname.split(",")) {
                 execCmd("scontrol update NodeName=" + host.trim() + "State=power_up");
@@ -441,6 +451,9 @@ public class SlurmActuator extends AbstractActuator {
         if (Double.isFinite(currentPowerCap)) {
             execCmd("scontrol update powercap=" + (currentPowerCap + incremenet));
         }
+        if (response.hasAdaptationDetail("RESTORE_HOSTS")) {
+            startupHost("ALL");
+        }        
     }
 
     /**
@@ -455,6 +468,9 @@ public class SlurmActuator extends AbstractActuator {
             if (Double.isFinite(powerCap) && powerCap > 0) {
                 execCmd("scontrol update powercap=" + powerCap);
             }
+            if (response.hasAdaptationDetail("RESTORE_HOSTS")) {
+                startupHost("ALL");
+            }              
         } else {
             response.setPerformed(true);
             response.setPossibleToAdapt(false);

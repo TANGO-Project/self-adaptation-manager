@@ -646,6 +646,16 @@ public class AldeActuator extends AbstractActuator {
      */
     public void startupHost(String hostname) {
         try {
+            //Starts all hosts
+            if (hostname.equals("ALL")) {
+                for(Host host : datasource.getHostList()) {
+                    if (!host.isAvailable()) {
+                        client.startHost(host.getHostName());
+                         Logger.getLogger(AldeActuator.class.getName()).log(Level.INFO, "Performing startup of host {0}", host.getHostName());
+                    }
+                }
+                return;
+            }
             Logger.getLogger(AldeActuator.class.getName()).log(Level.INFO, "Performing startup of host {0}", hostname);
             client.startHost(hostname);
         } catch (IOException ex) {
@@ -680,6 +690,9 @@ public class AldeActuator extends AbstractActuator {
         if (response.hasAdaptationDetail("POWER_INCREMENT")) {
             incremenet = Double.parseDouble(response.getAdaptationDetail("POWER_INCREMENT"));
         }
+        if (response.hasAdaptationDetail("RESTORE_HOSTS")) {
+            startupHost("ALL");
+        }        
         if (Double.isFinite(currentPowerCap)) {
             SlaRulesLoader.getInstance().modifySlaTerm("HOST:ALL:power", null, currentPowerCap + incremenet);
         }
@@ -697,6 +710,9 @@ public class AldeActuator extends AbstractActuator {
             double powerCap = Double.parseDouble(response.getAdaptationDetail("POWER_CAP"));
             if (Double.isFinite(powerCap) && powerCap > 0) {
                 SlaRulesLoader.getInstance().modifySlaTerm("HOST:ALL:power", null, powerCap);
+            }
+            if (response.hasAdaptationDetail("RESTORE_HOSTS")) {
+                startupHost("ALL");
             }
         } else {
             response.setPerformed(true);
