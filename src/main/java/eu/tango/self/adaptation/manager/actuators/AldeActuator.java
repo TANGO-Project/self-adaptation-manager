@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONObject;
 
 /**
  * This actuator interacts with the ALDE, with the aim of querying for
@@ -59,6 +60,14 @@ public class AldeActuator extends AbstractActuator {
     public enum RankCriteria {
 
         ENERGY, TIME, POWER
+    }
+    
+    //This is the property that is used to rank how flexible a host workload is to change.
+    private static final String APPLICATION_TYPE = "application_type";
+    
+    public enum AppType {
+
+        RIGID, MOULDABLE, CHECKPOINTABLE, MALLEABLE
     }
 
     /**
@@ -606,14 +615,33 @@ public class AldeActuator extends AbstractActuator {
     private void preShutdownHost(String host, Response response) {
         //TODO add a softer cancelling here!!! Thus meeting Jorge's reqs.
         if (response.hasAdaptationDetail("CANCEL_APPS")) {
+            /**
+             * Hard cancel is default cancelling the app if the cancel apps flag is set.
+             * The flag needs to be set to soft to graciously migrate/checkpoint/resize apps away.
+             */
+            boolean hardCancel = !response.getAdaptationDetail("CANCEL_APPS").equalsIgnoreCase("soft");
             for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
                 try {
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling Apps on host: {0}", host);
-                    for (Node node : app.getNodes()) {
-                        if (node.getName().equals(host)) {
-                            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling with id: {0}", app.getExecutionId());
-                            client.cancelApplication(app.getExecutionId());
-                        }
+                    JSONObject appProperties = client.getApplicationProperties(app.getSlurmId());
+                    String applicationType = appProperties.getString(APPLICATION_TYPE);
+                    if (hardCancel || applicationType.equalsIgnoreCase(AppType.RIGID.toString())
+                            || applicationType.equalsIgnoreCase(AppType.MALLEABLE.toString())
+                            || applicationType.equalsIgnoreCase(AppType.CHECKPOINTABLE.toString())) {
+                        /**
+                         * Cancel RIGID and MALLEABLE jobs or all jobs if hard cancel is set
+                         * Malleble is like rigid at runtime, and mouldable pre starting
+                         * Currently just cancel CHECKPOINTABLE
+                         * TODO perform checkpoint and pause/cancel instead
+                         */                     
+                        for (Node node : app.getNodes()) {
+                            if (node.getName().equals(host)) {
+                                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling with id: {0}", app.getExecutionId());
+                                client.cancelApplication(app.getExecutionId());
+                            }
+                        } // MOULDABLE so can remove tasks at runtime
+                    } else if (applicationType.equalsIgnoreCase(AppType.MOULDABLE.toString())) {
+                        client.removeResource(app.getExecutionId(), host);
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
