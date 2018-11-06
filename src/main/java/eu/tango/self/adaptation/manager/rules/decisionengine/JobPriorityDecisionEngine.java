@@ -120,7 +120,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
         }
         List<Integer> taskIds = getTaskIdsAvailableToRemove(response.getApplicationId(), response.getDeploymentId());
         if (taskIds == null) {
-            System.out.println("Internal Error list of deleteable task Ids equals null.");
+            Logger.getLogger(JobPriorityDecisionEngine.class.getName()).log(Level.WARNING, "Internal Error list of deleteable task Ids equals null.");
             response.setAdaptationDetails("Could not find a task to delete.");
             response.setPossibleToAdapt(false);
             return response;
