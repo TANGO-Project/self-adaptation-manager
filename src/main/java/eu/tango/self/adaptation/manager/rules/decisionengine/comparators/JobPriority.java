@@ -28,10 +28,11 @@ import java.util.Comparator;
  */
 public class JobPriority implements Comparator<ApplicationOnHost>, Serializable {
     private static final long serialVersionUID = 1L;
+    private static final String PRIORITY = "priority";
 
     @Override
     public int compare(ApplicationOnHost o1, ApplicationOnHost o2) {
-        int answer = o1.getPropertyAsInteger("priority").compareTo(o2.getPropertyAsInteger("priority"));
+        int answer = o1.getPropertyAsInteger(PRIORITY).compareTo(o2.getPropertyAsInteger(PRIORITY));
         if (answer == 0) { //If equal then apply a second order sort
         //ranks by job id in reverse order! thus should equate to age
             return Integer.valueOf(o2.getId()).compareTo(o1.getId());

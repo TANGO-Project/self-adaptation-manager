@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This has the effect of implementing job priority ranking against hosts.
@@ -47,7 +49,7 @@ public class HostWorkloadBased implements Comparator<Host>, Serializable {
      * @param workload 
      */
     public HostWorkloadBased(List<ApplicationOnHost> workload) {
-        System.out.println("Seen here workload based");
+        Logger.getLogger(HostWorkloadBased.class.getName()).log(Level.INFO, "Using host workload based ranking");
         workloadMap = HostWorkload.getHostWorkloadsMap(workload);
     }
 

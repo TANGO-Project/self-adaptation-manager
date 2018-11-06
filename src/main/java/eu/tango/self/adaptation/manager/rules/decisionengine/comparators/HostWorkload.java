@@ -22,17 +22,19 @@ import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 
 /**
- *
+ * This represents a host workload. It is used for ranking hosts based upon the
+ * types of workload that are currently running upon them.
  * @author Richard Kavanagh
  */
 public class HostWorkload {
     
+    //This hashmap holds the ranking between different types of job and how flexible they are to change.
     private static final HashMap<String,Integer> PRIORITY_MAP = new HashMap<>();
+    //This is the property that is used to rank how flexible a host workload is to change.
     private static final String APPLICATION_TYPE = "application_type";
     
     static {
@@ -42,8 +44,8 @@ public class HostWorkload {
         PRIORITY_MAP.put("MALLEABLE", 0);  //lowest rank and most flexible for adaptation
     }     
     
-    private Host host;
-    private List<ApplicationOnHost> applications;
+    private final Host host;
+    private final List<ApplicationOnHost> applications;
     private int priority = 0;
 
     /**
