@@ -184,27 +184,8 @@ public class AldeActuator extends AbstractActuator {
             case SHUTDOWN_HOST:
                 host = getHostname(response);    
                 if (host != null) {
-                    /**
-                     * This is an extension to the call that cancels existing 
-                     * applications on the host, instead of just performing a host
-                     * drain operation.
-                     */
-                    if (response.hasAdaptationDetail("CANCEL_APPS")) {
-                        for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
-                            try {
-                                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling Apps on host: {0}", host);
-                                for (Node node : app.getNodes()) {
-                                    if (node.getName().equals(host)) {
-                                        Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling with id: {0}", app.getExecutionId());
-                                        client.cancelApplication(app.getExecutionId());
-                                    }
-                                }
-                            } catch (IOException ex) {
-                                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
-                            }
-                        }
-                    }
-                    //This bit peformes the main operation to shutdown the host
+                    preShutdownHost(host, response);
+                    //This bit peforms the main operation to shutdown the host
                     shutdownHost(host);
                 } else {
                     response.setPossibleToAdapt(false);
@@ -614,16 +595,32 @@ public class AldeActuator extends AbstractActuator {
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }   
-    }
-
+    } 
+    
     /**
-     * This powers down a host
-     *
-     * @param hostname The host to power down
+     * This is intended as an extension to the shutdown call. It cancels existing 
+     * applications on the host, instead of just performing a host drain operation.
+     * @param host The host to perform the cancelling of work against
+     * @param response The response object that stated the host shutdown.
      */
-    public void shutdownHostAndCancelApps(String hostname) {
-        shutdownHost(hostname);
-    }     
+    private void preShutdownHost(String host, Response response) {
+        //TODO add a softer cancelling here!!! Thus meeting Jorge's reqs.
+        if (response.hasAdaptationDetail("CANCEL_APPS")) {
+            for(ApplicationExecutionInstance app : client.getExecutionInstances(true) ) {
+                try {
+                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling Apps on host: {0}", host);
+                    for (Node node : app.getNodes()) {
+                        if (node.getName().equals(host)) {
+                            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling with id: {0}", app.getExecutionId());
+                            client.cancelApplication(app.getExecutionId());
+                        }
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Could not cancel application with execution id: {0}", app.getExecutionId());
+                }
+            }
+        }        
+    }
     
     /**
      * This powers down a host
