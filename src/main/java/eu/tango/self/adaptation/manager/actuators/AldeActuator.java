@@ -624,7 +624,10 @@ public class AldeActuator extends AbstractActuator {
                 try {
                     Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Cancelling Apps on host: {0}", host);
                     JSONObject appProperties = client.getApplicationProperties(app.getSlurmId());
-                    String applicationType = appProperties.getString(APPLICATION_TYPE);
+                    String applicationType = AppType.RIGID.toString();
+                    if (appProperties.has(APPLICATION_TYPE)) {
+                        applicationType = appProperties.getString(APPLICATION_TYPE);
+                    }
                     if (hardCancel || applicationType.equalsIgnoreCase(AppType.RIGID.toString())
                             || applicationType.equalsIgnoreCase(AppType.MALLEABLE.toString())
                             || applicationType.equalsIgnoreCase(AppType.CHECKPOINTABLE.toString())) {
