@@ -28,6 +28,7 @@ import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.EventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +64,17 @@ public class CompssJobMonitor extends AbstractJobMonitor {
     }
     
     /**
+     * This returns the age of the monitoring file. It can therefore be used
+     * to test to see if the information is stale
+     * @return The age in seconds of the monitoring file
+     */
+    private long getMonitoringFileAge() {
+        long monitoringFileDate = datasource.getMonitoringFileLastModifiedDate();
+        long currentDate = new GregorianCalendar().getTimeInMillis();
+        return TimeUnit.MILLISECONDS.toSeconds(currentDate - monitoringFileDate);
+    }
+    
+    /**
      * This takes a list of measurements and determines if an SLA breach has
      * occurred by comparing them to the QoS limits.
      *
@@ -74,7 +86,7 @@ public class CompssJobMonitor extends AbstractJobMonitor {
         ArrayList<EventData> answer = new ArrayList<>();
         ArrayList<SLATerm> criteria = limits.getQosCriteria();
         List<CompssImplementation> jobs = datasource.getCompssImplementation();
-        if (datasource.getRunningTaskCount() == 0) {
+        if (datasource.getRunningTaskCount() == 0 || getMonitoringFileAge() > 15) {
             //No applications are running so there can't be any application based events
             return answer;
         }
