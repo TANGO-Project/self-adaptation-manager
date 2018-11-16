@@ -240,6 +240,22 @@ public class ApplicationExecutionInstance extends AldeJsonObjectWrapper {
     /**
      * This filters a list of application execution instances by their status
      * @param appList The list of application executions to filter 
+     * @param configId Indicates the configuration id of the executable
+     * @return  The list of execution instances with the given status
+     */
+    public static List<ApplicationExecutionInstance> filterBasedUponName(List<ApplicationExecutionInstance> appList, int configId) {
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        for (ApplicationExecutionInstance current : appList) {
+            if (current.getExecutionConfigurationsId() == configId) {
+                answer.add(current);
+            }
+        }
+        return answer;
+    }    
+    
+    /**
+     * This filters a list of application execution instances by their status
+     * @param appList The list of application executions to filter 
      * @param slurmJobId The slurm job id, to find from the list of executions
      * @return  The execution instance with the named slurm job id
      */

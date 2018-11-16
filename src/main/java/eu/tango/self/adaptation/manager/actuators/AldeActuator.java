@@ -311,9 +311,16 @@ public class AldeActuator extends AbstractActuator {
             return null; //There is no alternative to the current running job
         }
         //If there is more than one configuration then one needs to be picked
-        ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, appDefintion.getExecutionInstances());        
+        ArrayList<ApplicationExecutionInstance> pastRunData = new ArrayList<>();
+        for (ApplicationConfiguration config : configsToConsider) {
+            //Ensure it constains completed run data only
+            List<ApplicationExecutionInstance> completedRuns = client.getExecutionInstances(config.getConfigurationId());
+            pastRunData.addAll(ApplicationExecutionInstance.filterBasedUponStatus(completedRuns, ApplicationExecutionInstance.Status.COMPLETED));
+        }
+        ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, pastRunData);        
         //If the ALDE doesn't have ranking data, use a fall back to using a file on disk.
         if (ranked == null || ranked.isEmpty()) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.WARNING, "No Ranking data was available in the ALDE falling back to reading ranking data from file.");
             ranked = comparator.compare(appDefintion.getName(), currentConfiguration.getConfigurationId() + "", configsToConsider);
         }
         //If there is no ranking data just pick one

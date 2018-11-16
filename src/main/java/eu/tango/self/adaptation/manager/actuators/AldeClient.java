@@ -18,14 +18,11 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
-import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
-import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.io.JsonUtils;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
-import eu.tango.self.adaptation.manager.model.ApplicationExecutable;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Node;
@@ -365,6 +362,38 @@ public class AldeClient {
     }
 
     /**
+     * This gets the list of all execution instances for a given configuration known to the ALDE.
+     * @param configurationId The configuration id to get the execution instances for
+     * @return The list of application execution instances from the ALDE.
+     */
+    public List<ApplicationExecutionInstance> getExecutionInstances(int configurationId) {
+        //Example curl  http://127.0.0.1:5000/api/v1/executions -G -H'Content-type: application/json' -d'q={"filters":[{"name":"status","op":"like","val":"RUNNING"}]}'
+        ArrayList<ApplicationExecutionInstance> answer = new ArrayList<>();
+        try {
+            JSONObject params = null;
+                params = new JSONObject();
+                JSONArray filter = new JSONArray();
+                JSONObject item1 = new JSONObject();
+                item1.put("name", "execution_configuration_id");
+                item1.put("op", "like");
+                item1.put("val", configurationId + "");
+                filter.put(item1);
+                params.put("filters", filter);
+            JSONObject apps = readJsonFromUrl(baseUri + "executions", params);
+            JSONArray objects = apps.getJSONArray("objects");
+            for (Object next : objects) {
+                if (next instanceof JSONObject) {
+                    JSONObject object = (JSONObject) next;
+                    answer.add(new ApplicationExecutionInstance(object));
+                }
+            }
+        } catch (IOException | JSONException ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, "parse error", ex);
+        }
+        return answer;
+    }    
+    
+    /**
      * This gets the ALDE json definition for a slurm job.
      * @param deploymentId The deployment id of the slurm job.
      * @return The application execution instance of the slurm job.
@@ -563,6 +592,7 @@ public class AldeClient {
      * @throws IOException
      */
     public void cancelApplication(int executionId) throws IOException {
+        Logger.getLogger(AldeClient.class.getName()).log(Level.WARNING, "Cancelling " + executionId);
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
