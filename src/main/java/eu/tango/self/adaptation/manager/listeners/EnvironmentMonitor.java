@@ -289,7 +289,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (!deploymentId.equals("*") && !deploymentId.matches("[0-9]*+")) {
             apps = ApplicationOnHost.filter(apps, applicationId, deployId);
         }
-        if (apps.isEmpty()) {
+        if (apps == null || apps.isEmpty()) {
             return null;
         }
         //Get the set of hosts which the applications are running upon
