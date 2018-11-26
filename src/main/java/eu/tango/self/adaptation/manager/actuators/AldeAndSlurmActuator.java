@@ -113,15 +113,9 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
     public void actuate(Response response) {
         switch (response.getActionType()) {
             case ADD_CPU:
-            case REMOVE_CPU:
-            case PAUSE_APP:
-            case UNPAUSE_APP:
-            case PAUSE_SIMILAR_APPS:
-            case UNPAUSE_SIMILAR_APPS:                  
+            case REMOVE_CPU:          
             case OVERSUBSCRIBE_APP:
             case EXCLUSIVE_APP:
-            case KILL_SIMILAR_APPS:
-            case KILL_APP:
             case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
@@ -130,6 +124,12 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case MINIMIZE_WALL_TIME_SIMILAR_APPS:
                 slurm.actuate(response);
                 break;
+            case PAUSE_APP:
+            case UNPAUSE_APP:
+            case PAUSE_SIMILAR_APPS:
+            case UNPAUSE_SIMILAR_APPS:                
+            case KILL_SIMILAR_APPS:
+            case KILL_APP:
             case SCALE_TO_N_TASKS:
             case ADD_TASK:
             case REMOVE_TASK:

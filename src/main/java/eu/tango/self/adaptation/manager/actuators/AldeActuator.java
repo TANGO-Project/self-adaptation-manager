@@ -140,6 +140,33 @@ public class AldeActuator extends AbstractActuator {
             return;
         }
         switch (response.getActionType()) {
+            case PAUSE_APP:
+                pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
+                if (response.hasAdaptationDetail("UNPAUSE")) {
+                    /**
+                     * This requires to have a matching rule to negate the effect of the first.
+                     * The matching rule starts with an exclamation! instead.
+                     */
+                    int unpauseInNseconds = Integer.parseInt(response.getAdaptationDetail("UNPAUSE"));
+                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "application=" + response.getApplicationId() + ";deploymentid=" + getTaskDeploymentId(response), unpauseInNseconds);
+                }
+                break;
+            case UNPAUSE_APP:
+                resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
+                break;
+            case PAUSE_SIMILAR_APPS:
+                pauseSimilarJob(response.getApplicationId());
+                break;
+            case UNPAUSE_SIMILAR_APPS:
+                resumeSimilarJob(response.getApplicationId());
+                break;
+            case KILL_SIMILAR_APPS:
+                killSimilarApps(response.getApplicationId());
+                break;                
+            case KILL_APP:
+            case HARD_KILL_APP:
+                hardKillApp(response.getApplicationId(), getTaskDeploymentId(response));
+                break;            
             case ADD_TASK:
                 addResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
                 break;
@@ -583,6 +610,71 @@ public class AldeActuator extends AbstractActuator {
         }
         return applications;
     }
+    
+    /**
+     * This takes a named application and kills all instances of it.
+     * @param applicationName The name of the application to kill
+     */
+    public void killSimilarApps(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            hardKillApp(app.getName(), app.getId() + "");
+        }
+    }
+
+    /**
+     * Pauses all jobs with a given name, so that they can be executed later.
+     * @param applicationName The name of the application to pause
+     */
+    public void pauseSimilarJob(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            pauseJob(applicationName, app.getId() + "");
+        }
+    }
+    
+    /**
+     * Un-pauses all jobs with a given name, so that they can be executed later.
+     * @param applicationName The name of the application to pause
+     */
+    public void resumeSimilarJob(String applicationName) {
+        List<ApplicationOnHost> apps = datasource.getHostApplicationList();
+        apps = ApplicationOnHost.filter(apps, applicationName, -1);
+        for (ApplicationOnHost app : apps) {
+            resumeJob(applicationName, app.getId() + "");
+        }
+    }
+        
+    /**
+     * Pauses a job, so that it can be executed later.
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     *
+     */
+    public void pauseJob(String applicationName, String deploymentId) {
+        try {
+            client.pauseJob(Integer.parseInt(deploymentId));
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }  
+    }
+
+    /**
+     * un-pauses a job, so that it may resume execution.
+     *
+     * @param applicationName The application name or identifier
+     * @param deploymentId The deployment instance identifier
+     */
+    public void resumeJob(String applicationName, String deploymentId) {
+        try {
+            client.resumeJob(Integer.parseInt(deploymentId));
+        } catch (IOException ex) {
+            Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
+        }            
+    }    
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {

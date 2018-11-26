@@ -18,11 +18,14 @@
  */
 package eu.tango.self.adaptation.manager.actuators;
 
+import eu.tango.self.adaptation.manager.comparator.ConfigurationComparator;
+import eu.tango.self.adaptation.manager.comparator.ConfigurationRank;
 import eu.tango.self.adaptation.manager.io.JsonUtils;
 import static eu.tango.self.adaptation.manager.io.JsonUtils.readJsonFromUrl;
 import eu.tango.self.adaptation.manager.model.ApplicationConfiguration;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.model.ApplicationDeployment;
+import eu.tango.self.adaptation.manager.model.ApplicationExecutable;
 import eu.tango.self.adaptation.manager.model.ApplicationExecutionInstance;
 import eu.tango.self.adaptation.manager.model.Gpu;
 import eu.tango.self.adaptation.manager.model.Node;
@@ -91,7 +94,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-    
+
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -585,14 +588,72 @@ public class AldeClient {
         }
         return answer;
     }
+    
+    /**
+     * This pauses an executable that is running
+     * @param executionId The execution id to pause
+     * @throws IOException
+     */
+    public void pauseJob(int executionId) throws IOException {
+        Logger.getLogger(AldeClient.class.getName()).log(Level.WARNING, "Pausing {0}", executionId);
+        /**
+         * The command that this code replicates: 
+         * 
+         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/executions/648 -d'{"status": "STOP"}'
+         * To restart it after stopped:
+         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/executions/648 -d'{"status": "RESTART"}'
+         */
+        JSONObject json = new JSONObject();
+        json.put("status", "STOP");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Pausing application {0}", executionId);
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+    }    
 
+    /**
+     * This resumes a paused executable
+     * @param executionId The execution id to resume
+     * @throws IOException
+     */
+    public void resumeJob(int executionId) throws IOException {
+        Logger.getLogger(AldeClient.class.getName()).log(Level.WARNING, "Resume {0}", executionId);
+        /**
+         * The command that this code replicates: 
+         * 
+         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/executions/648 -d'{"status": "STOP"}'
+         * To restart it after stopped:
+         * curl -X PATCH -H'Content-type: application/json' http://127.0.0.1:5000/api/v1/executions/648 -d'{"status": "RESTART"}'
+         */
+        JSONObject json = new JSONObject();
+        json.put("status", "RESTART");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Resuming application {0}", executionId);
+            HttpPatch request = new HttpPatch(baseUri + "executions/" + executionId);
+            StringEntity params = new StringEntity(json.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            httpClient.execute(request);
+            // handle response here...
+        } catch (Exception ex) {
+            Logger.getLogger(AldeClient.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+    }    
+    
     /**
      * This stops an executable running
      * @param executionId The execution id to stop
      * @throws IOException
      */
     public void cancelApplication(int executionId) throws IOException {
-        Logger.getLogger(AldeClient.class.getName()).log(Level.WARNING, "Cancelling " + executionId);
+        Logger.getLogger(AldeClient.class.getName()).log(Level.WARNING, "Cancelling {0}", executionId);
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
