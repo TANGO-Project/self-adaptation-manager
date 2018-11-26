@@ -116,7 +116,6 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case REMOVE_CPU:          
             case OVERSUBSCRIBE_APP:
             case EXCLUSIVE_APP:
-            case HARD_KILL_APP:
             case INCREASE_WALL_TIME:
             case REDUCE_WALL_TIME:
             case INCREASE_WALL_TIME_SIMILAR_APPS:
@@ -130,6 +129,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case UNPAUSE_SIMILAR_APPS:                
             case KILL_SIMILAR_APPS:
             case KILL_APP:
+            case HARD_KILL_APP:
             case SCALE_TO_N_TASKS:
             case ADD_TASK:
             case REMOVE_TASK:
