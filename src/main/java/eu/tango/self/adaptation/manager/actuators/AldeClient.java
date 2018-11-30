@@ -94,7 +94,7 @@ public class AldeClient {
             Logger.getLogger(AldeClient.class.getName()).log(Level.INFO, "Error loading the configuration of the Self adaptation manager", ex);
         }
     }
-
+    
     /**
      * This lists all applications that are deployable by the ALDE
      *
@@ -709,6 +709,9 @@ public class AldeClient {
      */
     public JSONObject getApplicationProperties(int slurmJobId) {
         ApplicationExecutionInstance instance = getExecutionInstance(slurmJobId + "");
+        if (instance == null) {
+            return null;
+        }
         ApplicationDefinition definition = getApplicationDefinition(instance);
         return definition.getProperties();
     }
@@ -757,7 +760,7 @@ public class AldeClient {
         /**
          * The command that this code replicates: curl -X PATCH -H'Content-type:
          * application/json'
-         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": drain, "reason": TANGO SAM requested to drain the node}'
+         * http://127.0.0.1:5000/api/v1/nodes/1 -d'{"state": "idle"}'
          *
          * It is used to call the ALDE to shutdown a host as per 
          * Holistic scenario 11 (alternative 3)

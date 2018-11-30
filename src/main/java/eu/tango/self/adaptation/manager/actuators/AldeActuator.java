@@ -268,7 +268,7 @@ public class AldeActuator extends AbstractActuator {
             try {
                 //Delete the current configuration of the application
                 if (killPreviousApp) {
-                    hardKillApp(name, client.getExecutionInstance(deploymentId).getExecutionId() + "");
+                    hardKillApp(name, deploymentId + "");
                 }
                 //Launch the best configuration that can be found (fastest/least energy)
                 client.executeApplication(configId);
@@ -344,7 +344,7 @@ public class AldeActuator extends AbstractActuator {
             List<ApplicationExecutionInstance> completedRuns = client.getExecutionInstances(config.getConfigurationId());
             pastRunData.addAll(ApplicationExecutionInstance.filterBasedUponStatus(completedRuns, ApplicationExecutionInstance.Status.COMPLETED));
         }
-        ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, pastRunData);        
+        ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, pastRunData);
         //If the ALDE doesn't have ranking data, use a fall back to using a file on disk.
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.WARNING, "No Ranking data was available in the ALDE falling back to reading ranking data from file.");
@@ -656,7 +656,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public void pauseJob(String applicationName, String deploymentId) {
         try {
-            client.pauseJob(Integer.parseInt(deploymentId));
+            client.pauseJob(client.getExecutionInstance(deploymentId).getExecutionId());
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }  
@@ -670,7 +670,7 @@ public class AldeActuator extends AbstractActuator {
      */
     public void resumeJob(String applicationName, String deploymentId) {
         try {
-            client.resumeJob(Integer.parseInt(deploymentId));
+            client.resumeJob(client.getExecutionInstance(deploymentId).getExecutionId());
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }            
@@ -679,7 +679,7 @@ public class AldeActuator extends AbstractActuator {
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
         try {
-            client.cancelApplication(Integer.parseInt(deploymentId));
+            client.cancelApplication(client.getExecutionInstance(deploymentId).getExecutionId());
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }     
@@ -732,7 +732,7 @@ public class AldeActuator extends AbstractActuator {
                             || applicationType.equalsIgnoreCase(AppType.CHECKPOINTABLE.toString())) {
                         /**
                          * Cancel RIGID and MALLEABLE jobs or all jobs if hard cancel is set
-                         * Malleble is like rigid at runtime, and mouldable pre starting
+                         * Malleable is like rigid at runtime, and mouldable pre starting
                          * Currently just cancel CHECKPOINTABLE
                          * TODO perform checkpoint and pause/cancel instead
                          */                     

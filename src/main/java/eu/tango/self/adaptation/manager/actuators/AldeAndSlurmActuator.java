@@ -106,7 +106,7 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
 
     @Override
     public void hardKillApp(String applicationName, String deploymentId) {
-        slurm.hardKillApp(applicationName, deploymentId);
+        alde.hardKillApp(applicationName, deploymentId);
     }
 
     @Override
