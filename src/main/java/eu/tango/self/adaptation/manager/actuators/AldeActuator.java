@@ -345,6 +345,11 @@ public class AldeActuator extends AbstractActuator {
             pastRunData.addAll(ApplicationExecutionInstance.filterBasedUponStatus(completedRuns, ApplicationExecutionInstance.Status.COMPLETED));
         }
         ArrayList<ConfigurationRank> ranked = comparator.compare(currentConfiguration.getConfigurationId() + "", configsToConsider, pastRunData);
+        //This echos out to the console the reason for the adaptation decision
+        System.out.println("The relative ranking of different configurations is as follows: ");
+        for (ConfigurationRank rankedItem : ranked) {
+            System.out.println(rankedItem);
+        }
         //If the ALDE doesn't have ranking data, use a fall back to using a file on disk.
         if (ranked == null || ranked.isEmpty()) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.WARNING, "No Ranking data was available in the ALDE falling back to reading ranking data from file.");
