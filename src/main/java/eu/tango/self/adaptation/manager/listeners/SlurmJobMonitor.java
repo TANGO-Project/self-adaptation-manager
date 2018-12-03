@@ -199,6 +199,8 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
     private ArrayList<EventData> detectHostFailure(boolean includeAboutToFail) {
         ArrayList<EventData> answer = new ArrayList<>();
         HashSet<Host> failed = getHostInState("failed");
+            HashSet<Host> down = getHostInState("down");
+            failed.addAll(down);
         if (includeAboutToFail) {
             HashSet<Host> failing = getHostInState("failing");
             failed.addAll(failing);
@@ -234,18 +236,21 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
     private ArrayList<EventData> detectHostDrain() {
         ArrayList<EventData> answer = new ArrayList<>();
         HashSet<Host> draining = getHostInState("draining");
-        draining.removeAll(this.drainingHosts);
-        if (!draining.isEmpty()) {
-            for (Host idleHost : draining) {
+        HashSet<Host> drain = getHostInState("drain");
+        draining.addAll(drain);
+        HashSet<Host> recentDrain = new HashSet<>(draining);
+        recentDrain.removeAll(this.drainingHosts);
+        if (!recentDrain.isEmpty()) {
+            for (Host drainHost : recentDrain) {
                 //return the list of recently draining hosts.
                 EventData event;
-                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), idleHost.getHostName(),
+                event = new HostEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), drainHost.getHostName(),
                         0.0,
                         0.0,
                         EventData.Type.WARNING,
                         EventData.Operator.EQ,
-                        HOST_DRAIN + (idleHost.hasAccelerator() ? ACCELERATED : ""),
-                        HOST_DRAIN + (idleHost.hasAccelerator() ? ACCELERATED : ""));
+                        HOST_DRAIN + (drainHost.hasAccelerator() ? ACCELERATED : ""),
+                        HOST_DRAIN + (drainHost.hasAccelerator() ? ACCELERATED : ""));
                 event.setSignificantOnOwn(true);
                 answer.add(event);
             }
@@ -471,9 +476,10 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
         HashSet<Host> answer = new HashSet<>();
         List<Host> hosts = datasource.getHostList();
         for (Host host : hosts) {
-            if (host.getState().equals(state)) {
+            if (host.getState().trim().equalsIgnoreCase(state)
+                    || host.getState().toLowerCase().trim().contains(state.toLowerCase()) ) {
                 answer.add(host);
-            }
+            }          
         }
         return answer;
     }
