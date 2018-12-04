@@ -117,6 +117,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             case STARTUP_HOST:
             case SHUTDOWN_N_HOSTS:
             case STARTUP_N_HOSTS:
+                response = handleDownHosts(response);
                 handleUnspecifiedHost(response);
                 break;
                 
@@ -335,6 +336,24 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     public  abstract Response addTask(Response response);    
 
+    /**
+     * This prevents cases such as starting hosts that are marked as down, as opposed 
+     * to drain. i.e. down host are out of action for a reason, but a drain host
+     * has means to come back online. e.g. if its down to save power/energy
+     * @param response The response object to adapt
+     * @return The new response object, with the host cleared for down hosts
+     */
+    protected Response handleDownHosts(Response response) {
+        if (response.getCause() instanceof HostEventData) {
+                HostEventData event = (HostEventData) response.getCause();
+            if (modeller.getHost(event.getHost()).getState().trim().toLowerCase().contains("down")) {
+                event.setHost("");
+                response.setAdaptationDetails("");
+            }
+        }
+        return response;
+    }
+    
     /**
      * This modifies the response object to make a decision in cases where a host
      * level event doesn't specify the host. i.e. where the event might for
@@ -694,7 +713,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             double currentChangeFactor = 0.0;
             if (response.getActionType().equals(Response.AdaptationType.SHUTDOWN_HOST) || 
                     response.getActionType().equals(Response.AdaptationType.SHUTDOWN_N_HOSTS)) {
-                Collections.reverse(hosts); //largest first (i.e. power consumer)               
+                Collections.reverse(hosts); //largest first (i.e. power consumer)
                 for (Host host : hosts) {
                     if (host.isAvailable()) {
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
@@ -708,7 +727,7 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             } else if (response.getActionType().equals(Response.AdaptationType.STARTUP_HOST)  || 
                     response.getActionType().equals(Response.AdaptationType.STARTUP_N_HOSTS)) {
                 for (Host host : hosts) { //smallest first (i.e. power consumer)
-                    if (!host.isAvailable()) {
+                    if (!host.isAvailable() && !host.getState().trim().toLowerCase().contains("down")) { //avoid down hosts but not drained hosts
                         event.setHost(generateHostString(event.getHost(), host.getHostName()));
                         currentChangeFactor = currentChangeFactor + modeller.getCurrentEnergyForHost(host).getPower();
                         if (currentChangeFactor >= scaleFactor || 
