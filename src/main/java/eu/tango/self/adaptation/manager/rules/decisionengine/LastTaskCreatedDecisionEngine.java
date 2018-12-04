@@ -126,6 +126,7 @@ public class LastTaskCreatedDecisionEngine extends AbstractDecisionEngine {
      * hosts. i.e. by host idle power.
      * @return The list of hosts to rank against 
      */
+    @Override    
     public Comparator<Host> getHostRanking() {
         return new HostIdlePower();
     }    

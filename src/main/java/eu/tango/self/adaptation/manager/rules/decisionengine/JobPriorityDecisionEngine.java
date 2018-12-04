@@ -234,6 +234,7 @@ public class JobPriorityDecisionEngine extends AbstractDecisionEngine {
      * This allows the decision engines host sort mechanism to be obtained
      * @return the ranking mechanism for hosts
      */   
+    @Override
     public Comparator<Host> getHostRanking() {
         return hostRanking;
     }    
