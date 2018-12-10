@@ -261,9 +261,10 @@ public class AldeActuator extends AbstractActuator {
         ArrayList<ApplicationConfiguration> validConfigurations = getValidConfigurations(appDef, true);
         //and ensure that they haven't been executed as yet
         validConfigurations = removeAlreadyRunningConfigurations(validConfigurations);
-        selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration, rankBy);
+        selectedConfiguration = selectConfiguration(validConfigurations, appDef, currentConfiguration, rankBy, isExecutionInstanceOnLiveHosts(deploymentId));
         //Ensure the configuration selected is a change/improvement
-        if (selectedConfiguration != null && currentConfiguration != selectedConfiguration) {
+        if (selectedConfiguration != null && (currentConfiguration != selectedConfiguration || 
+                !isExecutionInstanceOnLiveHosts(deploymentId))) {
             int configId = selectedConfiguration.getConfigurationId();
             try {
                 //Delete the current configuration of the application
@@ -327,9 +328,11 @@ public class AldeActuator extends AbstractActuator {
      * from
      * @param currentConfiguration The current configuration in use, this acts
      * as a base line to compare all other cases against.
+     * @param hasToBeImprovement indicates if it must be an improvement on the current
+     * condition configuration
      * @return The configuration that should be launched, else it returns null
      */
-    private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations, ApplicationDefinition appDefintion, ApplicationConfiguration currentConfiguration, RankCriteria rank) {
+    private ApplicationConfiguration selectConfiguration(ArrayList<ApplicationConfiguration> validConfigurations, ApplicationDefinition appDefintion, ApplicationConfiguration currentConfiguration, RankCriteria rank, boolean hasToBeImprovement) {
         ConfigurationComparator comparator = new ConfigurationComparator();
         //The configs to rank against are as follows: valid configs + current config
         ArrayList<ApplicationConfiguration> configsToConsider = (ArrayList<ApplicationConfiguration>) validConfigurations.clone();
@@ -373,7 +376,7 @@ public class AldeActuator extends AbstractActuator {
             referenceScore = ranked.get(0).getEnergyUsedVsReference();
         }
         //Ensure the top ranked item isn't the current config
-        if (ranked.get(0).getConfigName().equals(currentConfiguration.getConfigurationId() + "")) {
+        if (ranked.get(0).getConfigName().equals(currentConfiguration.getConfigurationId() + "") && hasToBeImprovement) {
             ranked.remove(0); //Don't pick the configuration that is currently running.
             if (ranked.isEmpty()) {
                 return null;
@@ -382,7 +385,7 @@ public class AldeActuator extends AbstractActuator {
         /**
          * This next line ensures the best option available is better than what is currently running.
          */
-        if (comparator.isBetterThanReference(referenceScore)) {
+        if (comparator.isBetterThanReference(referenceScore) || !hasToBeImprovement) {
             return ApplicationConfiguration.selectConfigurationById(validConfigurations, Integer.parseInt(ranked.get(0).getConfigName()));
         }       
         //If there is no better solution then return null
@@ -404,15 +407,43 @@ public class AldeActuator extends AbstractActuator {
         ArrayList<ApplicationExecutionInstance> currentlyRunning = (ArrayList) client.getExecutionInstances();
         ArrayList<ApplicationConfiguration> answer = (ArrayList<ApplicationConfiguration>) validConfigurations.clone();
         for (ApplicationExecutionInstance current : currentlyRunning) {
-            for (ApplicationConfiguration config : validConfigurations) {
-                //If the configuration is used by a deployment then filter it out
-                //deployments doesn't seem to refer directly to the configuration in use
-                if (config.getConfigurationId() == current.getExecutionConfigurationsId()) {
-                    answer.remove(config);
+            if (isExecutionInstanceOnLiveHosts(current)) { //Only consider it running if the host is not down or draining
+                for (ApplicationConfiguration config : validConfigurations) {
+                    //If the configuration is used by a deployment then filter it out
+                    //deployments doesn't seem to refer directly to the configuration in use
+                    if (config.getConfigurationId() == current.getExecutionConfigurationsId()) {
+                        answer.remove(config);
+                    }
                 }
             }
         }
         return validConfigurations;
+    }
+    /**
+     * This indicates if a deployment is on a live host or not
+     * @param deploymentId The deployment to test to see if the host is ok
+     * @return If the host is live or not
+     */
+    private boolean isExecutionInstanceOnLiveHosts(String deploymentId) {
+        return isExecutionInstanceOnLiveHosts(client.getExecutionInstance(deploymentId));
+    }
+    
+    /**
+     * This indicates if an execution instance is on a host that has failed or not
+     * @param application The application to test
+     * @return If any host the application is running on has failed this will flag
+     * the failure. The idea is then that a migration should take place no matter what.
+     */
+    private boolean isExecutionInstanceOnLiveHosts(ApplicationExecutionInstance application) {
+        for (Node node : application.getNodes()) {
+            Node updatedNode = client.getNode(node.getName());
+            if (updatedNode.isDisabled()
+                    || updatedNode.getState().trim().toLowerCase().contains("down")
+                    || updatedNode.getState().trim().toLowerCase().contains("drain")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
