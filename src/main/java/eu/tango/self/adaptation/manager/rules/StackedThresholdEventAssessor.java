@@ -192,8 +192,9 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
                     return answer; //return as something has recently been actioned.
                 }
             }
+        } else {
+            Logger.getLogger(StackedThresholdEventAssessor.class.getName()).log(Level.WARNING, "The threshold for a rule firing was not reached!");
         }
-        Logger.getLogger(StackedThresholdEventAssessor.class.getName()).log(Level.WARNING, "The threshold for a rule firing was not reached!"); 
         return answer;
     }
 
