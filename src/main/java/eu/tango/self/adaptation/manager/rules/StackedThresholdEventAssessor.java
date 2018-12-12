@@ -207,10 +207,10 @@ public class StackedThresholdEventAssessor extends AbstractEventAssessor {
      */
     private ArrayList<FiringCriteria> getFiringCriteriaFromApp(EventData event) {
         if (event instanceof ApplicationEventData) {
-        ApplicationDefinition appDef = ((ApplicationEventData) event).getApplicationDefinition();
-        return FiringCriteria.getFiringCriteriaFromApplication(appDef);
+            ApplicationDefinition appDef = ((ApplicationEventData) event).getApplicationDefinition();
+            return FiringCriteria.getFiringCriteriaFromApplication(appDef);
         } else { 
-            return null;
+            return new ArrayList<>();
         }
     }
 
