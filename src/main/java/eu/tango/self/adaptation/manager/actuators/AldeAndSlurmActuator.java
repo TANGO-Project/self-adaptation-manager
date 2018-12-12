@@ -138,7 +138,12 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
             case REDUCE_POWER_CAP:
             case STARTUP_HOST:
             case SHUTDOWN_HOST:
-                alde.actuate(response); //Note: Slurm is an option as well
+                if (response.hasAdaptationDetail("DIRECT_TO_SLURM")) {
+                    Logger.getLogger(AldeAndSlurmActuator.class.getName()).log(Level.INFO, "Redirecting actuation to slurm");
+                    slurm.actuate(response);
+                } else { //Note: Slurm is an option as well, the default is to use the ALDE
+                    alde.actuate(response); 
+                }
                 break;
             case RESELECT_ACCELERATORS:
                 alde.setParent(this);
