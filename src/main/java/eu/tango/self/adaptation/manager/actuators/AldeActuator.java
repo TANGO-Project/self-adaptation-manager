@@ -653,9 +653,11 @@ public class AldeActuator extends AbstractActuator {
      */
     public void killSimilarApps(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            hardKillApp(app.getName(), app.getId() + "");
+        for (String subAppName : applicationName.split("&")) { 
+            List<ApplicationOnHost> killApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : apps) {
+                hardKillApp(app.getName(), app.getId() + "");
+            }
         }
     }
 
@@ -665,9 +667,11 @@ public class AldeActuator extends AbstractActuator {
      */
     public void pauseSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            pauseJob(applicationName, app.getId() + "");
+        for (String subAppName : applicationName.split("&")) { 
+            List<ApplicationOnHost> pauseApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : pauseApps) {
+                pauseJob(subAppName, app.getId() + "");
+            }
         }
     }
     
@@ -677,9 +681,11 @@ public class AldeActuator extends AbstractActuator {
      */
     public void resumeSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            resumeJob(applicationName, app.getId() + "");
+        for (String subAppName : applicationName.split("&")) { 
+            List<ApplicationOnHost> resumeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : resumeApps) {
+                resumeJob(subAppName, app.getId() + "");
+            }
         }
     }
         

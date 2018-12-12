@@ -93,63 +93,78 @@ public class SlurmActuator extends AbstractActuator {
 
     /**
      * This takes a named application and kills all instances of it.
-     * @param applicationName The name of the application to kill
+     * @param applicationName The name of the application to kill, or series of
+     * applications split by the & symbol
      */
     public void killSimilarApps(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            execCmd("scancel " + app.getId());
+        for (String subAppName : applicationName.split("&")) {
+            List<ApplicationOnHost> killApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : killApps) {
+                execCmd("scancel " + app.getId());
+            }
         }
     }
 
     /**
      * Pauses all jobs with a given name, so that they can be executed later.
-     * @param applicationName The name of the application to pause
+     * @param applicationName The name of the application to pause, or series of
+     * applications split by the & symbol
      */
     public void pauseSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            pauseJob(applicationName, app.getId() + "");
+        for (String subAppName : applicationName.split("&")) {
+            List<ApplicationOnHost> pauseApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : pauseApps) {
+                pauseJob(subAppName, app.getId() + "");
+            }
         }
     }
 
     /**
      * Un-pauses all jobs with a given name, so that they can be executed later.
-     * @param applicationName The name of the application to pause
+     * @param applicationName The name of the application to pause, or series of
+     * applications split by the & symbol
      */
     public void resumeSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            resumeJob(applicationName, app.getId() + "");
+        for (String subAppName : applicationName.split("&")) {        
+            List<ApplicationOnHost> resumeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : resumeApps) {
+                resumeJob(subAppName, app.getId() + "");
+            }
         }
     }
 
     /**
      * This increases the wall time of all similar applications
      * @param applicationName The name of the application to change the wall time for
-     * @param response  The response object to perform the action for
+     * @param response The response object to perform the action for, or series of
+     * applications split by the & symbol
      */
     public void increaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            increaseWallTime(applicationName, app.getId() + "", response);
+        for (String subAppName : applicationName.split("&")) {         
+            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : walltimeApps) {
+                increaseWallTime(subAppName, app.getId() + "", response);
+            }
         }
     }
 
     /**
      * This decreases the wall time of all similar applications
      * @param applicationName The name of the application to change the wall time for
-     * @param response  The response object to perform the action for
+     * @param response The response object to perform the action for, or series of
+     * applications split by the & symbol
      */
     public void decreaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
-        apps = ApplicationOnHost.filter(apps, applicationName, -1);
-        for (ApplicationOnHost app : apps) {
-            decreaseWallTime(applicationName, app.getId() + "", response);
+        for (String subAppName : applicationName.split("&")) {           
+            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            for (ApplicationOnHost app : walltimeApps) {
+                decreaseWallTime(subAppName, app.getId() + "", response);
+            }
         }
     }
 
