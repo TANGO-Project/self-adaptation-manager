@@ -431,16 +431,21 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
             response.setAdaptationDetails(ADAPTATION_DETAIL_ACTUATOR_NOT_FOUND);
             response.setPossibleToAdapt(false);
             return response;
-        }    
-        if (!(response.getCause() instanceof ApplicationEventData)) {
+        }
+        if (!(response.getCause() instanceof ApplicationEventData) && 
+                !response.hasAdaptationDetail("application")) {
             response.setAdaptationDetails("Wrong type of event cause, not an application.");
             response.setPossibleToAdapt(false);
             return response; 
         }
-        ApplicationEventData cause = (ApplicationEventData)response.getCause();
-        response.setTaskId(cause.getDeploymentId());
+        ApplicationEventData cause = null;
+        if (response.getCause() instanceof ApplicationEventData) {
+            cause = (ApplicationEventData)response.getCause();
+            response.setTaskId(cause.getDeploymentId());
+        }
         List<ApplicationOnHost> tasks = getActuator().getTasks();
-        tasks = ApplicationOnHost.filter(tasks, cause.getApplicationId(), -1);
+        String applicationName = (cause == null ? response.getAdaptationDetail("application") : cause.getApplicationId());
+        tasks = ApplicationOnHost.filter(tasks, applicationName, -1);
         if (tasks == null || tasks.isEmpty()) {
             response.setAdaptationDetails("There were no other instances of the application to act upon.");
             response.setPossibleToAdapt(false);
