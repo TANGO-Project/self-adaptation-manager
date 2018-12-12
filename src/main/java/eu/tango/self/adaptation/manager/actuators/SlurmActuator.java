@@ -99,7 +99,7 @@ public class SlurmActuator extends AbstractActuator {
     public void killSimilarApps(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         for (String subAppName : applicationName.split("&")) {
-            List<ApplicationOnHost> killApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            List<ApplicationOnHost> killApps = ApplicationOnHost.filter(apps, subAppName.trim(), -1);
             for (ApplicationOnHost app : killApps) {
                 execCmd("scancel " + app.getId());
             }
@@ -114,9 +114,9 @@ public class SlurmActuator extends AbstractActuator {
     public void pauseSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         for (String subAppName : applicationName.split("&")) {
-            List<ApplicationOnHost> pauseApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            List<ApplicationOnHost> pauseApps = ApplicationOnHost.filter(apps, subAppName.trim(), -1);
             for (ApplicationOnHost app : pauseApps) {
-                pauseJob(subAppName, app.getId() + "");
+                pauseJob(subAppName.trim(), app.getId() + "");
             }
         }
     }
@@ -129,9 +129,9 @@ public class SlurmActuator extends AbstractActuator {
     public void resumeSimilarJob(String applicationName) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         for (String subAppName : applicationName.split("&")) {        
-            List<ApplicationOnHost> resumeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            List<ApplicationOnHost> resumeApps = ApplicationOnHost.filter(apps, subAppName.trim(), -1);
             for (ApplicationOnHost app : resumeApps) {
-                resumeJob(subAppName, app.getId() + "");
+                resumeJob(subAppName.trim(), app.getId() + "");
             }
         }
     }
@@ -145,9 +145,9 @@ public class SlurmActuator extends AbstractActuator {
     public void increaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         for (String subAppName : applicationName.split("&")) {         
-            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName.trim(), -1);
             for (ApplicationOnHost app : walltimeApps) {
-                increaseWallTime(subAppName, app.getId() + "", response);
+                increaseWallTime(subAppName.trim(), app.getId() + "", response);
             }
         }
     }
@@ -161,9 +161,9 @@ public class SlurmActuator extends AbstractActuator {
     public void decreaseWallTimeSimilarJob(String applicationName, Response response) {
         List<ApplicationOnHost> apps = datasource.getHostApplicationList();
         for (String subAppName : applicationName.split("&")) {           
-            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName, -1);
+            List<ApplicationOnHost> walltimeApps = ApplicationOnHost.filter(apps, subAppName.trim(), -1);
             for (ApplicationOnHost app : walltimeApps) {
-                decreaseWallTime(subAppName, app.getId() + "", response);
+                decreaseWallTime(subAppName.trim(), app.getId() + "", response);
             }
         }
     }
