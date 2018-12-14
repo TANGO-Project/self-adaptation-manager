@@ -51,16 +51,16 @@ public abstract class AbstractEventAssessor implements EventAssessor {
     private ArrayList<EventListener> listeners = new ArrayList<>();
     private ActuatorInvoker actuator = null;
     private List<EventData> eventHistory = new ArrayList<>();
-    private DecisionEngine decisionEngine;
+    protected DecisionEngine decisionEngine;
     private String decisionEngineName = "RandomDecisionEngine";
-    private boolean logging = true;
-    private ResponseHistoryLogger responseHistoryLogger = null;
+    protected boolean logging = true;
+    protected ResponseHistoryLogger responseHistoryLogger = null;
     private Thread responseHistoryLoggerThread = null;
     private EventHistoryLogger eventHistoryLogger = null;
     private Thread eventHistoryLoggerThread = null;
-    private List<Response> adaptations = new ArrayList<>();
+    protected List<Response> adaptations = new ArrayList<>();
     //duration a history item can stay alive
-    private int historyLengthSeconds = (int) TimeUnit.MINUTES.toSeconds(5);
+    protected int historyLengthSeconds = (int) TimeUnit.MINUTES.toSeconds(5);
     //The rate at how often history items are checked to be still in date
     private int pollInterval = 5;
     private Thread historyClearerThread = null;
@@ -174,7 +174,7 @@ public abstract class AbstractEventAssessor implements EventAssessor {
      * @return A response object in cases where an adaptive response is
      * required.
      */
-    private Response assessEvent(EventData event, List<EventData> eventData) {
+    protected Response assessEvent(EventData event, List<EventData> eventData) {
         synchronized (this) {
             if (actuator != null && event instanceof ApplicationEventData) {
                 ApplicationEventData appEvent = (ApplicationEventData) event;
