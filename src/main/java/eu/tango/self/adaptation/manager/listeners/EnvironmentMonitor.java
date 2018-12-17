@@ -54,6 +54,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
     private final HostDataSource datasource;
     private boolean running = false;
     private final SlaRulesLoader limits = SlaRulesLoader.getInstance();
+    HashSet<String> termsFromOtherMonitors = new HashSet<>();
 
     /**
      * Instantiates the Environment monitor with the default CollectD data
@@ -83,6 +84,12 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         if (datasource instanceof CollectdDataSourceAdaptor) {
             ((CollectdDataSourceAdaptor) datasource).setNotificationHandler(this);
         }
+        termsFromOtherMonitors.add("APP_STARTED");
+        termsFromOtherMonitors.add("APP_FINISHED");
+        termsFromOtherMonitors.add("IDLE_HOST");
+        termsFromOtherMonitors.add("CLOSE_TO_DEADLINE");
+        termsFromOtherMonitors.add("HOST_DRAIN");
+        termsFromOtherMonitors.add("HOST_FAILURE");        
     }
 
     @Override
@@ -197,8 +204,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 if (event != null) {
                     answer.add(event);
                 }                
-            } 
-            if (term.getAgreementTerm().contains("APP:")) {
+            } else if (term.getAgreementTerm().contains("APP:")) {
                 String[] termStr = term.getSplitAgreementTerm();
                 /**
                  * Application based data should follow the format:
@@ -217,8 +223,10 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
                 if (event != null) {
                     answer.add(event);
                 }
-            } else {
-                answer.addAll(detectEvent(term, datasource.getHostList()));
+            } else { //General metrics
+                List<EventData> events = detectEvent(term, hostmeasurements);
+                if (events != null | !events.isEmpty())
+                answer.addAll(events);
             }
         }
         return answer;
@@ -253,13 +261,17 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
      * @return The list of SLA breach events, the empty list is returned if no
      * breach occurs.
      */
-    private ArrayList<EventData> detectEvent(SLATerm term, List<Host> hosts) {
+    private ArrayList<EventData> detectEvent(SLATerm term,List<HostMeasurement> hostmeasurements) {
         ArrayList<EventData> answer = new ArrayList<>();
-        for (Host host : hosts) {
-            EventData event = detectEvent(term, term.getAgreementTerm(), host);
-            if (event != null) {
-                answer.add(event);
-            }
+        //This removes terms that can't be found by the monitoring infrastructure
+        for (String ignorableTerm : termsFromOtherMonitors) {
+            if (term.getAgreementTerm().contains(ignorableTerm)) {
+                return answer;
+            }            
+        }
+        List<EventData> events = detectEvents(term, term.getAgreementTerm(), hostmeasurements);
+        if (events != null || events.isEmpty()) {
+            answer.addAll(events);
         }
         return answer;
     }
@@ -360,8 +372,38 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
              * it should be ignored.
              */
             return null;
-        }
+        }        
+        return detectEvent(term, agreementTerm, measurement);
+    }    
 
+    /**
+     * Detects any QoS term breaches
+     *
+     * @param term The sla term to check against
+     * @param agreementTerm The parsed string for the agreement term
+     * @param measurement The host measurement to test for a breach of SLA criteria
+     * @return The SLA breach events if it occurs, otherwise null
+     */
+    private List<EventData> detectEvents(SLATerm term, String agreementTerm, List<HostMeasurement> measurements) {
+        ArrayList<EventData> answer = new ArrayList<>();
+        for (HostMeasurement measurement : measurements) {
+            EventData item = detectEvent(term, agreementTerm, measurement);
+            if (item != null) {
+                answer.add(item);
+            }
+        }
+        return answer;
+    }    
+    
+    /**
+     * Detects any QoS term breaches
+     *
+     * @param term The sla term to check against
+     * @param agreementTerm The parsed string for the agreement term
+     * @param measurement The host measurement to test for a breach of SLA criteria
+     * @return The SLA breach events if it occurs, otherwise null
+     */
+    private HostEventData detectEvent(SLATerm term, String agreementTerm, HostMeasurement measurement) {
         if (measurement.getMetric(agreementTerm) == null) {
             /**
              * Check the metric term exists, it may be that another monitor
@@ -373,7 +415,7 @@ public class EnvironmentMonitor implements EventListener, Runnable, CollectDNoti
         }
         double currentValue = measurement.getMetric(agreementTerm).getValue();
         if (term.isBreached(currentValue)) {
-            return new HostEventData(measurement.getClock(), host.getHostName(),
+            return new HostEventData(measurement.getClock(), measurement.getHost().getHostName(),
                     currentValue, term.getGuaranteedValue(),
                     term.getSeverity(),
                     term.getGuaranteeOperator(),
