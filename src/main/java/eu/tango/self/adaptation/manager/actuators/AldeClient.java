@@ -713,6 +713,9 @@ public class AldeClient {
             return null;
         }
         ApplicationDefinition definition = getApplicationDefinition(instance);
+        if (definition == null) {
+            return null;
+        }
         return definition.getProperties();
     }
 
