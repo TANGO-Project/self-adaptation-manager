@@ -19,6 +19,7 @@
 package eu.tango.self.adaptation.manager.actuators;
 
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
+import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.rules.datatypes.HostEventData;
 import eu.tango.self.adaptation.manager.rules.datatypes.Response;
 import java.util.ArrayList;
@@ -161,6 +162,54 @@ public abstract class AbstractActuator implements ActuatorInvoker, Runnable {
             return response.getAdaptationDetail("host");
         }
         return null;
-    }    
+    }
+    
+    /**
+     * This generates an action to reverse an event in cases where the appropriate
+     * keyword is in place. i.e. REVERSE
+     * @param response The response to consider reversing in n seconds after.
+     */
+    protected void generateReverseApplicationAction(Response response) {
+        if (response.hasAdaptationDetail("REVERSE")
+                || response.hasAdaptationDetail("UNPAUSE")) {
+            /**
+             * This requires to have a matching rule to negate the effect of the first.
+             * The matching rule starts with an exclamation! instead.
+            */
+            int reverseAction = -1;
+            if (response.hasAdaptationDetail("REVERSE")) {
+                //The generic keyword is REVERSE
+                reverseAction = Integer.parseInt(response.getAdaptationDetail("REVERSE"));
+                //UNPAUSE is a legacy keyword, the host version of this is REBOOT
+            } else if (response.hasAdaptationDetail("UNPAUSE")) {
+                reverseAction = Integer.parseInt(response.getAdaptationDetail("UNPAUSE"));
+            }
+            ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "application=" + response.getApplicationId() + ";deploymentid=" + getTaskDeploymentId(response), reverseAction);
+        }         
+    }
+    
+    /**
+     * This generates an action to reverse an event in cases where the appropriate
+     * keyword is in place. i.e. REVERSE
+     * @param response The response to consider reversing in n seconds after.
+     */
+    protected void generateReverseHostAction(Response response) {
+        if (response.hasAdaptationDetail("REVERSE")
+                || response.hasAdaptationDetail("REBOOT")) {
+            /**
+             * This requires to have a matching rule to negate the effect of the first.
+             * The matching rule starts with an exclamation! instead.
+            */
+            int reverseinNSeconds = -1;
+            if (response.hasAdaptationDetail("REVERSE")) {
+                //The generic keyword is REVERSE
+                reverseinNSeconds = Integer.parseInt(response.getAdaptationDetail("REVERSE"));
+                //UNPAUSE is a legacy keyword, the host version of this is REBOOT
+            } else if (response.hasAdaptationDetail("REBOOT")) {
+                reverseinNSeconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
+            }
+            ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "host=" + getHostname(response), reverseinNSeconds);
+        }         
+    }        
 
 }

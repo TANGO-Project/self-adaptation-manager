@@ -22,7 +22,6 @@ import eu.tango.energymodeller.datasourceclient.SlurmDataSourceAdaptor;
 import eu.tango.energymodeller.types.energyuser.ApplicationOnHost;
 import eu.tango.energymodeller.types.energyuser.Host;
 import static eu.tango.self.adaptation.manager.io.ExecuteUtils.execCmd;
-import eu.tango.self.adaptation.manager.listeners.ClockMonitor;
 import eu.tango.self.adaptation.manager.model.ApplicationDefinition;
 import eu.tango.self.adaptation.manager.qos.SlaRulesLoader;
 import eu.tango.self.adaptation.manager.rules.datatypes.ApplicationEventData;
@@ -531,23 +530,18 @@ public class SlurmActuator extends AbstractActuator {
                 break;
             case ADD_TASK:
                 addResource(response.getApplicationId(), getTaskDeploymentId(response), response.getAdaptationDetails());
+                generateReverseApplicationAction(response);                
                 break;
             case REMOVE_TASK:
                 removeResource(response.getApplicationId(), getTaskDeploymentId(response), response.getTaskId());
+                generateReverseApplicationAction(response);
                 break;
             case SCALE_TO_N_TASKS:
                 scaleToNTasks(response.getApplicationId(), getTaskDeploymentId(response), response);
                 break;
             case PAUSE_APP:
                 pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
-                if (response.hasAdaptationDetail("UNPAUSE")) {
-                    /**
-                     * This requires to have a matching rule to negate the effect of the first.
-                     * The matching rule starts with an exclamation! instead.
-                     */
-                    int unpauseInNseconds = Integer.parseInt(response.getAdaptationDetail("UNPAUSE"));
-                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "application=" + response.getApplicationId() + ";deploymentid=" + getTaskDeploymentId(response), unpauseInNseconds);
-                }
+                generateReverseApplicationAction(response); //requires UNPAUSE keyword
                 break;
             case UNPAUSE_APP:
                 resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
@@ -607,10 +601,7 @@ public class SlurmActuator extends AbstractActuator {
                 if (host != null) {
                     shutdownHost(host);
                 }
-                if (response.hasAdaptationDetail("REBOOT")) {
-                    int resumeInNseconds = Integer.parseInt(response.getAdaptationDetail("REBOOT"));
-                    ClockMonitor.getInstance().addEvent("!" + response.getCause().getAgreementTerm(), "host=" + host, resumeInNseconds);
-                }
+                generateReverseHostAction(response);
                 break;
             default:
                 Logger.getLogger(SlurmActuator.class.getName()).log(Level.SEVERE, "The Response type was not recognised by this adaptor");
