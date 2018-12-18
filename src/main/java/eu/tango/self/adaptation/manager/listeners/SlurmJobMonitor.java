@@ -46,6 +46,7 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
     private HashSet<Host> drainingHosts = new HashSet<>();
     private double lastPowerCap = Double.NaN;
     private HashSet<ApplicationOnHost> runningJobs = null;
+    private HashSet<ApplicationOnHost> previousPendingJobs = null;
     
     private static final String APP_STARTED = "APP_STARTED";
     private static final String APP_FINISHED = "APP_FINISHED";
@@ -118,6 +119,9 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
         }
         if (containsTerm(limits, HOST_DRAIN)) {
             answer.addAll(detectHostDrain());
+        }
+        if (containsTerm(limits, PENDING_JOB)) {
+            answer.addAll(detectPendingJobs());
         }
         //Add next test here
 
@@ -349,6 +353,45 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
         }
         return answer;
     }
+    
+    /**
+     * This detects jobs that are in the pending state.
+     *
+     * @return The list of events indicating which jobs are in the pending state.
+     */
+    private ArrayList<EventData> detectPendingJobs() {
+        ArrayList<EventData> eventsList = new ArrayList<>();
+        if (previousPendingJobs == null) {
+            /**
+             * This checks the startup case, where detection doesn't want to act
+             * just because the SAM started.
+             */
+            previousPendingJobs = new HashSet<>(datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.PENDING));
+            return eventsList;
+        }
+        List<ApplicationOnHost> currentRoundAppList = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.PENDING);
+        HashSet<ApplicationOnHost> firstRound = new HashSet<>(previousPendingJobs);
+        HashSet<ApplicationOnHost> secondRound = new HashSet<>(currentRoundAppList);
+        HashSet<ApplicationOnHost> recentPending = new HashSet<>(secondRound);
+        recentPending.removeAll(firstRound); //Remove all jobs that are already in pending state
+        EventData event;
+        for (ApplicationOnHost pendingJob : recentPending) {
+            event = new ApplicationEventData(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), 
+                    0.0,
+                    0.0,
+                    EventData.Type.WARNING,
+                    EventData.Operator.EQ,
+                    pendingJob.getName(),
+                    pendingJob.getId() + "",
+                    PENDING_JOB,
+                    PENDING_JOB);
+            event.setSignificantOnOwn(true);
+            eventsList.add(event);
+        }
+        //Ensures the list of currently pending jobs is updated.
+        previousPendingJobs = new HashSet<>(currentRoundAppList);
+        return eventsList;
+    }    
 
     /**
      * This detects hosts that have jobs stuck on them with pending resource
@@ -445,8 +488,8 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
             }
         }
         return answer;
-    }
-
+    } 
+    
     /**
      * This lists the pending jobs on an idle host. This means the SAM has the
      * possibility of detecting this and therefore responding to it. e.g. it
@@ -496,24 +539,6 @@ public class SlurmJobMonitor extends AbstractJobMonitor {
             if (item.getState().trim().equalsIgnoreCase("IDLE")) {
                 answer.add(item);
             }
-        }
-        return answer;
-    }
-
-    /**
-     * This lists the long pending jobs in the queue.
-     *
-     * @return The list of pending jobs, that have been in the queue for a long
-     * time.
-     */
-    private List<Host> getLongPendingJobsInQueue() {
-        List<Host> answer = new ArrayList<>();
-        //TODO Consider if this is a deployment time issue, not runtime??
-        //Is it only runtime if the resources available change
-        List<ApplicationOnHost> pendingJobs = datasource.getHostApplicationList(ApplicationOnHost.JOB_STATUS.PENDING);
-        for (ApplicationOnHost pendingJob : pendingJobs) {
-            //TODO add the notion of long pending here
-            answer.add(pendingJob.getAllocatedTo());
         }
         return answer;
     }
