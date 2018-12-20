@@ -325,7 +325,7 @@ public class SlaRulesLoader {
             appendRulesFromAlde();
             System.out.println("POST: " + limits.getQosCriteria().size());
         }
-        System.out.print("TERMS Loaded in From ALDE");
+        System.out.println("TERMS Loaded in From ALDE");
         for (SLATerm term : limits.getQosCriteria()) {
             System.out.println(term);
         }
