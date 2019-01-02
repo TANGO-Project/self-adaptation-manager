@@ -345,8 +345,9 @@ public abstract class AbstractDecisionEngine implements DecisionEngine {
      */
     protected Response handleDownHosts(Response response) {
         if (response.getCause() instanceof HostEventData) {
-                HostEventData event = (HostEventData) response.getCause();
-            if (modeller.getHost(event.getHost()).getState().trim().toLowerCase().contains("down")) {
+            HostEventData event = (HostEventData) response.getCause();
+            Host host = modeller.getHost(event.getHost());
+            if (host == null || host.getState().trim().toLowerCase().contains("down")) {
                 event.setHost("");
                 response.setAdaptationDetails("");
             }
