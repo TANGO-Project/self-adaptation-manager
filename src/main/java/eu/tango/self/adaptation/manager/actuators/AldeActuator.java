@@ -138,95 +138,105 @@ public class AldeActuator extends AbstractActuator {
             response.setPossibleToAdapt(false);
             return;
         }
-        switch (response.getActionType()) {
-            case PAUSE_APP:
-                pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
-                generateReverseApplicationAction(response);
-                break;
-            case UNPAUSE_APP:
-                resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
-                break;
-            case PAUSE_SIMILAR_APPS:
-                pauseSimilarJob(response.getApplicationId());
-                break;
-            case UNPAUSE_SIMILAR_APPS:
-                resumeSimilarJob(response.getApplicationId());
-                break;
-            case KILL_SIMILAR_APPS:
-                killSimilarApps(response.getApplicationId());
-                break;                
-            case KILL_APP:
-            case HARD_KILL_APP:
-                hardKillApp(response.getApplicationId(), getTaskDeploymentId(response));
-                break;            
-            case ADD_TASK:
-                addResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
-                generateReverseApplicationAction(response);
-                break;
-            case REMOVE_TASK:
-                removeResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
-                generateReverseApplicationAction(response);
-                break;
-            case SCALE_TO_N_TASKS:
-                scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
-                break;
-            case RESELECT_ACCELERATORS:
-                boolean killPrevious = true;
-                if (getTaskDeploymentId(response) == null || getTaskDeploymentId(response).isEmpty()) {
-                    response.setPossibleToAdapt(false);
-                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No suitable application was found to reselect accelerators for");
+        try { //This catches errors that occur in the event the ALDE is down.
+            switch (response.getActionType()) {
+                case PAUSE_APP:
+                    pauseJob(response.getApplicationId(), getTaskDeploymentId(response));
+                    generateReverseApplicationAction(response);
                     break;
-                }
-                if (response.hasAdaptationDetail("KILL_PREVIOUS")) {
-                    String killPreviousStr = response.getAdaptationDetail("KILL_PREVIOUS");
-                    killPrevious = Boolean.parseBoolean(killPreviousStr);
-                }
-                RankCriteria rankBy = RankCriteria.ENERGY;
-                if (response.hasAdaptationDetail("RANK_BY")) {
-                    String rankByStr = response.getAdaptationDetail("RANK_BY");
-                    if (RankCriteria.valueOf(rankByStr) != null) {
-                        rankBy = RankCriteria.valueOf(rankByStr);
+                case UNPAUSE_APP:
+                    resumeJob(response.getApplicationId(), getTaskDeploymentId(response));
+                    break;
+                case PAUSE_SIMILAR_APPS:
+                    pauseSimilarJob(response.getApplicationId());
+                    break;
+                case UNPAUSE_SIMILAR_APPS:
+                    resumeSimilarJob(response.getApplicationId());
+                    break;
+                case KILL_SIMILAR_APPS:
+                    killSimilarApps(response.getApplicationId());
+                    break;                
+                case KILL_APP:
+                case HARD_KILL_APP:
+                    hardKillApp(response.getApplicationId(), getTaskDeploymentId(response));
+                    break;            
+                case ADD_TASK:
+                    addResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
+                    generateReverseApplicationAction(response);
+                    break;
+                case REMOVE_TASK:
+                    removeResource(response.getApplicationId(), response.getDeploymentId(), response.getAdaptationDetail("TASK_TYPE"));
+                    generateReverseApplicationAction(response);
+                    break;
+                case SCALE_TO_N_TASKS:
+                    scaleToNTasks(response.getApplicationId(), response.getDeploymentId(), response);
+                    break;
+                case RESELECT_ACCELERATORS:
+                    boolean killPrevious = true;
+                    if (getTaskDeploymentId(response) == null || getTaskDeploymentId(response).isEmpty()) {
+                        response.setPossibleToAdapt(false);
+                        Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "No suitable application was found to reselect accelerators for");
+                        break;
                     }
-                }
-                ApplicationDefinition appDef = reselectAccelerators(response.getApplicationId(), getTaskDeploymentId(response), killPrevious, rankBy);
-                if (appDef == null) {
-                    response.setPossibleToAdapt(false);
-                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
-                }
-            break;
-            case INCREASE_POWER_CAP:
-                increasePowerCap(response);
+                    if (response.hasAdaptationDetail("KILL_PREVIOUS")) {
+                        String killPreviousStr = response.getAdaptationDetail("KILL_PREVIOUS");
+                        killPrevious = Boolean.parseBoolean(killPreviousStr);
+                    }
+                    RankCriteria rankBy = RankCriteria.ENERGY;
+                    if (response.hasAdaptationDetail("RANK_BY")) {
+                        String rankByStr = response.getAdaptationDetail("RANK_BY");
+                        if (RankCriteria.valueOf(rankByStr) != null) {
+                            rankBy = RankCriteria.valueOf(rankByStr);
+                        }
+                    }
+                    ApplicationDefinition appDef = reselectAccelerators(response.getApplicationId(), getTaskDeploymentId(response), killPrevious, rankBy);
+                    if (appDef == null) {
+                        response.setPossibleToAdapt(false);
+                        Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "It wasn't possible to adapt, due to a suitable application not being found");
+                    }
                 break;
-            case REDUCE_POWER_CAP:
-                decreasePowerCap(response);
+                case INCREASE_POWER_CAP:
+                    increasePowerCap(response);
+                    break;
+                case REDUCE_POWER_CAP:
+                    decreasePowerCap(response);
+                    break;
+                case SET_POWER_CAP:
+                    setPowerCap(response);                
                 break;
-            case SET_POWER_CAP:
-                setPowerCap(response);                
-            break;
-            case STARTUP_HOST:
-                String host = getHostname(response);
-                if (host != null) {
-                    startupHost(host);
-                } else {
-                    response.setPossibleToAdapt(false);
-                }
-            break;                
-            case SHUTDOWN_HOST:
-                host = getHostname(response);    
-                if (host != null) {
-                    preShutdownHost(host, response);
-                    //This bit peforms the main operation to shutdown the host
-                    shutdownHost(host);
-                } else {
-                    response.setPossibleToAdapt(false);
-                }
-                generateReverseHostAction(response);
-                break;
-            default:
-                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recognised by this adaptor");
-                break;
-        }
-        response.setPerformed(true);
+                case STARTUP_HOST:
+                    String host = getHostname(response);
+                    if (host != null) {
+                        startupHost(host);
+                    } else {
+                        response.setPossibleToAdapt(false);
+                    }
+                break;                
+                case SHUTDOWN_HOST:
+                    host = getHostname(response);    
+                    if (host != null) {
+                        preShutdownHost(host, response);
+                        //This bit peforms the main operation to shutdown the host
+                        shutdownHost(host);
+                    } else {
+                        response.setPossibleToAdapt(false);
+                    }
+                    generateReverseHostAction(response);
+                    break;
+                default:
+                    Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "The response type was not recognised by this adaptor");
+                    break;
+            }
+            response.setPerformed(true);
+        } catch (Exception ex) {
+            if (parent != null && parent instanceof AldeAndSlurmActuator) {
+                ((AldeAndSlurmActuator)parent).getAlternativeActuator(this).actuate(response);
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "Passing the action from the ALDE actuator to the SLURM actuator.", ex);
+            } else {
+                Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, "An error occured and was caught.", ex);
+                response.setPerformed(false);
+            }
+        } 
     }
 
     /**
@@ -689,7 +699,10 @@ public class AldeActuator extends AbstractActuator {
      */
     public void pauseJob(String applicationName, String deploymentId) {
         try {
-            client.pauseJob(client.getExecutionInstance(deploymentId).getExecutionId());
+            ApplicationExecutionInstance instance = client.getExecutionInstance(deploymentId);
+            if (instance != null) {
+                client.pauseJob(instance.getExecutionId());
+            } 
         } catch (IOException ex) {
             Logger.getLogger(AldeActuator.class.getName()).log(Level.SEVERE, null, ex);
         }  

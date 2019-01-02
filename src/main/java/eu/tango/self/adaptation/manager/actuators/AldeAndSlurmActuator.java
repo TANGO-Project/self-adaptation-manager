@@ -171,6 +171,21 @@ public class AldeAndSlurmActuator implements ActuatorInvoker, Runnable {
         slurm.scaleToNTasks(applicationId, deploymentId, response);
     }
 
+    /**
+     * This gets returns an alternative actuator to use in event of failure of
+     * any underlying actuator
+     * @param alreadyInvoked The last actuator to try to invoke the adaptation for
+     * @return The alternative actuator
+     */
+    public ActuatorInvoker getAlternativeActuator(ActuatorInvoker alreadyInvoked) {
+        if (alreadyInvoked == alde) {
+            return slurm;
+        } else if (alreadyInvoked == slurm) {
+            return alde;
+        }
+        return slurm;
+    }    
+
     @Override
     public void run() {
         Thread aldeActuatorThread = new Thread((Runnable) alde);
